@@ -15,7 +15,13 @@
 
 
     <div class="logo-section">
-      <img src="${url.resourcesPath}/img/blsc_white.png" alt="Bluesec Logo" class="login-logo" />
+      <img src="${url.resourcesPath}/img/blsc_white.png" alt="BlueSec" class="login-logo" />
+      <#if properties.productName?has_content>
+        <div class="product-name">${properties.productName}</div>
+      </#if>
+      <#if properties.productTagline?has_content>
+        <div class="product-tagline">${properties.productTagline}</div>
+      </#if>
     </div>
 
     <div class="card-body">

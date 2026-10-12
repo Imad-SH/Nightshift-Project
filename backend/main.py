@@ -13,7 +13,7 @@ from app.api.api import api_router
 async def lifespan(app: FastAPI):
     """Application lifespan manager"""
     # Startup
-    print("🚀 Starting Cortex OS Backend...")
+    print(f"🚀 Starting {settings.app_name} backend...")
     redis_service.connect()
     
     # Initialize Database (Phase 2b)
@@ -65,7 +65,7 @@ async def lifespan(app: FastAPI):
     
     yield
     # Shutdown
-    print("🛑 Shutting down Cortex OS Backend...")
+    print(f"🛑 Shutting down {settings.app_name} backend...")
     redis_service.disconnect()
 
 

@@ -71,11 +71,11 @@ class FlowintelService:
         
         # 1. Format Description — use manual if provided, skip AI report if not analyzed
         if manual_description:
-            description = f"## CASE DESCRIPTION\n{manual_description}\n\n---\n*Escalated manually from Cognitive SOC Dashboard*"
+            description = f"## CASE DESCRIPTION\n{manual_description}\n\n---\n*Escalated manually from {settings.brand_name}*"
         elif is_ai_analyzed:
             description = self._format_description(node_results, alert_agent)
         else:
-            description = "*No AI analysis was performed on this alert.*\n\n---\n*Escalated from Cognitive SOC Dashboard*"
+            description = f"*No AI analysis was performed on this alert.*\n\n---\n*Escalated from {settings.brand_name}*"
 
         # 2. Extract Indicators (Observables)
         indicators = self._extract_indicators(node_results)
@@ -165,7 +165,7 @@ class FlowintelService:
         else:
             desc += "No immediate mitigation recommended.\n"
         
-        desc += "\n---\n*Escalated from Cognitive SOC Dashboard*"
+        desc += f"\n---\n*Escalated from {settings.brand_name}*"
         return desc
 
     def _extract_indicators(self, node_results: Dict[str, Any]) -> List[Dict[str, Any]]:

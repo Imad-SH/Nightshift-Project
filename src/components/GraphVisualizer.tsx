@@ -12,6 +12,7 @@ import { AlertDetails } from './AlertDetails';
 import { StandbyState } from './StandbyState';
 
 import { createPortal } from 'react-dom';
+import { BRAND } from '../brand';
 
 const getIocTypeStyle = (ioc: string): { label: string; badge: string; rowIdle: string; rowSelected: string; glow: string } => {
     const c = String(ioc).trim();
@@ -936,7 +937,7 @@ export const GraphVisualizer = ({ selectedAlertId }: GraphVisualizerProps) => {
         return invNode?.data.results?.external_intel?.filter((i: any) => !i.is_local && i.tool !== 'Local Analysis') || [];
     };
 
-    const CACHE_KEY_GRAPH = 'cortex_graph_cache_v1';
+    const CACHE_KEY_GRAPH = `${BRAND.storagePrefix}graph_cache_v1`;
 
     const loadGraphCache = useCallback((): Record<string, GraphState> => {
         try {

@@ -52,9 +52,9 @@ class RedisService:
         try:
             import json
             # Store as JSON string
-            self.client.lpush("cortex:alerts", json.dumps(alert_data))
+            self.client.lpush("nightshift:alerts", json.dumps(alert_data))
             # Keep only last 50
-            self.client.ltrim("cortex:alerts", 0, 49)
+            self.client.ltrim("nightshift:alerts", 0, 49)
         except Exception as e:
             print(f"❌ Redis save failed: {e}")
 
@@ -66,7 +66,7 @@ class RedisService:
         try:
             import json
             # Get all items from list
-            raw_alerts = self.client.lrange("cortex:alerts", 0, limit - 1)
+            raw_alerts = self.client.lrange("nightshift:alerts", 0, limit - 1)
             return [json.loads(alert) for alert in raw_alerts]
         except Exception as e:
             print(f"❌ Redis retrieve failed: {e}")

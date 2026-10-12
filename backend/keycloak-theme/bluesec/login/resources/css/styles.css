@@ -151,8 +151,10 @@
 .logo-section {
   padding: 3rem 2rem 2rem;
   display: flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
+  gap: 0.6rem;
   border-bottom: 1px solid rgba(0, 242, 234, 0.2);
   background-color: rgba(0, 0, 0, 0.2);
 }
@@ -160,6 +162,21 @@
 .login-logo {
   max-width: 240px;
   height: auto;
+}
+
+.product-name {
+  color: #00f2ea;
+  font-size: 1.1rem;
+  font-weight: 700;
+  letter-spacing: 0.45em;
+  text-transform: uppercase;
+  text-shadow: 0 0 12px rgba(0, 242, 234, 0.45);
+}
+
+.product-tagline {
+  color: rgba(255, 255, 255, 0.55);
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
 }
 
 .card-header {

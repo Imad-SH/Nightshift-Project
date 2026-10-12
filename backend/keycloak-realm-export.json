@@ -1,6 +1,7 @@
 {
   "id": "d11839fa-3458-4ecf-8bea-04b4ced01ec3",
-  "realm": "AI-Driven SOC",
+  "realm": "nightshift",
+  "displayName": "BlueSec Nightshift",
   "notBefore": 0,
   "defaultSignatureAlgorithm": "RS256",
   "revokeRefreshToken": false,
@@ -57,7 +58,7 @@
       },
       {
         "id": "c8257bb9-9cd4-4d7b-ba15-2d9152e5a7ba",
-        "name": "default-roles-ai-driven soc",
+        "name": "default-roles-nightshift",
         "description": "${role_default-roles}",
         "composite": true,
         "composites": {
@@ -448,7 +449,7 @@
   "groups": [],
   "defaultRole": {
     "id": "c8257bb9-9cd4-4d7b-ba15-2d9152e5a7ba",
-    "name": "default-roles-ai-driven soc",
+    "name": "default-roles-nightshift",
     "description": "${role_default-roles}",
     "composite": true,
     "clientRole": false,
@@ -523,13 +524,13 @@
       "clientId": "account",
       "name": "${client_account}",
       "rootUrl": "${authBaseUrl}",
-      "baseUrl": "/realms/AI-Driven%20SOC/account/",
+      "baseUrl": "/realms/nightshift/account/",
       "surrogateAuthRequired": false,
       "enabled": true,
       "alwaysDisplayInConsole": false,
       "clientAuthenticatorType": "client-secret",
       "redirectUris": [
-        "/realms/AI-Driven%20SOC/account/*"
+        "/realms/nightshift/account/*"
       ],
       "webOrigins": [],
       "notBefore": 0,
@@ -570,13 +571,13 @@
       "clientId": "account-console",
       "name": "${client_account-console}",
       "rootUrl": "${authBaseUrl}",
-      "baseUrl": "/realms/AI-Driven%20SOC/account/",
+      "baseUrl": "/realms/nightshift/account/",
       "surrogateAuthRequired": false,
       "enabled": true,
       "alwaysDisplayInConsole": false,
       "clientAuthenticatorType": "client-secret",
       "redirectUris": [
-        "/realms/AI-Driven%20SOC/account/*"
+        "/realms/nightshift/account/*"
       ],
       "webOrigins": [],
       "notBefore": 0,
@@ -805,13 +806,13 @@
       "clientId": "security-admin-console",
       "name": "${client_security-admin-console}",
       "rootUrl": "${authAdminUrl}",
-      "baseUrl": "/admin/AI-Driven%20SOC/console/",
+      "baseUrl": "/admin/nightshift/console/",
       "surrogateAuthRequired": false,
       "enabled": true,
       "alwaysDisplayInConsole": false,
       "clientAuthenticatorType": "client-secret",
       "redirectUris": [
-        "/admin/AI-Driven%20SOC/console/*"
+        "/admin/nightshift/console/*"
       ],
       "webOrigins": [
         "+"

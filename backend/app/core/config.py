@@ -12,8 +12,12 @@ load_dotenv(ENV_PATH)
 class Settings(BaseSettings):
     """Application configuration settings"""
     
+    # Branding — display names only. Override via VENDOR_NAME / PRODUCT_NAME to white-label.
+    vendor_name: str = "BlueSec"
+    product_name: str = "Nightshift"
+
     # API Settings
-    app_name: str = "Cognitive SOC"
+    app_name: str = "BlueSec Nightshift"
     app_version: str = "1.0.0"
     debug: bool = True
     
@@ -37,7 +41,7 @@ class Settings(BaseSettings):
 
     # Keycloak Settings
     keycloak_server_url: str = "http://localhost:8080"
-    keycloak_realm: str = "AI-Driven SOC"
+    keycloak_realm: str = "nightshift"
     keycloak_client_id: str = "bluesec-frontend"
     keycloak_admin_user: str = "admin"
     keycloak_admin_password: str = "admin"
@@ -115,6 +119,11 @@ class Settings(BaseSettings):
         "case_sensitive": False,
         "extra": "ignore"
     }
+
+    @property
+    def brand_name(self) -> str:
+        """Full product name shown to users, e.g. 'BlueSec Nightshift'."""
+        return f"{self.vendor_name} {self.product_name}".strip()
 
     def update_from_dict(self, updates: dict):
         """Hot-reload settings from a dictionary (e.g. database values)"""

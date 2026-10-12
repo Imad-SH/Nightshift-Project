@@ -443,7 +443,7 @@ const ProvisionUserModal = ({ isOpen, onClose, onAdd }: { isOpen: boolean, onClo
                                         type="email"
                                         value={email}
                                         onChange={(e) => setEmail(e.target.value)}
-                                        placeholder="user@bluesec.local"
+                                        placeholder="analyst@company.com"
                                         className="w-full bg-slate-950/60 border border-cyan-500/20 hover:border-cyan-500/35 focus:border-cyan-500/60 focus:outline-none rounded-lg py-2.5 px-4 text-sm text-slate-200 transition-all placeholder:text-slate-600 [&:-webkit-autofill]:!bg-slate-950 [&:-webkit-autofill]:!shadow-[0_0_0_1000px_#020617_inset] [&:-webkit-autofill]:!text-slate-200"
                                     />
                                 </div>

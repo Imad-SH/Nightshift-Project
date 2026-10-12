@@ -94,11 +94,11 @@ class TheHiveService:
         
         # 1. Format Description (Markdown) — use manual if provided, skip AI report if not analyzed
         if manual_description:
-            description = f"## CASE DESCRIPTION\n{manual_description}\n\n---\n*Escalated manually from Cognitive SOC Dashboard*"
+            description = f"## CASE DESCRIPTION\n{manual_description}\n\n---\n*Escalated manually from {settings.brand_name}*"
         elif is_ai_analyzed:
             description = self._format_description(event_data, alert_agent)
         else:
-            description = "*No AI analysis was performed on this alert.*\n\n---\n*Escalated from Cognitive SOC Dashboard*"
+            description = f"*No AI analysis was performed on this alert.*\n\n---\n*Escalated from {settings.brand_name}*"
 
         # 2. Extract Observables
         observables = self._extract_observables(node_results)
@@ -279,7 +279,7 @@ class TheHiveService:
         else:
             desc += "No immediate mitigation recommended.\n"
         
-        desc += "\n---\n*Escalated from Cognitive SOC Dashboard*"
+        desc += f"\n---\n*Escalated from {settings.brand_name}*"
         return desc
 
     def _get_ioc_table(self, node_results: Dict[str, Any]) -> str:

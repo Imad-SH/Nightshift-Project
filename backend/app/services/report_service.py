@@ -3,6 +3,7 @@ import logging
 from datetime import datetime
 from typing import Dict, Any
 from fpdf import FPDF
+from app.core.config import settings
 
 logger = logging.getLogger(__name__)
 
@@ -42,7 +43,7 @@ class ModernReport(FPDF):
         self.set_font('Helvetica', 'B', 14)
         self.set_text_color(255, 255, 255)
         self.set_xy(10, 6)
-        self.cell(0, 8, "CORTEX INVESTIGATION REPORT", 0, 1, 'L')
+        self.cell(0, 8, f"{settings.product_name.upper()} INVESTIGATION REPORT", 0, 1, 'L')
         
         self.set_font('Courier', 'B', 10)
         self.set_text_color(*COLOR_ACCENT)
@@ -90,7 +91,7 @@ class ReportService:
 
     def generate_pdf_report(self, alert_id: str, event_data: Dict[str, Any]) -> str:
         try:
-            filename = f"Cortex_Report_{alert_id}_{datetime.now().strftime('%H%M%S')}.pdf"
+            filename = f"{settings.product_name}_Report_{alert_id}_{datetime.now().strftime('%H%M%S')}.pdf"
             filepath = os.path.join(self.output_dir, filename)
 
             # Initialize PDF

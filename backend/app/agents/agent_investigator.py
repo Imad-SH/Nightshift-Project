@@ -1041,7 +1041,7 @@ class AgentInvestigator:
         """
         async with self._semaphores["EmailRep"]:
             try:
-                headers = {"User-Agent": "CortexSOC-Investigator"}
+                headers = {"User-Agent": f"{settings.product_name}-Investigator"}
                 if getattr(settings, 'emailrep_api_key', None):
                     headers["Key"] = settings.emailrep_api_key
 

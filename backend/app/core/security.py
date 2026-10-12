@@ -8,7 +8,7 @@ import httpx
 security = HTTPBearer()
 
 KEYCLOAK_SERVER_URL = os.getenv("KEYCLOAK_SERVER_URL", "http://localhost:8080")
-REALM = os.getenv("KEYCLOAK_REALM", "AI-Driven SOC")
+REALM = os.getenv("KEYCLOAK_REALM", "nightshift")
 CLIENT_ID = os.getenv("KEYCLOAK_CLIENT_ID", "bluesec-frontend")
 JWKS_URL = f"{KEYCLOAK_SERVER_URL}/realms/{REALM}/protocol/openid-connect/certs"
 

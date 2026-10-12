@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { LayoutDashboard, Users, Fingerprint, BarChart3, Unplug, Loader2, Camera, Settings, Crosshair } from 'lucide-react';
 import { useSocAuth } from '../contexts/AuthContext';
 import { useSettings } from '../contexts/SettingsContext';
+import { BRAND } from '../brand';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
@@ -181,8 +182,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, setIsCollapsed, a
                         isCollapsed ? "w-[44px] left-[20px] opacity-90" : "w-[160px] left-[60px] opacity-100"
                     )}>
                         <img
-                            src={customLogo || "/assets/bluesec-logo.png"}
-                            alt="BlueSec"
+                            src={customLogo || BRAND.logo}
+                            alt={BRAND.fullName}
                             className="absolute top-1/2 -translate-y-1/2 left-0 h-12 object-left object-contain min-w-[160px] max-w-[160px]"
                         />
                     </div>

@@ -45,7 +45,7 @@ export const SocAuthProvider = ({ children }: { children: ReactNode }) => {
     if (roleList.length > 0) {
         const socRole = roleList.find(r => 
             r.toLowerCase().includes('soc') && 
-            !r.toLowerCase().includes('default-roles-ai-driven-soc') &&
+            !r.toLowerCase().startsWith('default-roles-') &&
             !r.toLowerCase().includes('offline_access') &&
             !r.toLowerCase().includes('uma_authorization')
         );

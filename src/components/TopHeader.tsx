@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useSocAuth } from '../contexts/AuthContext';
 import { User, Loader2, Pencil, Info } from 'lucide-react';
 import { useSettings } from '../contexts/SettingsContext';
+import { BRAND } from '../brand';
 
 export function cn(...inputs: (string | undefined | null | false)[]) {
     return twMerge(clsx(inputs));
@@ -91,7 +92,7 @@ export const TopHeader: React.FC<TopHeaderProps> = ({ wazuhStatus, thehiveStatus
                         onClick={() => onNavigate?.('MONITORING')}
                         className="text-cyan-400/60 font-black cursor-pointer hover:text-cyan-300 transition-colors drop-shadow-[0_0_8px_rgba(34,211,238,0.2)] uppercase"
                     >
-                        BLUESEC
+                        {BRAND.product}
                     </span>
                     <span className="text-cyan-500/40 font-black scale-y-125 px-1 opacity-50">&gt;</span>
                     <span 

@@ -1,6 +1,7 @@
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { format } from 'date-fns';
+import { BRAND } from '../brand';
 
 export interface BlueSecReportData {
     id: string;
@@ -62,13 +63,13 @@ export const generateBlueSecReport = async (alertData: BlueSecReportData, custom
         const drawHeader = (pdf: jsPDF) => {
             // Logo at top left
             try {
-                const logoSrc = customLogo || '/assets/bluesec-logo.png';
+                const logoSrc = customLogo || BRAND.logo;
                 pdf.addImage(logoSrc, 'PNG', 22, 10, 40, 16);
             } catch (e) {
                 pdf.setFont('helvetica', 'bold');
                 pdf.setFontSize(22);
                 pdf.setTextColor(CANVA_DARK_BLUE[0], CANVA_DARK_BLUE[1], CANVA_DARK_BLUE[2]);
-                pdf.text('BlueSec', 22, 22);
+                pdf.text(BRAND.fullName, 22, 22);
             }
 
             // Generated Timestamp (Top Right)
@@ -712,10 +713,10 @@ export const generateBlueSecReport = async (alertData: BlueSecReportData, custom
             doc.setPage(i);
             doc.setFontSize(8);
             doc.setTextColor(21, 58, 102); // #153a66
-            doc.text(`AI Investigation report | Page ${i} of ${totalPages}`, pageWidth / 2 + 7.5, pageHeight - 3, { align: 'center' });
+            doc.text(`${BRAND.fullName} | AI investigation report | Page ${i} of ${totalPages}`, pageWidth / 2 + 7.5, pageHeight - 3, { align: 'center' });
         }
 
-        doc.save(`BlueSec_Analysis_${alertData.id || 'export'}.pdf`);
+        doc.save(`${BRAND.product}_Analysis_${alertData.id || 'export'}.pdf`);
     } catch (error) {
         console.error("Critical error in generateBlueSecReport:", error);
         throw error;

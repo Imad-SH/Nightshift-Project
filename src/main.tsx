@@ -6,13 +6,16 @@ import './index.css'
 import App from './App.tsx'
 import { SocAuthProvider } from './contexts/AuthContext'
 import { SettingsProvider } from './contexts/SettingsContext'
+import { BRAND } from './brand'
+
+document.title = BRAND.fullName
 
 // AUTO-PURGE: Clear lingering OIDC keys from localStorage (fixes the QuotaExceededError automatically)
 // ONLY run this if we are not in the middle of a redirect back from the login portal
 if (!window.location.search.includes('state=') && !window.location.search.includes('code=')) {
   try {
     Object.keys(localStorage).forEach(key => {
-      if ((key.startsWith('oidc.') || key.startsWith('cortex_')) && !key.includes('graph')) {
+      if ((key.startsWith('oidc.') || key.startsWith(BRAND.storagePrefix)) && !key.includes('graph')) {
         localStorage.removeItem(key);
         console.log(`[AUTH] Purged legacy key: ${key}`);
       }
@@ -23,7 +26,7 @@ if (!window.location.search.includes('state=') && !window.location.search.includ
 }
 
 const oidcConfig = {
-  authority: `http://${window.location.hostname}:8080/realms/AI-Driven%20SOC`,
+  authority: `http://${window.location.hostname}:8080/realms/nightshift`,
   client_id: "bluesec-frontend",
   redirect_uri: window.location.origin,
   post_logout_redirect_uri: window.location.origin,

@@ -514,7 +514,7 @@ async def handle_generate_report(sid, data):
         if report_result and isinstance(report_result, dict):
             b64_pdf = report_result.get("base64")
             report_path = report_result.get("path")
-            filename = f"Cortex_Report_{alert_id}.pdf"
+            filename = f"{settings.product_name}_Report_{alert_id}.pdf"
             
             print(f"✅ [Report] Success: {len(b64_pdf) if b64_pdf else 0} bytes")
             
