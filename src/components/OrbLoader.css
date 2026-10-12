@@ -1,0 +1,135 @@
+.orb-loader-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: calc(100px * var(--size));
+  height: calc(100px * var(--size));
+  flex-shrink: 0;
+}
+
+.orb-loader-wrapper .loader {
+  --color-one: #34d399; /* Emerald 400 */
+  --color-two: #059669; /* Emerald 600 */
+  --color-three: rgba(52, 211, 153, 0.5);
+  --color-four: rgba(5, 150, 105, 0.5);
+  --color-five: rgba(52, 211, 153, 0.2);
+  --time-animation: 2s;
+  position: relative;
+  width: 100px;
+  height: 100px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  transform: scale(var(--size));
+  transform-origin: center center;
+  backface-visibility: hidden;
+  -webkit-font-smoothing: antialiased;
+  box-shadow:
+    0 0 35px 0 var(--color-three),
+    0 20px 60px 0 var(--color-four);
+  /* Removed colorize animation to keep it single color */
+}
+
+.orb-loader-wrapper .loader::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  border-top: solid 1px var(--color-one);
+  border-bottom: solid 1px var(--color-two);
+  background: linear-gradient(180deg, var(--color-five), var(--color-four));
+  box-shadow:
+    inset 0 10px 10px 0 var(--color-three),
+    inset 0 -10px 10px 0 var(--color-four);
+}
+
+.orb-loader-wrapper .loader .box {
+  width: 100px;
+  height: 100px;
+  background: linear-gradient(
+    180deg,
+    var(--color-one) 30%,
+    var(--color-two) 70%
+  );
+}
+
+.orb-loader-wrapper .loader svg {
+  position: absolute;
+}
+
+.orb-loader-wrapper .loader svg .orb-mask {
+  filter: contrast(15);
+  animation: roundness calc(var(--time-animation) / 2) linear infinite;
+}
+
+.orb-loader-wrapper .loader svg .orb-mask polygon {
+  filter: blur(7px);
+}
+
+.orb-loader-wrapper .loader svg .orb-mask polygon:nth-child(1) {
+  transform-origin: 75% 25%;
+  transform: rotate(90deg);
+}
+
+.orb-loader-wrapper .loader svg .orb-mask polygon:nth-child(2) {
+  transform-origin: 50% 50%;
+  animation: rotation var(--time-animation) linear infinite reverse;
+}
+
+.orb-loader-wrapper .loader svg .orb-mask polygon:nth-child(3) {
+  transform-origin: 50% 60%;
+  animation: rotation var(--time-animation) linear infinite;
+  animation-delay: calc(var(--time-animation) / -3);
+}
+
+.orb-loader-wrapper .loader svg .orb-mask polygon:nth-child(4) {
+  transform-origin: 40% 40%;
+  animation: rotation var(--time-animation) linear infinite reverse;
+}
+
+.orb-loader-wrapper .loader svg .orb-mask polygon:nth-child(5) {
+  transform-origin: 40% 40%;
+  animation: rotation var(--time-animation) linear infinite reverse;
+  animation-delay: calc(var(--time-animation) / -2);
+}
+
+.orb-loader-wrapper .loader svg .orb-mask polygon:nth-child(6) {
+  transform-origin: 60% 40%;
+  animation: rotation var(--time-animation) linear infinite;
+}
+
+.orb-loader-wrapper .loader svg .orb-mask polygon:nth-child(7) {
+  transform-origin: 60% 40%;
+  animation: rotation var(--time-animation) linear infinite;
+  animation-delay: calc(var(--time-animation) / -1.5);
+}
+
+@keyframes rotation {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes roundness {
+  0% {
+    filter: contrast(15);
+  }
+  20% {
+    filter: contrast(3);
+  }
+  40% {
+    filter: contrast(3);
+  }
+  60% {
+    filter: contrast(15);
+  }
+  100% {
+    filter: contrast(15);
+  }
+}
+
