@@ -63,7 +63,8 @@ def merged_config(connector: Connector, submitted: Dict[str, Any]) -> Dict[str, 
     Stored settings overlaid with values from the UI. A masked secret stays the stored one,
     but only while the address it is bound to is unchanged (see the settings API).
     """
-    config = config_for(connector)
+    stored = config_for(connector)
+    config = dict(stored)
     for field in connector.fields:
         if field.key not in submitted:
             continue
@@ -71,7 +72,7 @@ def merged_config(connector: Connector, submitted: Dict[str, Any]) -> Dict[str, 
         if field.secret and value == credentials.SECRET_PLACEHOLDER:
             if field.bound_to and field.bound_to in submitted:
                 same = str(submitted[field.bound_to] or "").strip().rstrip("/").lower() == \
-                    str(config.get(field.bound_to) or "").strip().rstrip("/").lower()
+                    str(stored.get(field.bound_to) or "").strip().rstrip("/").lower()  # the saved address, not the submitted one
                 if not same:
                     raise ValueError(f"The address changed: re-enter the {field.label.lower()} to use it with the new address.")
             continue
