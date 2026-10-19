@@ -243,6 +243,12 @@ class AgentInvestigator:
     async def _query_external_sources(self, sanitized: List[Dict[str, str]], alert_id: str, agent_id: str) -> List[Dict[str, Any]]:
         """Phase 2: Router with triangulation logic."""
         tasks = []
+
+        # Indicators only go to services an admin has configured (API key set). An unconfigured
+        # service would still receive the indicator before rejecting the request.
+        def configured(key: str) -> bool:
+            return bool((getattr(settings, key, None) or "").strip())
+
         async with httpx.AsyncClient(timeout=20.0, verify=False, follow_redirects=True) as client:
             for item in sanitized:
                 ioc = item['ioc']
@@ -261,35 +267,35 @@ class AgentInvestigator:
                         otx_type = "IPv6" if ipaddress.ip_address(ioc).version == 6 else "IPv4"
                     except Exception:
                         otx_type = "IPv4"
-                    tasks.append(self._tool_abuseipdb(client, ioc))
-                    tasks.append(self._tool_otx(client, ioc, otx_type))
-                    tasks.append(self._tool_greynoise(client, ioc))
-                    tasks.append(self._tool_shodan(client, ioc))
-                    tasks.append(self._tool_virustotal(client, ioc, "ip_addresses"))
+                    if configured("abuseipdb_api_key"): tasks.append(self._tool_abuseipdb(client, ioc))
+                    if configured("alienvault_api_key"): tasks.append(self._tool_otx(client, ioc, otx_type))
+                    if configured("greynoise_api_key"): tasks.append(self._tool_greynoise(client, ioc))
+                    if configured("shodan_api_key"): tasks.append(self._tool_shodan(client, ioc))
+                    if configured("virustotal_api_key"): tasks.append(self._tool_virustotal(client, ioc, "ip_addresses"))
                 elif ioc_type in ("md5", "sha1", "sha256", "sha512"):
-                    tasks.append(self._tool_virustotal(client, ioc, "files"))
-                    tasks.append(self._tool_hybrid_analysis_lookup(client, ioc))
-                    tasks.append(self._tool_threatfox(client, ioc, "hash"))
-                    tasks.append(self._tool_malwarebazaar(client, ioc))
+                    if configured("virustotal_api_key"): tasks.append(self._tool_virustotal(client, ioc, "files"))
+                    if configured("hybrid_analysis_api_key"): tasks.append(self._tool_hybrid_analysis_lookup(client, ioc))
+                    if configured("threatfox_api_key"): tasks.append(self._tool_threatfox(client, ioc, "hash"))
+                    if configured("threatfox_api_key"): tasks.append(self._tool_malwarebazaar(client, ioc))
                 elif ioc_type == "url":
                     harmful_exts = ('.exe', '.dll', '.ps1', '.sh', '.msi', '.bin', '.bat', '.vbs')
                     if any(ioc.lower().endswith(ext) for ext in harmful_exts):
-                        tasks.append(self._tool_virustotal(client, ioc, "urls"))
-                        tasks.append(self._tool_urlhaus(client, ioc))
+                        if configured("virustotal_api_key"): tasks.append(self._tool_virustotal(client, ioc, "urls"))
+                        if configured("threatfox_api_key"): tasks.append(self._tool_urlhaus(client, ioc))
                     else:
-                        tasks.append(self._tool_urlscan(client, ioc))
-                        tasks.append(self._tool_virustotal(client, ioc, "urls"))
-                        tasks.append(self._tool_urlhaus(client, ioc))
+                        if configured("urlscan_api_key"): tasks.append(self._tool_urlscan(client, ioc))
+                        if configured("virustotal_api_key"): tasks.append(self._tool_virustotal(client, ioc, "urls"))
+                        if configured("threatfox_api_key"): tasks.append(self._tool_urlhaus(client, ioc))
                 elif ioc_type == "domain":
-                    tasks.append(self._tool_virustotal(client, ioc, "domains"))
-                    tasks.append(self._tool_mxtoolbox(client, ioc))
-                    tasks.append(self._tool_threatfox(client, ioc, "domain"))
-                    tasks.append(self._tool_otx(client, ioc, "domain"))
-                    tasks.append(self._tool_urlhaus(client, ioc))
+                    if configured("virustotal_api_key"): tasks.append(self._tool_virustotal(client, ioc, "domains"))
+                    if configured("mxtoolbox_api_key"): tasks.append(self._tool_mxtoolbox(client, ioc))
+                    if configured("threatfox_api_key"): tasks.append(self._tool_threatfox(client, ioc, "domain"))
+                    if configured("alienvault_api_key"): tasks.append(self._tool_otx(client, ioc, "domain"))
+                    if configured("threatfox_api_key"): tasks.append(self._tool_urlhaus(client, ioc))
                 elif ioc_type == "email":
-                    tasks.append(self._tool_emailrep(client, ioc))
+                    if configured("emailrep_api_key"): tasks.append(self._tool_emailrep(client, ioc))
                 elif ioc_type == "cve":
-                    tasks.append(self._tool_nvd(client, ioc))
+                    if configured("nvd_api_key"): tasks.append(self._tool_nvd(client, ioc))
                 elif ioc_type == "file_path":
                     tasks.append(self._tool_local_file(ioc))
                 elif ioc_type == "registry_key":
