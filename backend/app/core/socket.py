@@ -22,7 +22,8 @@ logger = logging.getLogger(__name__)
 # INCREASE BUFFER SIZE for Base64 PDF transmission (Default is 1MB)
 sio = socketio.AsyncServer(
     async_mode='asgi',
-    cors_allowed_origins=settings.socketio_cors_allowed_origins,
+    cors_allowed_origins=(settings.socketio_cors_allowed_origins.strip() if settings.socketio_cors_allowed_origins.strip() == "*"
+                          else [o.strip() for o in settings.socketio_cors_allowed_origins.split(",") if o.strip()]),
     # Packet-level logging writes every alert payload to the logs: keep it off.
     logger=settings.debug,
     engineio_logger=False,

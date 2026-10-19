@@ -73,7 +73,6 @@ def verify_jwt(token: str) -> Dict[str, Any]:
                 audience="account",
                 options={"verify_aud": False}
             )
-            return payload
         except jwt.ExpiredSignatureError:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
@@ -86,6 +85,15 @@ def verify_jwt(token: str) -> Dict[str, Any]:
                 detail=f"Token validation failed: {str(e)}",
                 headers={"WWW-Authenticate": "Bearer"},
             )
+        # Only tokens issued to this application's login client (not to other clients of the realm)
+        authorized_party = payload.get("azp")
+        if authorized_party and authorized_party != settings.keycloak_client_id:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Token was not issued for this application.",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+        return payload
     raise HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Unable to find appropriate key.",
@@ -102,8 +110,8 @@ def require_role(required_role: str):
         realm_access = user.get("realm_access", {})
         roles = realm_access.get("roles", [])
 
-        # Grant blanket access to literal admins or soc_managers for admin tasks
-        is_admin = "admin" in roles or "soc_manager" in roles or "soc_admin" in roles or user.get("preferred_username", "").lower() == "admin"
+        # Admin access comes from roles only (never from the account name)
+        is_admin = "admin" in roles or "soc_manager" in roles or "soc_admin" in roles
 
         # If the endpoint requested an admin role and we are an admin, auto-pass
         if required_role in ["soc_admin", "soc_manager", "admin"] and is_admin:

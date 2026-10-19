@@ -48,6 +48,17 @@ $(headers)
 $(headers)
     }
 
+    # Alert intake from SIEMs: rate-limited per sender
+    location ~ ^/api/(ingest/|webhook/wazuh) {
+        limit_req zone=nightshift_ingest burst=2000 nodelay;
+        limit_req_status 429;
+        proxy_pass http://backend:8000;
+        proxy_set_header Host \$http_host;
+        proxy_set_header X-Real-IP \$remote_addr;
+        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto \$forwarded_proto;
+    }
+
     # API and live updates
     location /api/ {
         proxy_pass http://backend:8000;
@@ -97,6 +108,7 @@ server_tokens off;
 gzip on;
 gzip_types text/plain text/css application/json application/javascript image/svg+xml;
 map $http_upgrade $connection_upgrade { default upgrade; '' close; }
+limit_req_zone $binary_remote_addr zone=nightshift_ingest:10m rate=200r/s;
 NGX
   if [ "$TLS_ENABLED" = "true" ]; then
     cat <<NGX

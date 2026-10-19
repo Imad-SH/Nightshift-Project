@@ -31,12 +31,9 @@ class Settings(BaseSettings):
     
     # CORS Settings
     frontend_url: str = "http://localhost:5173"
-    allowed_origins: list = [
-        "http://localhost:5173", 
-        "http://localhost:5174", 
-        "http://localhost:5175", 
-        "http://localhost:3000"
-    ]
+    # Origins allowed to call the API from another site, comma-separated. Empty: same origin only
+    # (the frontend is always served from the API's own origin, behind nginx or the Vite proxy).
+    cors_allowed_origins: str = ""
     
     # Redis Settings
     redis_host: str = "localhost"
@@ -46,6 +43,7 @@ class Settings(BaseSettings):
     
     # Socket.IO Settings
     socketio_path: str = "socket.io"
+    # "*" or comma-separated origins. Production sets the public URL.
     socketio_cors_allowed_origins: str = "*"
 
     # Keycloak Settings

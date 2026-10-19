@@ -143,8 +143,8 @@ export const SocAuthProvider = ({ children }: { children: ReactNode }) => {
     isSocAdmin: roles.some(role => {
       const r = role.toLowerCase();
       return r === 'soc_admin' || r === 'soc_manager' || r === 'admin' || r === 'administrator';
-    }) || 
-    auth.user?.profile?.preferred_username?.toLowerCase() === 'admin' ||
+    }) ||
+    // admin access comes from roles only (never from the account name)
     (auth.user?.profile as any)?.realm_access?.roles?.some((r: string) => {
       const lowerR = r.toLowerCase();
       return lowerR === 'soc_admin' || lowerR === 'soc_manager' || lowerR === 'admin' || lowerR === 'administrator';
