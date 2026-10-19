@@ -65,11 +65,12 @@ async def ingest_alert(connector_id: str, request: Request, db: AsyncSession = D
 async def legacy_wazuh_webhook(request: Request, db: AsyncSession = Depends(get_db)):
     """
     Original Wazuh intake path, kept for integrations already pointing at it.
-    Once a Wazuh ingest token exists, it is required here too; until then the path
-    accepts alerts as it always did (the Integrations screen flags it as unprotected).
+    It requires the Wazuh ingest token, except on installations that used it before
+    tokens existed: there it stays open until a token is generated (the Integrations
+    screen flags it as unprotected).
     """
     connector = registry.SIEM["wazuh"]
-    if integrations.has_ingest_token(connector) and not integrations.token_matches(connector, _presented_token(request)):
+    if not integrations.legacy_wazuh_intake_open() and not integrations.token_matches(connector, _presented_token(request)):
         raise UNAUTHORIZED
     return await _ingest(connector, request, db)
 

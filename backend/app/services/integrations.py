@@ -105,6 +105,15 @@ async def generate_ingest_token(db: AsyncSession, connector: SiemConnector) -> s
     return token
 
 
+def legacy_wazuh_intake_open() -> bool:
+    """
+    Whether /api/webhook/wazuh accepts alerts without a token: only on installations that
+    used it before tokens existed (flag set by migration 0003), and until a Wazuh token exists.
+    """
+    allowed = str(getattr(settings, "wazuh_legacy_intake", "false")).lower() in ("true", "1", "yes")
+    return allowed and not has_ingest_token(registry.SIEM["wazuh"])
+
+
 def token_matches(connector: SiemConnector, presented: Optional[str]) -> bool:
     expected = getattr(settings, connector.token_key, None)
     if not expected or not presented:

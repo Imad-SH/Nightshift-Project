@@ -38,7 +38,7 @@ def _siem_view(connector: SiemConnector) -> Dict[str, Any]:
         "token_set": token_set,
         "last_alert_at": integrations.last_alert_at(connector.id),
         # The original unauthenticated Wazuh path stays open until a token is generated
-        "legacy_path_open": connector.id == "wazuh" and not token_set,
+        "legacy_path_open": connector.id == "wazuh" and integrations.legacy_wazuh_intake_open(),
     }
 
 

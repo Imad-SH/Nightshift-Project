@@ -6,7 +6,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>${msg("loginTitle",(realm.displayName!''))}</title>
     <link rel="stylesheet" href="${url.resourcesPath}/css/styles.css">
-    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;700&display=swap" rel="stylesheet">
 </head>
 <body style="margin: 0; padding: 0;">
 <div class="glitch-form-wrapper">

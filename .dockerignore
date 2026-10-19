@@ -1,8 +1,19 @@
+# Build context for the web image: only the frontend sources are needed.
 node_modules
 dist
 .git
-.gitignore
-Dockerfile
-docker-compose.yml
-.env.local
+.venv
+.vscode
 .env
+.env.*
+*.env
+backend
+backups
+_local
+release
+deploy
+!deploy/web
+Dockerfile
+docker-compose*.yml
+*.log
+*.zip

@@ -4,6 +4,9 @@ services:
   backend:
     build: .
     container_name: backend
+    # Development: run from the mounted source with auto-reload (the image itself is production-ready)
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+    user: root
     ports:
       - "8000:8000"
     volumes:
