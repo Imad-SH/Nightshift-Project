@@ -7,6 +7,7 @@ import { twMerge } from 'tailwind-merge';
 import { 
     Server, Lock, Save, Check, Loader2, Plug, Eye, EyeOff, X
 } from 'lucide-react';
+import { apiBase } from '../config';
 
 function cn(...inputs: (string | undefined | null | false)[]) {
     return twMerge(clsx(inputs));
@@ -51,7 +52,7 @@ export const IntegrationSettings: React.FC<{
         const fetchSettings = async () => {
             if (!token) return;
             try {
-                const response = await fetch(`http://${window.location.hostname}:8000/api/settings/`, {
+                const response = await fetch(`${apiBase()}/api/settings/`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 if (response.ok) {
@@ -97,7 +98,7 @@ export const IntegrationSettings: React.FC<{
         setter(prev => ({ ...prev, status: 'testing' }));
 
         try {
-            const resp = await fetch(`http://${window.location.hostname}:8000/api/settings/verify-integration`, {
+            const resp = await fetch(`${apiBase()}/api/settings/verify-integration`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                 body: JSON.stringify({
@@ -145,7 +146,7 @@ export const IntegrationSettings: React.FC<{
             };
 
             // 1. Verify the integration (for status reporting)
-            const verifyResp = await fetch(`http://${window.location.hostname}:8000/api/settings/verify-integration`, {
+            const verifyResp = await fetch(`${apiBase()}/api/settings/verify-integration`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                 body: JSON.stringify({
@@ -160,14 +161,14 @@ export const IntegrationSettings: React.FC<{
             const isVerified = verifyResp.ok;
 
             // 2. ALWAYS Save to the database as requested by the user
-            await fetch(`http://${window.location.hostname}:8000/api/settings/`, {
+            await fetch(`${apiBase()}/api/settings/`, {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                 body: JSON.stringify(payload)
             });
 
             // 3. Inform backend to reload and trigger immediate global status update
-            await fetch(`http://${window.location.hostname}:8000/api/settings/reload-integrations`, {
+            await fetch(`${apiBase()}/api/settings/reload-integrations`, {
                 method: 'POST',
                 headers: { 'Authorization': `Bearer ${token}` },
             });
@@ -206,14 +207,14 @@ export const IntegrationSettings: React.FC<{
         
         try {
             // 1. Immediately inform the backend of the switch
-            await fetch(`http://${window.location.hostname}:8000/api/settings/`, {
+            await fetch(`${apiBase()}/api/settings/`, {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                 body: JSON.stringify({ active_soar: mode })
             });
 
             // 2. Trigger an immediate refresh of the App's socket status
-            await fetch(`http://${window.location.hostname}:8000/api/settings/reload-integrations`, {
+            await fetch(`${apiBase()}/api/settings/reload-integrations`, {
                 method: 'POST',
                 headers: { 'Authorization': `Bearer ${token}` }
             });

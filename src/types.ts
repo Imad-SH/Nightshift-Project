@@ -1,3 +1,6 @@
+/** The dashboard's top-level screens (sidebar entries). */
+export type AppTab = 'MONITORING' | 'USERS MANAGEMENT' | 'LLM SETTINGS' | 'STATISTICS' | 'LOGIN ACTIVITY' | 'INTEGRATIONS' | 'CTI CONFIGURATION';
+
 export type AlertStatus = 'running' | 'extracting' | 'investigating' | 'judging' | 'benign' | 'malicious' | 'waiting' | 'completed' | 'failed';
 
 export interface Alert {

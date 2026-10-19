@@ -421,7 +421,6 @@ export const generateBlueSecReport = async (alertData: BlueSecReportData, custom
         const hourPct = alertData.hour_pct ?? 0;
         const isUnusualTiming = alertData.is_unusual_timing ?? false;
         const totalHistorical = alertData.total_historical ?? 0;
-        const nextHour = (currentHour + 1) % 24;
         const hostName = alertData.source || 'This host';
 
         // Helper to draw a forensic metric row with wrapped narrative text and highlighted variables
@@ -485,26 +484,22 @@ export const generateBlueSecReport = async (alertData: BlueSecReportData, custom
             // We'll process the original narrative line-by-line (using the plainText line breaks as a guide)
             // This is a simplified version that works as long as highlights don't span lines
             let currentLineY = y + 11;
-            const narrativeParts = narrative.split('\n'); // If it was already split
             
             // Re-splitting narrative into parts manually for the wrapping logic
             // To keep it simple and robust, we'll draw the segments and handle wrapping
             let cursorX = 32;
             const words = narrative.split(/(\s+|\[\[|\]\])/);
-            let inHighlight = false;
 
             doc.setFontSize(9);
             doc.setTextColor(40, 40, 60); // Ensure initial text is dark grey
             words.forEach(word => {
                 if (!word) return;
                 if (word === '[[') {
-                    inHighlight = true;
                     doc.setFont('helvetica', 'bold');
                     doc.setTextColor(rowColor[0], rowColor[1], rowColor[2]);
                     return;
                 }
                 if (word === ']]') {
-                    inHighlight = false;
                     doc.setFont('helvetica', 'normal');
                     doc.setTextColor(40, 40, 60);
                     return;
@@ -685,7 +680,7 @@ export const generateBlueSecReport = async (alertData: BlueSecReportData, custom
             doc.roundedRect(25, tableFinalY, 170, mitigationBoxHeight, 2, 2, 'FD');
 
             let currentMitigationY = tableFinalY + 9;
-            wrappedSteps.forEach((wrappedStep, i) => {
+            wrappedSteps.forEach((wrappedStep) => {
                 const stepHeight = (wrappedStep.length * 6);
 
                 // Draw manual triangle (arrow) in Emerald Green

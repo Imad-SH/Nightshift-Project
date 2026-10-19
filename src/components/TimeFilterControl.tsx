@@ -1,4 +1,3 @@
-import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Calendar } from 'lucide-react';
 import { cn } from './DashboardLayout';
@@ -14,7 +13,6 @@ export const TimeFilterControl = ({
     setTimeFilter, 
     customRange, 
     setCustomRange,
-    relativeTime,
     setRelativeTime
 }: { 
     timeFilter: 'TODAY' | 'THIS_MONTH' | 'ALL' | 'CUSTOM',
@@ -24,36 +22,6 @@ export const TimeFilterControl = ({
     relativeTime: RelativeTime,
     setRelativeTime: (v: RelativeTime) => void
 }) => {
-    const getLocalISO = (date: Date) => {
-        const offset = date.getTimezoneOffset() * 60000;
-        return new Date(date.getTime() - offset).toISOString().slice(0, 16);
-    };
-
-    const handleRelativeTimeChange = (type: keyof RelativeTime, val: string) => {
-        const newRel = { ...relativeTime, [type]: val };
-        setRelativeTime(newRel);
-
-        const d = parseInt(newRel.d || '0') || 0;
-        const h = parseInt(newRel.h || '0') || 0;
-        const m = parseInt(newRel.m || '0') || 0;
-
-        if (d > 0 || h > 0 || m > 0) {
-            const now = new Date();
-            const start = new Date(now);
-            start.setDate(start.getDate() - d);
-            start.setHours(start.getHours() - h);
-            start.setMinutes(start.getMinutes() - m);
-            
-            setCustomRange({
-                start: getLocalISO(start),
-                end: getLocalISO(now)
-            });
-            if (timeFilter !== 'CUSTOM') {
-                setTimeFilter('CUSTOM');
-            }
-        }
-    };
-
     return (
         <div className="flex items-center gap-0.5 bg-cyan-950/10 backdrop-blur-md p-0.5 rounded-xl border border-cyan-500/10 shadow-lg relative">
             {[

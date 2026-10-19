@@ -4,7 +4,6 @@ import { useSocket } from '../hooks/useSocket';
 import { useSocAuth } from '../contexts/AuthContext';
 import { cn } from './DashboardLayout';
 import { 
-    Layers,
     Info,
     ChevronLeft,
     ChevronRight,
@@ -14,6 +13,7 @@ import {
 import { startOfDay, startOfMonth, endOfMonth, addMonths, format } from 'date-fns';
 import { MitreMatrix } from './MitreMatrix';
 import { TimeFilterControl } from './TimeFilterControl';
+import { apiBase } from '../config';
 
 const MITRE_TACTICS = [
     'Reconnaissance',
@@ -41,7 +41,7 @@ const MITREBarChart = ({ timeframe, startDate, endDate, monthlyNavigator }: any)
         const fetchStats = async () => {
             if (!token) return;
             try {
-                const baseUrl = (import.meta.env.VITE_API_URL || 'http://localhost:8000').replace(/\/$/, '');
+                const baseUrl = apiBase();
                 let url = `${baseUrl}/api/alerts/stats/mitre?timeframe=${timeframe}`;
                 
                 if (timeframe === 'THIS_MONTH' && monthlyNavigator) {
@@ -132,7 +132,7 @@ const SeverityDonutChart = ({ alerts, timeFilter, monthlyNavigator, startDate, e
             if (!token) return;
             
             try {
-                const baseUrl = (import.meta.env.VITE_API_URL || 'http://localhost:8000').replace(/\/$/, '');
+                const baseUrl = apiBase();
                 let url = `${baseUrl}/api/alerts/stats/severity?timeframe=${timeFilter}`;
                 
                 // Monthly Navigation Logic: If we are in 'MONTH' view, use the monthlyNavigator state to build a range
@@ -330,7 +330,7 @@ const SeverityDonutChart = ({ alerts, timeFilter, monthlyNavigator, startDate, e
                                         onMouseLeave={() => setHoveredSlice(null)}
                                     >
                                         <div className="flex items-center gap-3">
-                                            <div className={`w-2.5 h-2.5 rounded-full ${slice.bgClass} shadow-[0_0_8px_${slice.color}60]`} />
+                                            <div className={`w-2.5 h-2.5 rounded-full ${slice.bgClass}`} style={{ boxShadow: `0 0 8px ${slice.color}60` }} />
                                             <div>
                                                 <div className="text-[10px] font-mono font-bold text-slate-200 uppercase tracking-widest">{slice.label.split(' ')[0]}</div>
                                                 <div className="text-[8.5px] font-mono text-slate-300 mt-0.5">{slice.count} Events</div>
@@ -409,7 +409,7 @@ export const SOCStatistics: React.FC = () => {
             if (!token) return;
             setLoadingKpis(true);
             try {
-                const baseUrl = (import.meta.env.VITE_API_URL || 'http://localhost:8000').replace(/\/$/, '');
+                const baseUrl = apiBase();
                 let url = `${baseUrl}/api/alerts/stats/kpis?timeframe=${timeFilter}`;
                 
                 if (timeFilter === 'THIS_MONTH') {

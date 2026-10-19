@@ -95,10 +95,6 @@ if not os.path.exists("downloads"):
 from fastapi.staticfiles import StaticFiles
 app.mount("/downloads", StaticFiles(directory="downloads"), name="downloads")
 
-# Mount Socket.IO app at root
-app.mount("/", socket_app)
-
-
 @app.get("/")
 async def root():
     """Root endpoint"""
@@ -121,6 +117,10 @@ async def health():
         "status": "healthy",
         "redis": redis_service.is_connected()
     }
+
+
+# Socket.IO is mounted last: a mount at "/" would otherwise take precedence over the routes above.
+app.mount("/", socket_app)
 
 
 if __name__ == "__main__":

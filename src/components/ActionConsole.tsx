@@ -11,7 +11,6 @@ import {
     Loader2,
     TriangleAlert,
     FileText,
-    Sparkles,
     X,
     Tag,
     AlignLeft,
@@ -25,6 +24,7 @@ import { generateBlueSecReport } from '../utils/pdfGenerator';
 import type { BlueSecReportData } from '../utils/pdfGenerator';
 import { useSocAuth } from '../contexts/AuthContext';
 import { useSettings } from '../contexts/SettingsContext';
+import { apiBase } from '../config';
 
 interface ActionConsoleProps {
     alert: {
@@ -439,6 +439,7 @@ export const ActionConsole: React.FC<ActionConsoleProps> = ({ alert, isScanning 
                 title: alert?.title || alert?.rule?.description || 'Unknown Alert',
                 description: '',
                 severity: level >= 12 ? 3 : level >= 8 ? 2 : 1,
+                tlp: 'AMBER',
                 tags: ''
             });
             setPreEscalatePath(null);
@@ -458,7 +459,7 @@ export const ActionConsole: React.FC<ActionConsoleProps> = ({ alert, isScanning 
         try {
             const levelFromSeverity = manualForm.severity === 3 ? 13 : manualForm.severity === 2 ? 8 : 3;
             const extraTags = [`Escalated by ${currentUsername}`, `TLP:${manualForm.tlp}`, ...(manualForm.tags ? manualForm.tags.split(',').map(t => t.trim()).filter(Boolean) : [])];
-            const response = await fetch(`http://${window.location.hostname}:8000/api/v1/${soarPath}/escalate`, {
+            const response = await fetch(`${apiBase()}/api/v1/${soarPath}/escalate`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
                 body: JSON.stringify({
@@ -507,7 +508,7 @@ export const ActionConsole: React.FC<ActionConsoleProps> = ({ alert, isScanning 
         try {
             console.log(`📤 [ActionConsole] Escalating to ${soarName}: ${alert.id}`);
 
-            const response = await fetch(`http://${window.location.hostname}:8000/api/v1/${soarPath}/escalate`, {
+            const response = await fetch(`${apiBase()}/api/v1/${soarPath}/escalate`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

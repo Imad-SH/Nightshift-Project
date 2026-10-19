@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Settings, ChevronLeft, Wifi, Cloud, X, Globe, Zap, Bot, ChevronDown, Save, Loader2, Check, Eye, EyeOff } from 'lucide-react';
+import { Settings, Wifi, Cloud, X, Globe, Bot, ChevronDown, Save, Loader2, Check, Eye, EyeOff } from 'lucide-react';
 import { useSocAuth } from '../contexts/AuthContext';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import OrbLoader from './OrbLoader';
+import { apiBase } from '../config';
 
 const getProviderLogo = (model: string) => {
     const m = model.toLowerCase();
@@ -22,9 +23,9 @@ function cn(...inputs: (string | undefined | null | false)[]) {
 
 export const LLMSettings = ({ onSubTabChange }: { onSubTabChange?: (tab: string | null) => void }) => {
     const { token } = useSocAuth();
-    const [activeSection, setActiveSection] = useState<'PERSONAL' | 'STATS' | null>('PERSONAL');
+    const [activeSection] = useState<'PERSONAL' | 'STATS' | null>('PERSONAL');
     const [arch, setArch] = useState<'API' | 'LOCAL'>('API');
-    const [strategy, setStrategy] = useState<'OPTIMIZED' | 'AGGRESSIVE'>(
+    const [, setStrategy] = useState<'OPTIMIZED' | 'AGGRESSIVE'>(
         () => (localStorage.getItem('ai_analysis_strategy') as 'OPTIMIZED' | 'AGGRESSIVE') || 'OPTIMIZED'
     );
     const [minThreshold, setMinThreshold] = useState<number>(
@@ -77,7 +78,7 @@ export const LLMSettings = ({ onSubTabChange }: { onSubTabChange?: (tab: string 
         setGatewayVerified(false);
         
         try {
-            const resp = await fetch(`http://${window.location.hostname}:8000/api/settings/verify-provider`, {
+            const resp = await fetch(`${apiBase()}/api/settings/verify-provider`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                 body: JSON.stringify({ 
@@ -88,7 +89,7 @@ export const LLMSettings = ({ onSubTabChange }: { onSubTabChange?: (tab: string 
 
             if (resp.ok) {
                 const key = arch === 'API' ? 'nebius_base_url' : 'local_base_url';
-                await fetch(`http://${window.location.hostname}:8000/api/settings/`, {
+                await fetch(`${apiBase()}/api/settings/`, {
                     method: 'PATCH',
                     headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                     body: JSON.stringify({ [key]: url })
@@ -110,7 +111,7 @@ export const LLMSettings = ({ onSubTabChange }: { onSubTabChange?: (tab: string 
 
         setSavingProvider(provider);
         try {
-            const resp = await fetch(`http://${window.location.hostname}:8000/api/settings/verify-provider`, {
+            const resp = await fetch(`${apiBase()}/api/settings/verify-provider`, {
                 method: 'POST',
                 headers: { 
                     'Content-Type': 'application/json',
@@ -121,7 +122,7 @@ export const LLMSettings = ({ onSubTabChange }: { onSubTabChange?: (tab: string 
 
             if (resp.ok) {
                 // Persistent save in DB
-                await fetch(`http://${window.location.hostname}:8000/api/settings/`, {
+                await fetch(`${apiBase()}/api/settings/`, {
                     method: 'PATCH',
                     headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                     body: JSON.stringify({ [`${provider}_api_key`]: key })
@@ -146,7 +147,7 @@ export const LLMSettings = ({ onSubTabChange }: { onSubTabChange?: (tab: string 
         const fetchSettings = async () => {
             if (!token) return;
             try {
-                const response = await fetch(`http://${window.location.hostname}:8000/api/settings/`, {
+                const response = await fetch(`${apiBase()}/api/settings/`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 if (response.ok) {
@@ -204,24 +205,6 @@ export const LLMSettings = ({ onSubTabChange }: { onSubTabChange?: (tab: string 
         fetchSettings();
     }, [token]);
 
-    const handleStrategyChange = async (newStrategy: 'OPTIMIZED' | 'AGGRESSIVE') => {
-        setStrategy(newStrategy);
-        localStorage.setItem('ai_analysis_strategy', newStrategy);
-        if (!token) return;
-        try {
-            await fetch(`http://${window.location.hostname}:8000/api/settings/`, {
-                method: 'PATCH',
-                headers: { 
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify({ ai_analysis_strategy: newStrategy })
-            });
-        } catch (err) {
-            console.error("❌ Network error persisting strategy change:", err);
-        }
-    };
-
     const handleThresholdsChange = async (newMin: number, newMax: number) => {
         setMinThreshold(newMin);
         setMaxThreshold(newMax);
@@ -229,7 +212,7 @@ export const LLMSettings = ({ onSubTabChange }: { onSubTabChange?: (tab: string 
         localStorage.setItem('ai_analysis_max_threshold', newMax.toString());
         if (!token) return;
         try {
-            await fetch(`http://${window.location.hostname}:8000/api/settings/`, {
+            await fetch(`${apiBase()}/api/settings/`, {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                 body: JSON.stringify({ 
@@ -246,13 +229,13 @@ export const LLMSettings = ({ onSubTabChange }: { onSubTabChange?: (tab: string 
         setArch(newArch);
         if (!token) return;
         try {
-            await fetch(`http://${window.location.hostname}:8000/api/settings/`, {
+            await fetch(`${apiBase()}/api/settings/`, {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                 body: JSON.stringify({ ai_architecture: newArch })
             });
             // Also reload integrations to invalidate LLM clients
-            await fetch(`http://${window.location.hostname}:8000/api/settings/reload-integrations`, {
+            await fetch(`${apiBase()}/api/settings/reload-integrations`, {
                 method: 'POST',
                 headers: { 'Authorization': `Bearer ${token}` }
             });
@@ -281,7 +264,7 @@ export const LLMSettings = ({ onSubTabChange }: { onSubTabChange?: (tab: string 
 
         try {
             await Promise.all(updates.map(update =>
-                fetch(`http://${window.location.hostname}:8000/api/settings/`, {
+                fetch(`${apiBase()}/api/settings/`, {
                     method: 'PATCH',
                     headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                     body: JSON.stringify({ [update.key]: update.value })
@@ -303,7 +286,7 @@ export const LLMSettings = ({ onSubTabChange }: { onSubTabChange?: (tab: string 
             const key = arch === 'LOCAL' ? configData.localUrl : configData.nebiusKey;
             const base_url = arch === 'LOCAL' ? configData.localUrl : configData.customUrl;
 
-            const resp = await fetch(`http://${window.location.hostname}:8000/api/settings/get-provider-models`, {
+            const resp = await fetch(`${apiBase()}/api/settings/get-provider-models`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                 body: JSON.stringify({ provider, key, base_url })

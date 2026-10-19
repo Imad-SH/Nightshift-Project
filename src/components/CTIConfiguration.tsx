@@ -1,9 +1,10 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Eye, EyeOff, Check, Save, X, ExternalLink, Loader2, Crosshair, Trash2, Key, Play, Settings, Plug, Upload, ImageOff } from 'lucide-react';
+import { Plus, Eye, EyeOff, Check, Save, X, ExternalLink, Loader2, Crosshair, Trash2, Key, Settings, Plug, Upload, ImageOff } from 'lucide-react';
 import { useSocAuth } from '../contexts/AuthContext';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
+import { apiBase } from '../config';
 
 function cn(...inputs: (string | undefined | null | false)[]) {
     return twMerge(clsx(inputs));
@@ -266,7 +267,7 @@ const CTICard = ({
     const [testResult, setTestResult] = useState<'success' | 'failed' | null>(null);
     const [showConfirmDelete, setShowConfirmDelete] = useState(false);
 
-    const baseUrl = (import.meta.env.VITE_API_URL || 'http://localhost:8000').replace(/\/$/, '');
+    const baseUrl = apiBase();
 
     const handleTestKey = async () => {
         const keyToTest = localKey.trim() || currentKey.trim();
@@ -985,7 +986,7 @@ export const CTIConfiguration = () => {
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [editSource, setEditSource] = useState<any>(null);
 
-    const baseUrl = (import.meta.env.VITE_API_URL || 'http://localhost:8000').replace(/\/$/, '');
+    const baseUrl = apiBase();
 
     const fetchSettings = async () => {
         if (!token) return;

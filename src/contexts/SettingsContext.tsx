@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { useSocAuth } from './AuthContext';
+import { apiBase } from '../config';
 
 interface SettingsContextType {
     settings: Record<string, any>;
@@ -25,7 +26,7 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     const fetchSettings = async () => {
         if (!token) return;
         try {
-            const response = await fetch(`http://${window.location.hostname}:8000/api/settings/`, {
+            const response = await fetch(`${apiBase()}/api/settings/`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             if (response.ok) {
@@ -46,7 +47,7 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     const updateSetting = async (key: string, value: any) => {
         if (!token) return;
         try {
-            const response = await fetch(`http://${window.location.hostname}:8000/api/settings/`, {
+            const response = await fetch(`${apiBase()}/api/settings/`, {
                 method: 'PATCH',
                 headers: { 
                     'Content-Type': 'application/json',

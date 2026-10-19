@@ -13,6 +13,7 @@ import { StandbyState } from './StandbyState';
 
 import { createPortal } from 'react-dom';
 import { BRAND } from '../brand';
+import { useSettings } from '../contexts/SettingsContext';
 
 const getIocTypeStyle = (ioc: string): { label: string; badge: string; rowIdle: string; rowSelected: string; glow: string } => {
     const c = String(ioc).trim();
@@ -880,26 +881,13 @@ export const GraphVisualizer = ({ selectedAlertId }: GraphVisualizerProps) => {
     const stateRef = useRef<GraphState>({ nodes, edges, scanPhase, ctiNodes });
     const prevAlertIdRef = useRef<string | undefined>(undefined);
     const lastHydratedEventRef = useRef<string | undefined>(undefined);
-    const [llmConfig, setLlmConfig] = useState<any>(null);
-
-    // Fetch LLM Config for fallback model names
-    useEffect(() => {
-        const fetchConfig = async () => {
-            try {
-                const token = localStorage.getItem('soc_token');
-                const resp = await fetch(`http://${window.location.hostname}:8000/api/settings/get-llm-config`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-                if (resp.ok) {
-                    const data = await resp.json();
-                    setLlmConfig(data);
-                }
-            } catch (e) {
-                console.error('[GraphVisualizer] Failed to fetch LLM config', e);
-            }
-        };
-        fetchConfig();
-    }, []);
+    // Model names to show when a pipeline event does not carry one (from the shared settings)
+    const { settings } = useSettings();
+    const isLocalLlm = settings.ai_architecture === 'LOCAL';
+    const llmConfig = {
+        agent1Model: isLocalLlm ? settings.local_agent1_model : settings.agent1_model,
+        agent3Model: isLocalLlm ? settings.local_agent3_model : settings.agent3_model,
+    };
 
     // Update stateRef whenever visual state changes
     useEffect(() => {

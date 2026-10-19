@@ -5,6 +5,7 @@ import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { useSocAuth } from '../contexts/AuthContext';
 import { createPortal } from 'react-dom';
+import { apiBase } from '../config';
 
 function cn(...inputs: (string | undefined | null | false)[]) {
     return twMerge(clsx(inputs));
@@ -47,7 +48,7 @@ const UserPreviewPanel = ({ selectedUser }: { selectedUser: any }) => {
             if (!selectedUser || !token) return;
             setIsLoadingLogs(true);
             try {
-                const response = await fetch(`http://${window.location.hostname}:8000/api/admin/audit/users/${selectedUser.id}?max_events=12`, {
+                const response = await fetch(`${apiBase()}/api/admin/audit/users/${selectedUser.id}?max_events=12`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 if (response.ok && isMounted) {
@@ -289,7 +290,7 @@ const BentoStatCard = ({ icon: Icon, label, value, subValue, color, children, cl
                     onMouseMove={(e) => setMousePos({ x: e.clientX, y: e.clientY })}
                     onMouseEnter={() => setIsHovered(true)}
                     onMouseLeave={() => setIsHovered(false)}
-                    className={cn("text-3xl font-bold font-mono tracking-tight leading-none relative z-10 transition-transform duration-300 group-hover:translate-x-0.5", numColor, hoverDetail && "cursor-help")}
+                    className={cn("text-3xl font-bold font-mono tracking-tight leading-none relative z-10 transition-transform duration-300 group-hover:translate-x-0.5", numColor, !!hoverDetail && "cursor-help")}
                 >
                     {value}
                 </p>
@@ -762,7 +763,7 @@ export const UserManagement = () => {
     const fetchUsers = async () => {
         try {
             setIsLoading(true);
-            const response = await fetch(`http://${window.location.hostname}:8000/api/admin/users`, {
+            const response = await fetch(`${apiBase()}/api/admin/users`, {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
@@ -824,7 +825,7 @@ export const UserManagement = () => {
             }
 
             // Fetch live session stats natively from Keycloak
-            const statsResponse = await fetch(`http://${window.location.hostname}:8000/api/admin/stats`, {
+            const statsResponse = await fetch(`${apiBase()}/api/admin/stats`, {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
@@ -845,7 +846,7 @@ export const UserManagement = () => {
     const fetchStatsOnly = async () => {
         if (!token) return;
         try {
-            const statsResponse = await fetch(`http://${window.location.hostname}:8000/api/admin/stats`, {
+            const statsResponse = await fetch(`${apiBase()}/api/admin/stats`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             if (statsResponse.ok) {
@@ -855,7 +856,7 @@ export const UserManagement = () => {
             }
 
             // Fetch login activity for "Access flags" and "Security Audit" with a larger window to avoid rotation issues
-            const activityResponse = await fetch(`http://${window.location.hostname}:8000/api/admin/audit/login-activity?max_events=200`, {
+            const activityResponse = await fetch(`${apiBase()}/api/admin/audit/login-activity?max_events=200`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             if (activityResponse.ok) {
@@ -898,7 +899,7 @@ export const UserManagement = () => {
 
     const handleAddUser = async (newUserData: any) => {
         try {
-            const response = await fetch(`http://${window.location.hostname}:8000/api/admin/users`, {
+            const response = await fetch(`${apiBase()}/api/admin/users`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -923,7 +924,7 @@ export const UserManagement = () => {
 
     const handleEditUser = async (updatedUserData: any) => {
         try {
-            const response = await fetch(`http://${window.location.hostname}:8000/api/admin/users/${updatedUserData.id}`, {
+            const response = await fetch(`${apiBase()}/api/admin/users/${updatedUserData.id}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -949,7 +950,7 @@ export const UserManagement = () => {
     const handleToggleStatus = async (analyst: Analyst) => {
         const newStatus = analyst.status === 'ACTIVE' ? 'SUSPENDED' : 'ACTIVE';
         try {
-            const response = await fetch(`http://${window.location.hostname}:8000/api/admin/users/${analyst.id}`, {
+            const response = await fetch(`${apiBase()}/api/admin/users/${analyst.id}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -975,7 +976,7 @@ export const UserManagement = () => {
         if (!userToDelete) return;
 
         try {
-            const response = await fetch(`http://${window.location.hostname}:8000/api/admin/users/${userToDelete.id}`, {
+            const response = await fetch(`${apiBase()}/api/admin/users/${userToDelete.id}`, {
                 method: 'DELETE',
                 headers: {
                     'Authorization': `Bearer ${token}`

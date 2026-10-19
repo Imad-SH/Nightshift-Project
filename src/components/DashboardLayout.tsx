@@ -7,6 +7,7 @@ import { Sidebar } from './Sidebar';
 import { TopHeader } from './TopHeader';
 
 import { motion } from 'framer-motion';
+import type { AppTab } from '../types';
 
 export const cn = (...inputs: (string | undefined | null | false)[]) => {
     return twMerge(clsx(inputs));
@@ -14,8 +15,8 @@ export const cn = (...inputs: (string | undefined | null | false)[]) => {
 
 interface DashboardLayoutProps {
     children?: React.ReactNode;
-    activeTab: 'MONITORING' | 'USERS MANAGEMENT' | 'LLM SETTINGS' | 'STATISTICS' | 'LOGIN ACTIVITY' | 'INTEGRATIONS';
-    setActiveTab: (tab: 'MONITORING' | 'USERS MANAGEMENT' | 'LLM SETTINGS' | 'STATISTICS' | 'LOGIN ACTIVITY' | 'INTEGRATIONS') => void;
+    activeTab: AppTab;
+    setActiveTab: (tab: AppTab) => void;
     subTab?: string | null;
 }
 
@@ -41,7 +42,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, acti
                                 filter drop-shadow-[0_0_2px_rgba(0,242,234,0.3)]">
                 </div>
                 {/* 3. The "Stars" / Noise Texture */}
-                <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 brightness-100 contrast-150 mix-blend-overlay"></div>
+                <div className="absolute inset-0 bg-[url('/assets/noise.svg')] opacity-20 brightness-100 contrast-150 mix-blend-overlay"></div>
             </div>
 
             {/* === THE CONTENT === */}

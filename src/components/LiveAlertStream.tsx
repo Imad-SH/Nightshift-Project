@@ -5,6 +5,7 @@ import { cn } from './DashboardLayout';
 import { Loader2, Filter, X, Plus, Upload, FileJson } from 'lucide-react';
 import { useSocAuth } from '../contexts/AuthContext';
 import type { Alert, SocketEvent } from '../types';
+import { apiBase } from '../config';
 
 interface FilterState {
     searchTerm: string;
@@ -565,7 +566,7 @@ export const LiveAlertStream: React.FC<LiveAlertStreamProps> = ({ onSelectAlert,
 
         setIsUploading(true);
         try {
-            const res = await fetch(`http://${window.location.hostname}:8000/api/alerts/manual-upload`, {
+            const res = await fetch(`${apiBase()}/api/alerts/manual-upload`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

@@ -1,25 +1,48 @@
-import os
-from typing import Dict, Any
+import threading
+import time
+from typing import Dict, Any, Optional
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from jose import jwt, JWTError
 import httpx
 
+from app.core.config import settings
+
 security = HTTPBearer()
 
-KEYCLOAK_SERVER_URL = os.getenv("KEYCLOAK_SERVER_URL", "http://localhost:8080")
-REALM = os.getenv("KEYCLOAK_REALM", "nightshift")
-CLIENT_ID = os.getenv("KEYCLOAK_CLIENT_ID", "bluesec-frontend")
-JWKS_URL = f"{KEYCLOAK_SERVER_URL}/realms/{REALM}/protocol/openid-connect/certs"
+JWKS_URL = f"{settings.keycloak_server_url.rstrip('/')}/realms/{settings.keycloak_realm}/protocol/openid-connect/certs"
 
-def get_public_keys():
-    try:
-        response = httpx.get(JWKS_URL, timeout=5)
-        response.raise_for_status()
-        return response.json()
-    except Exception as e:
-        print(f"Error fetching JWKS from {JWKS_URL}: {e}")
-        return None
+# Keycloak's signing keys rarely change: cache them instead of fetching on every request.
+# An unknown key id (key rotation) triggers one immediate refresh.
+JWKS_TTL_SECONDS = 600
+_jwks: Optional[Dict[str, Any]] = None
+_jwks_fetched_at = 0.0
+_jwks_lock = threading.Lock()
+
+
+def get_public_keys(force_refresh: bool = False) -> Optional[Dict[str, Any]]:
+    global _jwks, _jwks_fetched_at
+    with _jwks_lock:
+        fresh = _jwks is not None and time.monotonic() - _jwks_fetched_at < JWKS_TTL_SECONDS
+        if fresh and not force_refresh:
+            return _jwks
+        try:
+            response = httpx.get(JWKS_URL, timeout=5)
+            response.raise_for_status()
+            _jwks = response.json()
+            _jwks_fetched_at = time.monotonic()
+        except Exception as e:
+            # Keep serving the last known keys if Keycloak is briefly unreachable
+            print(f"Error fetching JWKS from {JWKS_URL}: {e}")
+        return _jwks
+
+
+def _find_key(jwks: Optional[Dict[str, Any]], kid: Optional[str]) -> Dict[str, Any]:
+    for key in (jwks or {}).get("keys", []):
+        if key.get("kid") == kid:
+            return key
+    return {}
+
 
 def verify_jwt(token: str) -> Dict[str, Any]:
     jwks = get_public_keys()
@@ -38,11 +61,8 @@ def verify_jwt(token: str) -> Dict[str, Any]:
             headers={"WWW-Authenticate": "Bearer"},
         )
 
-    rsa_key = {}
-    for key in jwks.get("keys", []):
-        if key.get("kid") == unverified_header.get("kid"):
-            rsa_key = key
-            break
+    kid = unverified_header.get("kid")
+    rsa_key = _find_key(jwks, kid) or _find_key(get_public_keys(force_refresh=True), kid)
 
     if rsa_key:
         try:
@@ -81,14 +101,14 @@ def require_role(required_role: str):
     def role_checker(user: Dict[str, Any] = Depends(get_current_user)):
         realm_access = user.get("realm_access", {})
         roles = realm_access.get("roles", [])
-        
+
         # Grant blanket access to literal admins or soc_managers for admin tasks
         is_admin = "admin" in roles or "soc_manager" in roles or "soc_admin" in roles or user.get("preferred_username", "").lower() == "admin"
-        
+
         # If the endpoint requested an admin role and we are an admin, auto-pass
         if required_role in ["soc_admin", "soc_manager", "admin"] and is_admin:
             return user
-            
+
         if required_role not in roles and not is_admin:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,

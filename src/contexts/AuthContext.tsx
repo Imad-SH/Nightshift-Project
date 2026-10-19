@@ -1,6 +1,7 @@
 import { useAuth } from 'react-oidc-context';
 import { createContext, useContext, useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
+import { apiBase, getConfig } from '../config';
 
 interface AuthContextType {
   isAuthenticated: boolean;
@@ -67,7 +68,7 @@ export const SocAuthProvider = ({ children }: { children: ReactNode }) => {
   // 1. Initial Calculation to prevent flicker on reload
   const initialProfile = auth.user?.profile as any;
   const initialRealmRoles = initialProfile?.realm_access?.roles || [];
-  const initialClientRoles = initialProfile?.resource_access?.['bluesec-frontend']?.roles || [];
+  const initialClientRoles = initialProfile?.resource_access?.[getConfig().clientId]?.roles || [];
   const initialRolesArray = Array.from(new Set([...initialRealmRoles, ...initialClientRoles]));
   
   const initialTitle = mapRoleToTitle(initialRolesArray);
@@ -80,7 +81,7 @@ export const SocAuthProvider = ({ children }: { children: ReactNode }) => {
       console.log('DEBUG: Auth Profile:', auth.user.profile);
       const profile = auth.user.profile as any;
       const realmRoles = profile.realm_access?.roles || [];
-      const clientRoles = profile.resource_access?.['bluesec-frontend']?.roles || [];
+      const clientRoles = profile.resource_access?.[getConfig().clientId]?.roles || [];
       const allRoles = Array.from(new Set([...realmRoles, ...clientRoles]));
       
       console.log('DEBUG: Aggregated Roles (Realm + Client):', allRoles);
@@ -96,7 +97,7 @@ export const SocAuthProvider = ({ children }: { children: ReactNode }) => {
 
       // Fetch the true user title and roles from our FastAPI backend
       if (auth.user?.access_token) {
-        fetch(`http://${window.location.hostname}:8000/api/admin/users/me`, {
+        fetch(`${apiBase()}/api/admin/users/me`, {
           headers: {
             'Authorization': `Bearer ${auth.user.access_token}`
           }

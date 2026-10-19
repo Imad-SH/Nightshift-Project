@@ -4,6 +4,7 @@ import { Fingerprint, Search, RotateCcw, AlertCircle, Download } from 'lucide-re
 import { useSocAuth } from '../contexts/AuthContext';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
+import { apiBase } from '../config';
 
 function cn(...inputs: (string | undefined | null | false)[]) {
     return twMerge(clsx(inputs));
@@ -107,7 +108,7 @@ export const LoginActivity = () => {
     const fetchEvents = async () => {
         try {
             setIsLoading(true);
-            const response = await fetch(`http://${window.location.hostname}:8000/api/admin/audit/login-activity?max_events=200`, {
+            const response = await fetch(`${apiBase()}/api/admin/audit/login-activity?max_events=200`, {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }

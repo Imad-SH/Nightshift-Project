@@ -3,9 +3,9 @@ import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSocAuth } from '../contexts/AuthContext';
-import { User, Loader2, Pencil, Info } from 'lucide-react';
-import { useSettings } from '../contexts/SettingsContext';
+import { User, Info } from 'lucide-react';
 import { BRAND } from '../brand';
+import type { AppTab } from '../types';
 
 export function cn(...inputs: (string | undefined | null | false)[]) {
     return twMerge(clsx(inputs));
@@ -16,9 +16,9 @@ interface TopHeaderProps {
     thehiveStatus: 'CONNECTED' | 'DISCONNECTED';
     flowintelStatus?: 'CONNECTED' | 'DISCONNECTED';
     activeSoar?: 'thehive' | 'flowintel';
-    activeTab: 'MONITORING' | 'USERS MANAGEMENT' | 'LLM SETTINGS' | 'STATISTICS' | 'LOGIN ACTIVITY' | 'INTEGRATIONS';
+    activeTab: AppTab;
     subTab?: string | null;
-    onNavigate?: (tab: 'MONITORING' | 'USERS MANAGEMENT' | 'LLM SETTINGS' | 'STATISTICS' | 'LOGIN ACTIVITY' | 'INTEGRATIONS') => void;
+    onNavigate?: (tab: AppTab) => void;
 }
 
 export const TopHeader: React.FC<TopHeaderProps> = ({ wazuhStatus, thehiveStatus, flowintelStatus = 'DISCONNECTED', activeSoar = 'thehive', activeTab, subTab, onNavigate }) => {
@@ -69,7 +69,6 @@ export const TopHeader: React.FC<TopHeaderProps> = ({ wazuhStatus, thehiveStatus
     const hour = new Date().getHours();
     const greeting = hour < 12 ? 'MORNING' : hour < 18 ? 'AFTERNOON' : 'EVENING';
     const userName = user?.name || user?.preferred_username || 'OPERATOR';
-    const { updateSetting } = useSettings();
 
 
 

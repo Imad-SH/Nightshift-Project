@@ -1,6 +1,8 @@
 import { useEffect, useState, useCallback } from 'react';
 import { io, Socket } from 'socket.io-client';
 import type { Alert, SocketEvent } from '../types';
+import { apiBase } from '../config';
+import { useSocAuth } from '../contexts/AuthContext';
 
 // GLOBAL SINGLETON STATE
 let globalSocket: Socket | null = null;
@@ -45,14 +47,17 @@ const notifyListeners = (immediate = false) => {
     }
 };
 
-// PORT FIX: Backend is running on 8000 as seen in health checks and API calls
-const SOCKET_URL = `http://${window.location.hostname}:8000`;
+// Access token sent in the Socket.IO handshake. Read on every (re)connect, so a
+// reconnection after token refresh presents the current token.
+let socketToken: string | null = null;
 
 export const useSocket = () => {
     const [alerts, setAlerts] = useState<Alert[]>(globalAlerts);
     const [events, setEvents] = useState<Record<string, SocketEvent>>(globalEventsState);
     const [isConnected, setIsConnected] = useState(globalSocket?.connected || globalIsConnected);
     const [serviceStatus, setServiceStatus] = useState(globalServiceStatus);
+    const { token } = useSocAuth();
+    if (token) socketToken = token;
 
     // Track component unmount
     useEffect(() => {
@@ -73,8 +78,11 @@ export const useSocket = () => {
         listeners.add(listener);
 
         if (!globalSocket) {
-            console.log(`🔌 [Socket] Initializing connection to ${SOCKET_URL}`);
-            globalSocket = io(SOCKET_URL, {
+            // Same origin as the page unless the runtime config points elsewhere
+            const socketUrl = apiBase() || window.location.origin;
+            console.log(`🔌 [Socket] Initializing connection to ${socketUrl}`);
+            globalSocket = io(socketUrl, {
+                auth: (cb) => cb({ token: socketToken }),
                 reconnection: true,
                 reconnectionAttempts: 20,
                 reconnectionDelay: 1000,

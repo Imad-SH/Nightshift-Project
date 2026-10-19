@@ -3,8 +3,9 @@ import { createPortal } from 'react-dom';
 
 import { useSocAuth } from '../contexts/AuthContext';
 import { cn } from './DashboardLayout';
-import { Database, Loader2, ChevronRight, ChevronDown } from 'lucide-react';
+import { Loader2, ChevronRight, ChevronDown } from 'lucide-react';
 import { TimeFilterControl } from './TimeFilterControl';
+import { apiBase } from '../config';
 
 export const MitreMatrix = ({ 
     alerts, 
@@ -61,7 +62,7 @@ export const MitreMatrix = ({
         const fetchMatrix = async () => {
             if (!token) return;
             try {
-                const baseUrl = (import.meta.env.VITE_API_URL || 'http://localhost:8000').replace(/\/$/, '');
+                const baseUrl = apiBase();
                 const resp = await fetch(`${baseUrl}/api/mitre/matrix`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });

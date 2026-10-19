@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { DashboardLayout } from './components/DashboardLayout';
 import { LiveAlertStream } from './components/LiveAlertStream';
 import { GraphVisualizer } from './components/GraphVisualizer';
@@ -10,6 +10,7 @@ import { SOCStatistics } from './components/SOCStatistics';
 import { IntegrationSettings } from './components/IntegrationSettings';
 import { CTIConfiguration } from './components/CTIConfiguration';
 import { useSocAuth } from './contexts/AuthContext';
+import type { AppTab } from './types';
 
 const DashboardContent = () => {
   // Persist selection across reloads
@@ -17,7 +18,7 @@ const DashboardContent = () => {
     return localStorage.getItem('selectedAlertId') || undefined;
   });
 
-  const [activeTab, setActiveTab] = useState<'MONITORING' | 'USERS MANAGEMENT' | 'LLM SETTINGS' | 'STATISTICS' | 'LOGIN ACTIVITY' | 'INTEGRATIONS' | 'CTI CONFIGURATION'>('MONITORING');
+  const [activeTab, setActiveTab] = useState<AppTab>('MONITORING');
   const [subTab, setSubTab] = useState<string | null>(null);
 
   const handleSelectAlert = (id: string) => {
@@ -32,7 +33,7 @@ const DashboardContent = () => {
     });
   };
 
-  const handleTabChange = (tab: 'MONITORING' | 'USERS MANAGEMENT' | 'LLM SETTINGS' | 'STATISTICS' | 'LOGIN ACTIVITY' | 'INTEGRATIONS' | 'CTI CONFIGURATION') => {
+  const handleTabChange = (tab: AppTab) => {
     setActiveTab(tab);
     setSubTab(null);
   };
@@ -78,7 +79,7 @@ const DashboardContent = () => {
       
       {activeTab === 'LLM SETTINGS' && (
         <div className="col-span-10 h-full min-h-0">
-          <LLMSettings onSubTabChange={setSubTab} subTab={subTab} />
+          <LLMSettings onSubTabChange={setSubTab} />
         </div>
       )}
 
@@ -104,6 +105,15 @@ const DashboardContent = () => {
 };
 export default function App() {
   const { isAuthenticated, isLoading, error, login } = useSocAuth();
+
+  // Start the login redirect from an effect (not during render), and only once
+  const loginStarted = useRef(false);
+  useEffect(() => {
+    if (!isLoading && !error && !isAuthenticated && !loginStarted.current) {
+      loginStarted.current = true;
+      login();
+    }
+  }, [isLoading, error, isAuthenticated, login]);
 
   if (isLoading) {
     return (
@@ -137,7 +147,6 @@ export default function App() {
   }
 
   if (!isAuthenticated) {
-    login();
     return (
       <div className="min-h-screen bg-black flex items-center justify-center">
         <div className="text-cyan-500 font-mono tracking-widest text-sm animate-pulse uppercase">

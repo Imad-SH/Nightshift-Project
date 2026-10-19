@@ -29,9 +29,9 @@ sio = socketio.AsyncServer(
     max_http_buffer_size=10 * 1024 * 1024  # 10MB
 )
 
-# Create ASGI application for Socket.IO
-# mounting at '/socket.io' in main.py, so we set path to "" here
-socket_app = socketio.ASGIApp(sio, socketio_path="")
+# ASGI application for Socket.IO. Mounted at the root in main.py (after the HTTP routes);
+# it only answers /socket.io/ so it never shadows other paths.
+socket_app = socketio.ASGIApp(sio, socketio_path="socket.io")
 
 # Track active scan tasks and service health
 active_scans = {}
@@ -247,9 +247,20 @@ async def perform_immediate_health_check():
     print(f"🛰️ [Health] Manual trigger complete: {wazuh_status} / {thehive_status}")
 
 @sio.event
-async def connect(sid, environ):
+async def connect(sid, environ, auth=None):
     """Handle client connection with history re-hydration"""
-    print(f"🔌 Client connected: {sid}")
+    # Same identity check as the HTTP API: a valid Keycloak access token is required,
+    # since this channel carries every alert and can start (paid) AI scans.
+    token = auth.get("token") if isinstance(auth, dict) else None
+    if not token:
+        raise socketio.exceptions.ConnectionRefusedError("authentication required")
+    try:
+        from app.core.security import verify_jwt
+        user = await asyncio.to_thread(verify_jwt, token)
+    except Exception:
+        raise socketio.exceptions.ConnectionRefusedError("invalid or expired token")
+    await sio.save_session(sid, {"username": user.get("preferred_username")})
+    print(f"🔌 Client connected: {sid} ({user.get('preferred_username')})")
     
     # 1. Immediately confirm connection to restore "ONLINE" status
     await sio.emit('connection_established', {'status': 'connected'}, room=sid)

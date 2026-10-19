@@ -5,6 +5,7 @@ import { useSettings } from '../contexts/SettingsContext';
 import { BRAND } from '../brand';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
+import type { AppTab } from '../types';
 
 export function cn(...inputs: (string | undefined | null | false)[]) {
     return twMerge(clsx(inputs));
@@ -111,8 +112,8 @@ const NavItem: React.FC<NavItemProps> = ({ icon: Icon, label, active, isCollapse
 interface SidebarProps {
     isCollapsed: boolean;
     setIsCollapsed: (collapsed: boolean) => void;
-    activeTab: 'MONITORING' | 'USERS MANAGEMENT' | 'LLM SETTINGS' | 'STATISTICS' | 'LOGIN ACTIVITY' | 'INTEGRATIONS' | 'CTI CONFIGURATION';
-    setActiveTab: (tab: 'MONITORING' | 'USERS MANAGEMENT' | 'LLM SETTINGS' | 'STATISTICS' | 'LOGIN ACTIVITY' | 'INTEGRATIONS' | 'CTI CONFIGURATION') => void;
+    activeTab: AppTab;
+    setActiveTab: (tab: AppTab) => void;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, setIsCollapsed, activeTab, setActiveTab }) => {

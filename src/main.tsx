@@ -2,11 +2,22 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { AuthProvider } from 'react-oidc-context'
 import { WebStorageStateStore } from 'oidc-client-ts'
+import '@fontsource/outfit/100.css'
+import '@fontsource/outfit/300.css'
+import '@fontsource/outfit/400.css'
+import '@fontsource/outfit/500.css'
+import '@fontsource/outfit/700.css'
+import '@fontsource/outfit/900.css'
+import '@fontsource/jetbrains-mono/100.css'
+import '@fontsource/jetbrains-mono/300.css'
+import '@fontsource/jetbrains-mono/400.css'
+import '@fontsource/jetbrains-mono/700.css'
 import './index.css'
 import App from './App.tsx'
 import { SocAuthProvider } from './contexts/AuthContext'
 import { SettingsProvider } from './contexts/SettingsContext'
 import { BRAND } from './brand'
+import { authorityUrl, getConfig, loadConfig } from './config'
 
 document.title = BRAND.fullName
 
@@ -25,29 +36,32 @@ if (!window.location.search.includes('state=') && !window.location.search.includ
   }
 }
 
-const oidcConfig = {
-  authority: `http://${window.location.hostname}:8080/realms/nightshift`,
-  client_id: "bluesec-frontend",
-  redirect_uri: window.location.origin,
-  post_logout_redirect_uri: window.location.origin,
-  userStore: new WebStorageStateStore({ store: window.sessionStorage }),
-  onSigninCallback: () => {
-    window.history.replaceState(
-      {},
-      document.title,
-      window.location.pathname
-    );
-  }
-};
+// Server addresses come from /config.json, so load it before anything talks to the backend.
+loadConfig().then(() => {
+  const oidcConfig = {
+    authority: authorityUrl(),
+    client_id: getConfig().clientId,
+    redirect_uri: window.location.origin,
+    post_logout_redirect_uri: window.location.origin,
+    userStore: new WebStorageStateStore({ store: window.sessionStorage }),
+    onSigninCallback: () => {
+      window.history.replaceState(
+        {},
+        document.title,
+        window.location.pathname
+      );
+    }
+  };
 
-createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <AuthProvider {...oidcConfig}>
-      <SocAuthProvider>
-        <SettingsProvider>
-          <App />
-        </SettingsProvider>
-      </SocAuthProvider>
-    </AuthProvider>
-  </StrictMode>,
-)
+  createRoot(document.getElementById('root')!).render(
+    <StrictMode>
+      <AuthProvider {...oidcConfig}>
+        <SocAuthProvider>
+          <SettingsProvider>
+            <App />
+          </SettingsProvider>
+        </SocAuthProvider>
+      </AuthProvider>
+    </StrictMode>,
+  )
+})
