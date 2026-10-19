@@ -251,7 +251,6 @@ export const AlertDetails = ({ alert }: { alert: any }) => {
     return (
         <div className="h-full flex flex-col gap-1.5 p-3 overflow-y-auto cyber-scrollbar relative bg-slate-950/30">
             {/* Background Texture */}
-            <div className="absolute inset-0 bg-[url('/assets/noise.svg')] opacity-20 pointer-events-none mix-blend-overlay" />
 
             {/* === 1. SEVERITY HEADER === */}
             <div className={cn("flex-none p-1 rounded-xl border border-cyan-500/50 backdrop-blur-md relative overflow-hidden transition-all duration-300 shadow-[0_0_15px_rgba(34,211,238,0.1)]", config.panelBg)}>

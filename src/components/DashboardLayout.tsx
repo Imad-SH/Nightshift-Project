@@ -49,7 +49,6 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, acti
                                 filter drop-shadow-[0_0_2px_rgba(0,242,234,0.3)]">
                 </div>
                 {/* 3. The "Stars" / Noise Texture */}
-                <div className="absolute inset-0 bg-[url('/assets/noise.svg')] opacity-20 brightness-100 contrast-150 mix-blend-overlay"></div>
             </div>
 
             {/* === THE CONTENT === */}
