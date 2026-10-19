@@ -1,14 +1,39 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.database import get_db
-from app.models.settings import SystemSettings
-from sqlalchemy.future import select
+from app.core import credentials
+from app.core.config import settings as app_settings
+from app.core.security import require_role
+from app.services import settings_store
 from pydantic import BaseModel
 from typing import Optional, List
 import httpx
+import json
 import os
 
 router = APIRouter(prefix="/settings", tags=["settings"])
+
+# Changing settings, testing credentials and reloading integrations are admin-only.
+# Reading is open to any signed-in user (the UI needs e.g. the logo), with secrets masked.
+ADMIN = Depends(require_role("soc_admin"))
+
+
+def _same_url(a: Optional[str], b: Optional[str]) -> bool:
+    return (a or "").strip().rstrip("/").lower() == (b or "").strip().rstrip("/").lower()
+
+
+def _resolve_secret(provided: Optional[str], key: str, target_url: Optional[str] = None, saved_url: Optional[str] = None) -> str:
+    """
+    Turn a credential sent by the UI into the real one. The masked placeholder stands for the
+    stored secret, which is only released to the address it was saved for: testing against a
+    different address requires typing the credential again.
+    """
+    if provided == credentials.SECRET_PLACEHOLDER and target_url is not None and not _same_url(target_url, saved_url):
+        raise HTTPException(
+            status_code=400,
+            detail="The address changed: re-enter the credential to test it against the new address.",
+        )
+    return credentials.resolve(provided, key)
 
 class SettingUpdate(BaseModel):
     key: str
@@ -18,7 +43,7 @@ class VerifyRequest(BaseModel):
     provider: str
     key: str
 
-@router.post("/invalidate-status")
+@router.post("/invalidate-status", dependencies=[ADMIN])
 async def invalidate_status(request: dict):
     """
     Mark a service as DISCONNECTED immediately in the global status.
@@ -27,7 +52,7 @@ async def invalidate_status(request: dict):
     service = request.get("service")
     if not service:
         return {"status": "error"}
-        
+
     from app.core.socket import last_service_status, sio
     if service in last_service_status:
         last_service_status[service] = 'DISCONNECTED'
@@ -37,62 +62,49 @@ async def invalidate_status(request: dict):
     
 @router.get("/")
 async def get_settings(db: AsyncSession = Depends(get_db)):
-    """Get all system settings, combined with memory defaults"""
+    """
+    All system settings (in-memory defaults with stored values on top).
+    Secrets are masked and server-only settings are omitted.
+    """
     try:
-        # 1. Start with the current in-memory settings (the most up-to-date defaults)
-        from app.core.config import settings as global_settings
-        # Convert Pydantic model to dict, filtering for specific UI keys we care about
-        all_settings = global_settings.model_dump()
-        
-        # 2. Layer on top anything specifically saved in the database
-        result = await db.execute(select(SystemSettings))
-        db_records = result.scalars().all()
-        for s in db_records:
-            all_settings[s.key] = s.value
-            
-        return all_settings
+        all_settings = app_settings.model_dump()
+        all_settings.update(await settings_store.load_all(db))
+        return settings_store.public_view(all_settings)
     except Exception as e:
         print(f"❌ [SettingsAPI] GET failed: {e}")
         return {}
 
-@router.patch("/")
+@router.patch("/", dependencies=[ADMIN])
 async def update_settings(updates: dict, db: AsyncSession = Depends(get_db)):
     """Update or create multiple system settings at once"""
     try:
-        reloaded_keys = []
-        for key, value in updates.items():
-            result = await db.execute(select(SystemSettings).where(SystemSettings.key == key))
-            db_setting = result.scalar_one_or_none()
-            
-            if db_setting:
-                db_setting.value = value
-            else:
-                db_setting = SystemSettings(key=key, value=value)
-                db.add(db_setting)
-            reloaded_keys.append(key)
-        
-        await db.commit()
-        
-        # 🔥 HOT RELOAD: Update the global settings instance in memory
-        from app.core.config import settings
-        settings.update_from_dict(updates)
-        
-        return {"status": "success", "updated_keys": reloaded_keys}
+        applied = await settings_store.save(db, updates)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         print(f"❌ [SettingsAPI] Bulk PATCH failed: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
+    # 🔥 HOT RELOAD: Update the global settings instance in memory
+    app_settings.update_from_dict(applied)
+    return {"status": "success", "updated_keys": list(applied)}
 
 class ModelsRequest(BaseModel):
     provider: str
     key: str
     base_url: Optional[str] = None
 
-@router.post("/get-provider-models")
+@router.post("/get-provider-models", dependencies=[ADMIN])
 async def get_provider_models(request: ModelsRequest):
     """
     Fetch the list of available models from a provider's API.
     Used to populate dropdowns dynamically in the UI.
     """
+    if request.provider == 'nebius':
+        request.key = _resolve_secret(request.key, "nebius_api_key",
+                                      request.base_url or app_settings.nebius_base_url, app_settings.nebius_base_url)
+    else:
+        request.key = _resolve_secret(request.key, f"{request.provider}_api_key")
     async with httpx.AsyncClient(timeout=15.0) as client:
         try:
             models = []
@@ -154,9 +166,11 @@ async def get_provider_models(request: ModelsRequest):
             raise HTTPException(status_code=500, detail=str(e))
 
 
-@router.post("/verify-provider")
+@router.post("/verify-provider", dependencies=[ADMIN])
 async def verify_provider_key(request: VerifyRequest):
     """Perform a real-world health check handshake with the provider"""
+    if request.provider != 'gateway':  # for 'gateway' the key field carries the URL
+        request.key = _resolve_secret(request.key, f"{request.provider}_api_key")
     async with httpx.AsyncClient(timeout=10.0) as client:
         try:
             if request.provider == 'openai':
@@ -215,12 +229,17 @@ class IntegrationVerifyRequest(BaseModel):
     api_key: str = None
 
 
-@router.post("/verify-integration")
+@router.post("/verify-integration", dependencies=[ADMIN])
 async def verify_integration(request: IntegrationVerifyRequest):
     """
     Live connectivity test for Wazuh or TheHive using admin-provided credentials.
     This does NOT save anything — it only tests the connection.
     """
+    if request.service == 'wazuh':
+        request.password = _resolve_secret(request.password, "wazuh_password", request.url, app_settings.wazuh_url)
+    elif request.service in ('thehive', 'flowintel'):
+        request.api_key = _resolve_secret(request.api_key, f"{request.service}_api_key",
+                                          request.url, getattr(app_settings, f"{request.service}_url", None))
     url = request.url.strip().rstrip("/")
     
     try:
@@ -308,7 +327,7 @@ async def verify_integration(request: IntegrationVerifyRequest):
         raise HTTPException(status_code=500, detail=f"Connection error: {str(e)}")
 
 
-@router.post("/reload-integrations")
+@router.post("/reload-integrations", dependencies=[ADMIN])
 async def reload_integrations(db: AsyncSession = Depends(get_db)):
     """
     Force the backend services to reload their credentials from the database.
@@ -316,8 +335,7 @@ async def reload_integrations(db: AsyncSession = Depends(get_db)):
     """
     try:
         # Fetch all integration-related settings from DB
-        result = await db.execute(select(SystemSettings))
-        all_settings = {s.key: s.value for s in result.scalars().all()}
+        all_settings = await settings_store.load_all(db)
 
         reloaded = []
 
@@ -387,13 +405,44 @@ class CtiVerifyRequest(BaseModel):
     test_url: Optional[str] = None
     auth_type: Optional[str] = None   # "header" | "bearer" | "query_param"
     auth_param: Optional[str] = None  # header name or query param name
+    settings_key: Optional[str] = None  # where the key is stored, for testing a saved (masked) key
 
 
-@router.post("/verify-cti")
+# Built-in CTI providers and the setting that holds each one's key
+_CTI_KEYS = {
+    'virustotal': 'virustotal_api_key', 'abuseipdb': 'abuseipdb_api_key', 'urlscan': 'urlscan_api_key',
+    'greynoise': 'greynoise_api_key', 'shodan': 'shodan_api_key', 'otx': 'alienvault_api_key',
+    'alienvault': 'alienvault_api_key', 'hybrid': 'hybrid_analysis_api_key',
+    'hybrid_analysis': 'hybrid_analysis_api_key', 'mxtoolbox': 'mxtoolbox_api_key',
+    'emailrep': 'emailrep_api_key', 'nvd': 'nvd_api_key', 'abusech': 'threatfox_api_key',
+}
+
+
+def _resolve_cti_key(request: "CtiVerifyRequest") -> str:
+    if request.key != credentials.SECRET_PLACEHOLDER:
+        return request.key.strip()
+    key_name = _CTI_KEYS.get(request.provider.lower())
+    if key_name:
+        return credentials.resolve(request.key, key_name)
+    # User-defined source: only its own key, and only to the test URL it was saved with
+    key_name = request.settings_key or ""
+    if not (key_name.startswith("custom_cti_") and key_name.endswith("_key")):
+        raise HTTPException(status_code=400, detail="Re-enter the API key to test it.")
+    saved_url = None
+    try:
+        for source in json.loads(getattr(app_settings, "custom_cti_sources", None) or "[]"):
+            if source.get("settingsKey") == key_name:
+                saved_url = source.get("testEndpoint")
+    except (ValueError, TypeError):
+        pass
+    return _resolve_secret(request.key, key_name, request.test_url or "", saved_url)
+
+
+@router.post("/verify-cti", dependencies=[ADMIN])
 async def verify_cti_key(request: CtiVerifyRequest):
     """Perform a live handshake with the CTI provider using the provided key"""
     provider = request.provider.lower()
-    key = request.key.strip()
+    key = _resolve_cti_key(request)
     
     if not key:
         raise HTTPException(status_code=400, detail="API Key is required to test")

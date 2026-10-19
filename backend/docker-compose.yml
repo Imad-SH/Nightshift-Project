@@ -8,9 +8,7 @@ services:
       - "8000:8000"
     volumes:
       - .:/app
-      - /var/run/docker.sock:/var/run/docker.sock
       - cortex-downloads:/app/downloads
-      - wazuh_wazuh-manager-data:/var/ossec/data:ro
     environment:
       - REDIS_HOST=redis
       - REDIS_PORT=6379
@@ -127,8 +125,6 @@ volumes:
   cortex-downloads:
   frontend_node_modules:
   keycloak-data:
-  wazuh_wazuh-manager-data:
-    external: true
 
 
 networks:

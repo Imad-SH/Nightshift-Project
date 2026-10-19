@@ -4,10 +4,17 @@ import logging
 from typing import Dict, List, Any
 from pathlib import Path
 
+from app.core.config import settings
+
 logger = logging.getLogger(__name__)
 
 STIX_URL = "https://raw.githubusercontent.com/mitre/cti/master/enterprise-attack/enterprise-attack.json"
-CACHE_FILE = Path(__file__).parent.parent.parent / "scratch" / "mitre_cache.json"
+
+# Bundled in the image at build time (offline installs); relative paths resolve against the backend root.
+BACKEND_ROOT = Path(__file__).resolve().parent.parent.parent
+CACHE_FILE = Path(settings.mitre_data_file)
+if not CACHE_FILE.is_absolute():
+    CACHE_FILE = BACKEND_ROOT / CACHE_FILE
 
 MITRE_ORDER = [
     "reconnaissance", "resource-development", "initial-access", "execution", 

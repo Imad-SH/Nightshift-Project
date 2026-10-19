@@ -23,8 +23,9 @@ logger = logging.getLogger(__name__)
 sio = socketio.AsyncServer(
     async_mode='asgi',
     cors_allowed_origins=settings.socketio_cors_allowed_origins,
-    logger=True,
-    engineio_logger=True,
+    # Packet-level logging writes every alert payload to the logs: keep it off.
+    logger=settings.debug,
+    engineio_logger=False,
     max_http_buffer_size=10 * 1024 * 1024  # 10MB
 )
 
@@ -90,11 +91,9 @@ async def _load_overrides_from_db():
     """Load integration overrides from DB on first health check cycle."""
     global integration_overrides
     try:
-        from app.models.settings import SystemSettings
-        from sqlalchemy.future import select
+        from app.services import settings_store
         async with AsyncSessionLocal() as db:
-            result = await db.execute(select(SystemSettings))
-            db_settings = {s.key: s.value for s in result.scalars().all()}
+            db_settings = await settings_store.load_all(db)
             for key in integration_overrides:
                 if key in db_settings and db_settings[key]:
                     integration_overrides[key] = db_settings[key]

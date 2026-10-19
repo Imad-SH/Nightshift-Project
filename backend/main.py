@@ -46,14 +46,13 @@ async def lifespan(app: FastAPI):
         except Exception as e:
             print(f"⚠️ [Sanitize] Startup cleanup failed: {e}")
 
-        # Load Settings from DB (Phase 2d)
+        # Load Settings from DB (secrets are encrypted at rest, decrypted here)
         try:
-            from app.models.settings import SystemSettings
-            from sqlalchemy.future import select
+            from app.services import settings_store
             from app.core.database import AsyncSessionLocal
             async with AsyncSessionLocal() as db:
-                result = await db.execute(select(SystemSettings))
-                db_settings = {s.key: s.value for s in result.scalars().all()}
+                await settings_store.encrypt_plaintext_secrets(db)
+                db_settings = await settings_store.load_all(db)
                 if db_settings:
                     settings.update_from_dict(db_settings)
                     print(f"✅ Loaded {len(db_settings)} settings from database")

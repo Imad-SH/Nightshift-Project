@@ -283,6 +283,8 @@ const CTICard = ({
                 body: JSON.stringify({
                     provider: source.id,
                     key: keyToTest,
+                    // lets the backend test a saved key, which the UI only sees masked
+                    settings_key: source.settingsKey,
                     ...(isCustom && {
                         test_url: (source as any).testEndpoint || undefined,
                         auth_type: (source as any).authType || 'header',

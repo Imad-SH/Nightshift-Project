@@ -52,11 +52,13 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`
                 },
-                body: JSON.stringify({ key, value })
+                // The API takes a map of setting name -> value
+                body: JSON.stringify({ [key]: value })
             });
-            if (response.ok) {
-                setSettings(prev => ({ ...prev, [key]: value }));
+            if (!response.ok) {
+                throw new Error(`Saving ${key} failed (HTTP ${response.status})`);
             }
+            setSettings(prev => ({ ...prev, [key]: value }));
         } catch (err) {
             console.error(`❌ [SettingsContext] Error updating setting ${key}:`, err);
             throw err;

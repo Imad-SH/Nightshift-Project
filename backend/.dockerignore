@@ -1,0 +1,21 @@
+# Secrets: configuration is passed to the container at runtime, never baked into the image
+.env
+.env.*
+*.env
+!.env.example
+
+# Local data and caches (the MITRE bundle is fetched during the image build)
+data/
+downloads/
+scratch/
+__pycache__/
+*.py[cod]
+*.log
+.pytest_cache/
+
+# Development-only files
+tests/
+docker-compose*.yml
+Dockerfile*
+keycloak-theme/
+keycloak-realm-export.json

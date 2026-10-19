@@ -18,7 +18,7 @@ __pycache__/
 # --- Runtime data & generated files ---
 backups/
 backend/downloads/
-backend/scratch/mitre_cache.json
+backend/data/
 release/
 
 # --- Logs ---
@@ -47,7 +47,5 @@ Thumbs.db
 *.sln
 *.sw?
 
-# --- Local debug scripts that contain hardcoded credentials (kept on disk, never committed) ---
-tmp_ossec.conf
-write_ossec_conf.py
-backend/test_fi.py
+# --- Developer-machine files: local Wazuh/Flowintel configs, one-off debug scripts ---
+_local/

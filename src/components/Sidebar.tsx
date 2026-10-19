@@ -158,13 +158,16 @@ export const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, setIsCollapsed, a
 
             {/* Logo Area */}
             <div className={cn(
-                "relative h-20 w-full transition-all duration-300 ease-in-out overflow-hidden z-20 group/logo",
+                "relative h-20 w-full transition-all duration-300 ease-in-out overflow-hidden z-20",
+                // Only admins can change the installation logo, so only they get the hover affordance
+                isSocAdmin && "group/logo",
                 "border-b border-cyan-500/50 shadow-[0_4px_15px_rgba(34,211,238,0.3)]"
             )}>
                 <div className="absolute bottom-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-cyan-300 to-transparent opacity-80" />
                 
                 <label className={cn(
-                    "relative inset-0 w-full h-full cursor-pointer flex items-center justify-center transition-all duration-500",
+                    "relative inset-0 w-full h-full flex items-center justify-center transition-all duration-500",
+                    isSocAdmin ? "cursor-pointer" : "cursor-default",
                     "cyber-lighting",
                     isUploading && "opacity-50 cursor-wait"
                 )}>
@@ -173,7 +176,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, setIsCollapsed, a
                         className="hidden" 
                         accept="image/*"
                         onChange={handleLogoUpload}
-                        disabled={isUploading}
+                        disabled={isUploading || !isSocAdmin}
                     />
 
                     {/* Logo (Slides UP on hover) */}
