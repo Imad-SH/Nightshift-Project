@@ -14,7 +14,7 @@ class AlertModel(Base):
     title = Column(String)
     description = Column(String, nullable=True)
     level = Column(String) # info, low, medium, high, critical
-    rule_level = Column(Integer, default=0) # Raw numeric level (1-15)
+    rule_level = Column(Integer, default=0) # Severity score 0-15, common to all sources (app/core/severity.py)
     source = Column(String)
     
     # Status Workflow
@@ -24,7 +24,15 @@ class AlertModel(Base):
     # Raw Data
     raw_data = Column(JSON)
     
-    # Integration Refs
+    # Which SIEM connector ingested the alert (see app/connectors)
+    source_system = Column(String(32), nullable=True, server_default="wazuh")
+
+    # Case created in the SOAR by escalation
+    case_system = Column(String(32), nullable=True)
+    case_id = Column(String, nullable=True)
+    case_url = Column(String, nullable=True)
+
+    # Legacy per-SOAR references, kept for existing escalations (mirrored into case_*)
     flowintel_id = Column(String, nullable=True, index=True)
     thehive_id = Column(String, nullable=True, index=True)
     

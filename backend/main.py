@@ -16,8 +16,8 @@ async def lifespan(app: FastAPI):
     print(f"🚀 Starting {settings.app_name} backend...")
     redis_service.connect()
     
-    # Initialize Database (Phase 2b)
-    from app.core.database import engine, Base
+    # Initialize Database: apply schema migrations (app/core/migrations.py)
+    from app.core.migrations import upgrade_database
     print("🐘 Initializing PostgreSQL Database...")
     
     # Retry logic for DB connection
@@ -25,8 +25,7 @@ async def lifespan(app: FastAPI):
     retries = 10
     while not db_initialized and retries > 0:
         try:
-            async with engine.begin() as conn:
-                await conn.run_sync(Base.metadata.create_all)
+            await upgrade_database()
             db_initialized = True
             print("✅ PostgreSQL Database Initialized")
         except Exception as e:
