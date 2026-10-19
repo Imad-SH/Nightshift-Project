@@ -1,4 +1,5 @@
 import os
+import sys
 from dotenv import load_dotenv
 from pydantic_settings import BaseSettings
 from typing import Optional
@@ -6,7 +7,9 @@ from typing import Optional
 # Absolute path to .env file relative to this file (backend/app/core/config.py)
 # backend/app/core -> backend/app -> backend
 ENV_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", ".env"))
-print(f"📡 [Config] Using environment file: {ENV_PATH}")
+if os.path.exists(ENV_PATH):
+    # Development: settings from backend/.env (production passes environment variables)
+    print(f"📡 [Config] Using environment file: {ENV_PATH}", file=sys.stderr)
 load_dotenv(ENV_PATH)
 
 class Settings(BaseSettings):
