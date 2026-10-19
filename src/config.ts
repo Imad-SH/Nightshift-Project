@@ -18,7 +18,8 @@ export interface AppConfig {
 }
 
 const DEFAULTS: AppConfig = import.meta.env.DEV
-    ? { apiBaseUrl: '', authUrl: 'http://localhost:8080', realm: 'nightshift', clientId: 'bluesec-frontend' }
+    // Dev Keycloak listens on port 8080 of the same host the page was opened from
+    ? { apiBaseUrl: '', authUrl: `http://${window.location.hostname}:8080`, realm: 'nightshift', clientId: 'bluesec-frontend' }
     : { apiBaseUrl: '', authUrl: '/auth', realm: 'nightshift', clientId: 'bluesec-frontend' };
 
 let current: AppConfig = DEFAULTS;
