@@ -4,7 +4,8 @@ from contextlib import asynccontextmanager
 
 import asyncio
 from app.core.config import settings
-from app.core.socket import socket_app, sio, check_services_health
+from app.core.socket import socket_app, sio
+from app.services import integrations
 from app.services.redis_service import redis_service
 from app.api.api import api_router
 
@@ -59,7 +60,7 @@ async def lifespan(app: FastAPI):
             print(f"⚠️ [Settings] Startup load failed: {e}")
 
     # Start Health Monitor
-    asyncio.create_task(check_services_health())
+    integrations.start_monitor()
     
     yield
     # Shutdown

@@ -135,35 +135,34 @@ async def get_dashboard_kpis(
 @router.post("/manual-upload")
 async def manual_alert_upload(request: Request, db: AsyncSession = Depends(get_db)):
     """
-    Manually inject a JSON alert into the live stream — same pipeline as the Wazuh webhook.
-    Accepts raw Wazuh alert JSON or any compatible format.
+    Manually inject a JSON alert into the live stream: same intake as SIEM alerts, without an AI scan.
+    Wazuh alerts (raw, or OpenSearch exports of them) are recognized; any other JSON goes through
+    the generic webhook mapping.
     """
-    from app.schemas.alert import WazuhAlert, normalize_wazuh_alert, WazuhRule, WazuhAgent
-    from app.core.socket import sio
-    import logging, uuid
+    import uuid
     from datetime import datetime, timezone
-
-    logger = logging.getLogger(__name__)
+    from app.connectors import registry
+    from app.services import ingest
 
     try:
         raw_json = await request.json()
     except Exception:
         raise HTTPException(status_code=400, detail="Invalid JSON body")
+    if not isinstance(raw_json, dict):
+        raise HTTPException(status_code=400, detail="The alert must be a JSON object")
 
     # Unwrap common envelope formats
-    if '_source' in raw_json:
+    if isinstance(raw_json.get('_source'), dict):
         # OpenSearch / Elasticsearch document envelope (exported from Wazuh/OpenSearch Dashboards)
         alert_data = raw_json['_source']
         # Carry over injected metadata that was stamped on the outer envelope by the frontend
         for _k in ('_injected_by', '_injected_at'):
             if _k in raw_json:
                 alert_data[_k] = raw_json[_k]
-    elif 'payload' in raw_json:
+    elif isinstance(raw_json.get('payload'), dict):
         alert_data = raw_json['payload']
-    elif 'alert' in raw_json:
+    elif isinstance(raw_json.get('alert'), dict):
         alert_data = raw_json['alert']
-    elif 'rule' in raw_json or 'agent' in raw_json:
-        alert_data = raw_json
     else:
         alert_data = raw_json
 
@@ -175,34 +174,13 @@ async def manual_alert_upload(request: Request, db: AsyncSession = Depends(get_d
     if not alert_data.get('timestamp') and not alert_data.get('@timestamp'):
         alert_data['timestamp'] = datetime.now(timezone.utc).isoformat().replace('+00:00', 'Z')
 
-    # Normalise through the same Pydantic pipeline as the Wazuh webhook
+    is_wazuh = any(k in alert_data for k in ('rule', 'agent', 'decoder'))
+    connector = registry.SIEM['wazuh' if is_wazuh else 'webhook']
     try:
-        wazuh_alert = WazuhAlert(**alert_data)
-    except Exception:
-        try:
-            wazuh_alert = WazuhAlert()
-            wazuh_alert.id = str(alert_data.get('id', uuid.uuid4().hex[:12]))
-            wazuh_alert.timestamp = alert_data.get('timestamp')
-            rule_obj = alert_data.get('rule', {})
-            if isinstance(rule_obj, dict):
-                wazuh_alert.rule = WazuhRule(**rule_obj)
-            agent_obj = alert_data.get('agent', {})
-            if isinstance(agent_obj, dict):
-                wazuh_alert.agent = WazuhAgent(**agent_obj)
-            wazuh_alert.data = alert_data.get('data')
-        except Exception as e:
-            raise HTTPException(status_code=422, detail=f"Could not parse alert: {e}")
+        result = await ingest.ingest(db, connector, alert_data, trigger_scan=False, origin="manual")
+    except ValueError as e:
+        raise HTTPException(status_code=422, detail=f"Could not parse alert: {e}")
+    if result.get("status") != "success":
+        raise HTTPException(status_code=409, detail=result.get("message", "Alert not accepted"))
 
-    standard_alert = normalize_wazuh_alert(wazuh_alert)
-    emittable = standard_alert.model_dump(mode='json')
-
-    # Broadcast to live stream
-    await sio.emit("new_alert", emittable)
-
-    # Persist to DB
-    try:
-        await AlertService.create_alert(db, emittable)
-    except Exception as e:
-        logger.warning(f"[ManualUpload] DB persist failed (alert still emitted): {e}")
-
-    return {"status": "ok", "alert_id": emittable.get("id"), "alert": emittable, "message": "Alert injected into live stream"}
+    return {"status": "ok", "alert_id": result["alert_id"], "alert": result["alert"], "message": "Alert injected into live stream"}

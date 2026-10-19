@@ -3,6 +3,7 @@ import json
 import os
 from typing import Dict, Any, List
 from app.core.config import settings
+from app.core import severity
 from datetime import datetime, timezone
 
 class FlowintelService:
@@ -11,9 +12,11 @@ class FlowintelService:
     Focuses on Case Management and Intelligence ingestion.
     """
     
-    def __init__(self):
-        self.url = settings.flowintel_url.rstrip("/")
-        self.api_key = settings.flowintel_api_key
+    def __init__(self, url: str = None, api_key: str = None, verify_tls: bool = False):
+        # Defaults to the global settings; connectors pass explicit values per call
+        self.url = (url if url is not None else settings.flowintel_url or "").rstrip("/")
+        self.api_key = api_key if api_key is not None else settings.flowintel_api_key
+        self.verify_tls = verify_tls
         self.headers = {}
         self._build_headers()
 
@@ -46,7 +49,7 @@ class FlowintelService:
             return False
             
         try:
-            async with httpx.AsyncClient(verify=False, timeout=5.0) as client:
+            async with httpx.AsyncClient(verify=self.verify_tls, timeout=5.0) as client:
                 # Flowintel v3 health/status check
                 response = await client.get(
                     f"{self.url}/api/case/list_status",
@@ -80,15 +83,8 @@ class FlowintelService:
         # 2. Extract Indicators (Observables)
         indicators = self._extract_indicators(node_results)
 
-        # 3. Map Severity (1-4)
-        if rule_level >= 12:
-            severity = 4 # Critical
-        elif rule_level >= 8:
-            severity = 3 # High
-        elif rule_level >= 5:
-            severity = 2 # Medium
-        else:
-            severity = 1 # Low
+        # 3. Map Severity (1-4), using the same bands as the rest of the app
+        case_severity = severity.soar_level(rule_level)
 
         # 4. Adjust for Duplicates
         if manual_description:
@@ -107,13 +103,13 @@ class FlowintelService:
         payload = {
             "title": title,
             "description": description,
-            "severity": severity,
+            "severity": case_severity,
             "status": "open",
             "is_private": False,
             "ticket_id": ticket_id
         }
 
-        async with httpx.AsyncClient(verify=False) as client:
+        async with httpx.AsyncClient(verify=self.verify_tls) as client:
             # Flowintel v3.1.0 REQUIRES a JSON body for case creation
             response = await client.post(
                 f"{self.url}/api/case/create",

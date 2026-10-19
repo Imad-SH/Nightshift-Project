@@ -33,218 +33,35 @@ sio = socketio.AsyncServer(
 # it only answers /socket.io/ so it never shadows other paths.
 socket_app = socketio.ASGIApp(sio, socketio_path="socket.io")
 
-# Track active scan tasks and service health
+# Track active scan tasks
 active_scans = {}
-last_service_status = {'wazuh': 'DISCONNECTED', 'thehive': 'DISCONNECTED', 'flowintel': 'DISCONNECTED'}
 
-# Dynamic integration credentials (overridden from DB by admin via UI)
-# Falls back to settings.* (env vars) when not set
-integration_overrides = {
-    'wazuh_url': None,
-    'wazuh_user': None,
-    'wazuh_password': None,
-    'thehive_url': None,
-    'thehive_api_key': None,
-    'flowintel_url': None,
-    'flowintel_api_key': None,
-    'active_soar': 'thehive',
-}
 
-def reload_integration_settings(db_settings: dict):
-    """
-    Hot-reload integration credentials from DB-stored values.
-    Called by the reload-integrations API endpoint.
-    """
-    global integration_overrides, last_service_status
-    for key in integration_overrides:
-        if key in db_settings:
-            integration_overrides[key] = db_settings[key]
-            
-    # CRITICAL: Reset all statuses to DISCONNECTED immediately while we verify
-    # This prevents the header from showing "CONNECTED" using old stale data
-    last_service_status['wazuh'] = 'DISCONNECTED'
-    last_service_status['thehive'] = 'DISCONNECTED'
-    last_service_status['flowintel'] = 'DISCONNECTED'
-    last_service_status['active_soar'] = integration_overrides['active_soar']
-    
-    # NEW: Force immediate emit so the UI reflects the change in milliseconds
-    import asyncio
-    asyncio.create_task(sio.emit('service_status', last_service_status))
-    
-    print(f"🔄 [Health] Integration overrides updated & Broadcasted. Active SOAR: {integration_overrides['active_soar']}")
-
-def _get_wazuh_creds():
-    """Get Wazuh credentials, preferring DB overrides over env vars."""
-    url = integration_overrides['wazuh_url'] or settings.wazuh_url
-    return (
-        url.strip().rstrip("/") if url else "",
-        (integration_overrides['wazuh_user'] or settings.wazuh_user or "").strip(),
-        (integration_overrides['wazuh_password'] or settings.wazuh_password or "").strip(),
-    )
-
-def _get_thehive_url():
-    """Get TheHive URL, preferring DB override over env var."""
-    url = integration_overrides['thehive_url'] or settings.thehive_url
-    return url.strip().rstrip("/") if url else ""
-
-async def _load_overrides_from_db():
-    """Load integration overrides from DB on first health check cycle."""
-    global integration_overrides
-    try:
-        from app.services import settings_store
-        async with AsyncSessionLocal() as db:
-            db_settings = await settings_store.load_all(db)
-            for key in integration_overrides:
-                if key in db_settings and db_settings[key]:
-                    integration_overrides[key] = db_settings[key]
-            
-            # Also reload SOAR services if DB has credentials
-            thehive_url = db_settings.get('thehive_url')
-            thehive_key = db_settings.get('thehive_api_key')
-            flowintel_url = db_settings.get('flowintel_url')
-            flowintel_key = db_settings.get('flowintel_api_key')
-            
-            if thehive_url or thehive_key:
-                from app.services.thehive_service import thehive_service
-                thehive_service.reload_credentials(url=thehive_url, api_key=thehive_key)
-            
-            if flowintel_url or flowintel_key:
-                from app.services.flowintel_service import flowintel_service
-                flowintel_service.reload_credentials(url=flowintel_url, api_key=flowintel_key)
-            
-            loaded = [k for k,v in integration_overrides.items() if v]
-            if loaded:
-                print(f"🔄 [Health] DB overrides loaded on startup: {loaded}")
-    except Exception as e:
-        print(f"⚠️ [Health] Could not load DB overrides: {e}")
-        traceback.print_exc()
-
-async def check_services_health():
-    """Background task to monitor Wazuh and TheHive connectivity"""
-    global last_service_status
-    print("🛰️ [Health] Starting periodic service monitor...")
-    
-    # On first cycle, try to load DB-stored overrides
-    await _load_overrides_from_db()
-    
-    while True:
-        try:
-            # 1. Check Wazuh
-            wazuh_status = 'DISCONNECTED'
-            wazuh_url, wazuh_user, wazuh_password = _get_wazuh_creds()
-            try:
-                # Extended timeout: allow busy manager time to respond during indexing
-                async with httpx.AsyncClient(verify=False, timeout=120.0) as client:
-                    auth = (wazuh_user, wazuh_password)
-                    response = await client.get(f"{wazuh_url}/security/user/authenticate", auth=auth)
-                    if response.status_code == 200:
-                        wazuh_status = 'CONNECTED'
-                        # Log success for visibility
-                        # print(f"🛰️ [Health] Wazuh check: {wazuh_status}")
-            except Exception as e:
-                print(f"⚠️ [Health] Wazuh check failed: {str(e)}")
-
-            # 2. Check TheHive
-            thehive_status = 'DISCONNECTED'
-            try:
-                from app.services.thehive_service import thehive_service
-                # reload_credentials already called by settings.py, so we just check
-                is_ok = await thehive_service.check_connectivity()
-                if is_ok:
-                    thehive_status = 'CONNECTED'
-            except Exception as e:
-                print(f"⚠️ [Health] TheHive check failed: {str(e)}")
-
-            # 3. Check Flowintel
-            flowintel_status = 'DISCONNECTED'
-            flowintel_url = integration_overrides['flowintel_url'] or settings.flowintel_url
-            flowintel_key = integration_overrides['flowintel_api_key'] or settings.flowintel_api_key
-            
-            if flowintel_url and flowintel_key:
-                try:
-                    from app.services.flowintel_service import flowintel_service
-                    # Explicitly reload service with current health check creds
-                    flowintel_service.reload_credentials(url=flowintel_url, api_key=flowintel_key)
-                    is_ok = await flowintel_service.check_connectivity()
-                    if is_ok:
-                        flowintel_status = 'CONNECTED'
-                except Exception as e:
-                    print(f"⚠️ [Health] Flowintel check failed: {str(e)}")
-
-            # Update global state
-            last_service_status = {
-                'wazuh': wazuh_status,
-                'thehive': thehive_status,
-                'flowintel': flowintel_status,
-                'active_soar': integration_overrides['active_soar'],
-                'system': 'ONLINE' if (wazuh_status == 'CONNECTED') else 'OFFLINE',
-                'timestamp': datetime.now().isoformat()
-            }
-
-            # Emit to all connected clients
-            await sio.emit('service_status', last_service_status)
-            
-        except Exception as global_err:
-            print(f"❌ [Health] Global Monitor Error: {global_err}")
-            
-        await asyncio.sleep(10) # Check every 10s
-
-async def perform_immediate_health_check():
-    """
-    Force a health check to run right now instead of waiting for the 30s cycle.
-    Useful after admin saves new integration settings.
-    """
-    print("🛰️ [Health] Manual trigger: Running immediate health check...")
-    global last_service_status
-    
-    # Check Wazuh
-    wazuh_status = 'DISCONNECTED'
-    wazuh_url, wazuh_user, wazuh_password = _get_wazuh_creds()
-    print(f"🛰️ [Health] Checking Wazuh: {wazuh_url} with user {wazuh_user}")
-    try:
-        async with httpx.AsyncClient(verify=False, timeout=20.0) as client:
-            auth = (wazuh_user, wazuh_password)
-            response = await client.get(f"{wazuh_url}/security/user/authenticate", auth=auth)
-            print(f"🛰️ [Health] Wazuh Response: {response.status_code}")
-            if response.status_code == 200:
-                wazuh_status = 'CONNECTED'
-    except Exception as e:
-        print(f"⚠️ [Health] Manual Wazuh check failed: {e}")
-
-    # Check TheHive
-    thehive_status = 'DISCONNECTED'
-    try:
-        from app.services.thehive_service import thehive_service
-        # Force a deep check
-        if await thehive_service.check_connectivity():
-            thehive_status = 'CONNECTED'
-    except Exception as e:
-        print(f"⚠️ [Health] Manual TheHive check failed: {e}")
-
-    # Check Flowintel
-    flowintel_status = 'DISCONNECTED'
-    flowintel_url = (integration_overrides['flowintel_url'] or settings.flowintel_url or "").strip().rstrip("/")
-    flowintel_key = (integration_overrides['flowintel_api_key'] or settings.flowintel_api_key or "").strip()
-    if flowintel_url and flowintel_key:
-        try:
-            from app.services.flowintel_service import flowintel_service
-            flowintel_service.reload_credentials(url=flowintel_url, api_key=flowintel_key)
-            if await flowintel_service.check_connectivity():
-                flowintel_status = 'CONNECTED'
-        except Exception as e:
-            print(f"⚠️ [Health] Manual Flowintel check failed: {e}")
-
-    # Update and Emit
-    last_service_status = {
-        'wazuh': wazuh_status,
-        'thehive': thehive_status,
-        'flowintel': flowintel_status,
-        'active_soar': integration_overrides['active_soar'],
-        'system': 'ONLINE' if wazuh_status == 'CONNECTED' else 'OFFLINE',
-        'timestamp': datetime.now().isoformat()
+def _alert_payload(alert) -> dict:
+    """An alert as sent to the UI when (re)loading history."""
+    from app.services import integrations
+    raw = alert.raw_data or {}
+    return {
+        'id': alert.wazuh_id,
+        'title': alert.title,
+        'timestamp': alert.timestamp.isoformat() if alert.timestamp else None,
+        'rule_level': alert.rule_level,
+        'source': alert.source,
+        'source_system': alert.source_system or 'wazuh',
+        'status': raw.get('ai_status', 'idle'),
+        'alert_status': alert.status,
+        'verdict': raw.get('verdict', alert.verdict),
+        'ai_analysis_results': raw.get('ai_analysis_results', {}),
+        'graph_state': raw.get('graph_layout', None),
+        'raw_data': raw,
+        'thehive_id': alert.thehive_id,
+        'thehive_url': settings.thehive_url if alert.thehive_id else None,
+        'flowintel_id': alert.flowintel_id,
+        'flowintel_url': settings.flowintel_url if alert.flowintel_id else None,
+        'case_system': alert.case_system,
+        'case_id': alert.case_id,
+        'case_url': integrations.case_link(alert),
     }
-    await sio.emit('service_status', last_service_status)
-    print(f"🛰️ [Health] Manual trigger complete: {wazuh_status} / {thehive_status}")
 
 @sio.event
 async def connect(sid, environ, auth=None):
@@ -266,7 +83,8 @@ async def connect(sid, environ, auth=None):
     await sio.emit('connection_established', {'status': 'connected'}, room=sid)
     
     # 2. Immediately send last known service status for instant UI sync
-    await sio.emit('service_status', last_service_status, room=sid)
+    from app.services import integrations
+    await sio.emit('service_status', integrations.service_status(), room=sid)
 
     # 3. HYDRATION: Fetch ALL alerts from the database
     print(f"📥 [Socket] Synchronizing FULL alert history for {sid}...")
@@ -281,32 +99,7 @@ async def connect(sid, environ, auth=None):
             db_alerts = await AlertService.get_alerts(db, limit=None)
             
             # Format alerts for frontend consumption
-            history_payload = []
-            for alert in db_alerts:
-                raw = alert.raw_data or {}
-                # Extract persisted AI info from raw_data
-                ai_status = raw.get('ai_status', 'idle')
-                verdict = raw.get('verdict', alert.verdict)
-                graph_state = raw.get('graph_layout', None)
-
-                history_payload.append({
-                    'id': alert.wazuh_id,
-                    'title': alert.title,
-                    'timestamp': alert.timestamp.isoformat() if alert.timestamp else None,
-                    'rule_level': alert.rule_level,
-                    'source': alert.source,
-                    'status': ai_status,
-                    'alert_status': alert.status,
-                    'verdict': verdict,
-                    'ai_analysis_results': raw.get('ai_analysis_results', {}),
-                    'graph_state': graph_state,
-                    'raw_data': raw,
-                    'thehive_id': alert.thehive_id,
-                    'thehive_url': settings.thehive_url if alert.thehive_id else None,
-                    'flowintel_id': alert.flowintel_id,
-                    'flowintel_url': settings.flowintel_url if alert.flowintel_id else None,
-                    'case_url': f"{settings.thehive_url.rstrip('/')}/alerts/{alert.thehive_id}/details" if alert.thehive_id else (f"{settings.flowintel_url.rstrip('/')}/case/{alert.flowintel_id}" if alert.flowintel_id else None),
-                })
+            history_payload = [_alert_payload(alert) for alert in db_alerts]
 
             # Emit history payload ONLY to the newly connected client
             await sio.emit('alert_history', {
@@ -353,32 +146,7 @@ async def handle_get_alerts_history(sid, data=None):
                  db_alerts = await AlertService.get_alerts_since(db, start_time=start_time, limit=limit, skip=skip)
 
                  
-             history_payload = []
-             for alert in db_alerts:
-                raw = alert.raw_data or {}
-                # Extract persisted AI info from raw_data
-                ai_status = raw.get('ai_status', 'idle')
-                verdict = raw.get('verdict', alert.verdict)
-                graph_state = raw.get('graph_layout', None)
-
-                history_payload.append({
-                    'id': alert.wazuh_id,
-                    'title': alert.title,
-                    'timestamp': alert.timestamp.isoformat() if alert.timestamp else None,
-                    'rule_level': alert.rule_level,
-                    'source': alert.source,
-                    'status': ai_status,
-                    'alert_status': alert.status,
-                    'verdict': verdict,
-                    'ai_analysis_results': raw.get('ai_analysis_results', {}),
-                    'graph_state': graph_state,
-                    'raw_data': raw,
-                    'thehive_id': alert.thehive_id,
-                    'thehive_url': settings.thehive_url if alert.thehive_id else None,
-                    'flowintel_id': alert.flowintel_id,
-                    'flowintel_url': settings.flowintel_url if alert.flowintel_id else None,
-                    'case_url': f"{settings.thehive_url.rstrip('/')}/alerts/{alert.thehive_id}/details" if alert.thehive_id else (f"{settings.flowintel_url.rstrip('/')}/case/{alert.flowintel_id}" if alert.flowintel_id else None),
-                })
+             history_payload = [_alert_payload(alert) for alert in db_alerts]
 
              await sio.emit('alert_history', {
                  'alerts': history_payload,
@@ -579,6 +347,14 @@ async def run_scan_pipeline(alert_id: str, raw_data: any):
             raw_data = {k: v for k, v in db_alert.raw_data.items() if k not in _AI_KEYS}
             print(f"✅ [Socket] Loaded clean Wazuh data from DB for {alert_id} ({len(raw_data)} keys)")
 
+        # Normalized fields, the same for every source: used for internal context and escalation
+        _fallback = raw_data if isinstance(raw_data, dict) else {}
+        alert_info = {
+            'title': db_alert.title if db_alert else _fallback.get('title', 'AI Escalation'),
+            'source': db_alert.source if db_alert else _fallback.get('source', 'Unknown Agent'),
+            'score': (db_alert.rule_level if db_alert else _fallback.get('rule_level', 0)) or 0,
+        }
+
         # Reset AI state so re-scan starts visually and logically fresh
         await AlertService.update_graph_layout(db, alert_id, [], [])
         await AlertService.update_ai_results(db, alert_id, {}, status='running', clear_verdict=True)
@@ -635,11 +411,17 @@ async def run_scan_pipeline(alert_id: str, raw_data: any):
         # ABORT PIPELINE if Agent 1 failed
         if extracted_data.get("status") == "Failed":
             print(f"🛑 [Socket] Agent 1 failed for {alert_id}. Aborting pipeline.")
+            # Record the failure, as for Agents 2 and 3, so the alert does not stay "running"
+            reason = extracted_data.get('summary', 'Agent 1 failed.')
+            error_verdict = "Error: Timeout" if "timed out" in reason.lower() else "Error: Extractor Failed"
+            async with AsyncSessionLocal() as db:
+                await AlertService.update_ai_results(db, alert_id, {}, status='failed', verdict=error_verdict)
             await sio.emit('agent_update', {
                 'alert_id': alert_id,
                 'node': 'error',
                 'pipeline_status': 'failed',
-                'log': f"🛑 Investigation halted: {extracted_data.get('summary', 'Agent 1 failed.')}"
+                'verdict': error_verdict,
+                'log': f"🛑 Investigation halted: {reason}"
             })
             return
         # Check if extraction returned observables
@@ -710,7 +492,7 @@ async def run_scan_pipeline(alert_id: str, raw_data: any):
                     investigator.run(
                         alert_id=alert_id,
                         observables=observables,
-                        raw_data=raw_data,
+                        raw_data={**raw_data, 'title': alert_info['title'], 'source': alert_info['source']},
                         db=db
                     ),
                     timeout=120
@@ -874,58 +656,42 @@ async def run_scan_pipeline(alert_id: str, raw_data: any):
                 verdict=verdict.get('verdict')
             )
 
-        # --- PHASE 4: AUTOMATED ESCALATION (CRITICAL AUTOMATION) ---
-        rule_level = raw_data.get('rule_level', 0)
-        flowintel_id = None
-
-        if rule_level >= 7 and not verdict.get("failed"):
+        # --- PHASE 4: AUTOMATED ESCALATION to the active SOAR (Integrations > Auto-escalation) ---
+        from app.services import integrations
+        from app.connectors.base import EscalationRequest
+        case_info = {}
+        if integrations.should_auto_escalate(alert_info['score'], verdict.get('verdict')):
+            soar = integrations.active_soar()
             try:
-                print(f"🚀 [Socket] Level {rule_level} Detected. Auto-escalating to Flowintel...")
-                
-                # Context assembly for Flowintel
-                escalation_context = {
-                    "node_results": {
-                        "agent_screener": {
-                            "network": observables.get('network', []),
-                            "files": observables.get('files', []),
-                            "identities": observables.get('identities', []),
-                            "system": observables.get('system', []),
-                            "summary": extracted_data.get('summary', '')
-                        },
-                        "agent_investigator": investigation_results,
-                        "agent_judge": verdict
-                    }
-                }
-                
-                # Metadata
-                title = raw_data.get('title', 'AI Escalation')
-                agent = raw_data.get('source', 'Unknown Agent')
-                
-                # Trigger Escalation
-                from app.services.flowintel_service import flowintel_service
+                print(f"🚀 [Socket] Severity {alert_info['score']}, verdict {verdict.get('verdict')}: auto-escalating to {soar.name}...")
                 async with AsyncSessionLocal() as esc_db:
-                    res = await flowintel_service.create_case(
+                    result = await integrations.escalate(esc_db, EscalationRequest(
                         alert_id=alert_id,
-                        event_data=escalation_context,
-                        alert_title=title,
-                        alert_agent=agent,
-                        rule_level=rule_level,
-                        db=esc_db
-                    )
-                flowintel_id = res.get("id")
-                
-                await sio.emit('agent_update', {
-                    'alert_id': alert_id,
-                    'node': 'responder',
-                    'log': f'📤 Automatically escalated to Flowintel (ID: {flowintel_id})'
-                })
-
+                        title=alert_info['title'],
+                        source=alert_info['source'],
+                        score=alert_info['score'],
+                        node_results={
+                            "agent_screener": {
+                                "network": observables.get('network', []),
+                                "files": observables.get('files', []),
+                                "identities": observables.get('identities', []),
+                                "system": observables.get('system', []),
+                                "summary": extracted_data.get('summary', '')
+                            },
+                            "agent_investigator": investigation_results,
+                            "agent_judge": verdict
+                        },
+                        is_ai_analyzed=True,
+                    ))
+                case_info = integrations.case_fields(soar.id, result.case_id, result.case_url)
+            except integrations.AlreadyEscalated:
+                print(f"ℹ️ [Socket] {alert_id} already has a case in {soar.name}; not escalating again.")
             except Exception as esc_err:
                 print(f"❌ [Socket] Auto-escalation failed: {esc_err}")
                 await sio.emit('agent_update', {
                     'alert_id': alert_id,
                     'node': 'error',
-                    'log': f'[Flowintel] Auto-escalation failed: {str(esc_err)}'
+                    'log': f'[{soar.name}] Auto-escalation failed: {str(esc_err)}'
                 })
 
         # NO-OP: Persistence handled at each agent step now
@@ -934,7 +700,8 @@ async def run_scan_pipeline(alert_id: str, raw_data: any):
         await sio.emit('agent_update', {
             'alert_id': alert_id,
             'pipeline_status': 'completed',
-            'flowintel_id': flowintel_id
+            'flowintel_id': None,
+            **case_info
         })
 
         print(f"✅ [Socket] AI Scan pipeline complete for alert: {alert_id}")
@@ -953,6 +720,11 @@ async def run_scan_pipeline(alert_id: str, raw_data: any):
         logger.error(f"❌ [Socket] Error during AI scan: {str(e)}")
         import traceback
         traceback.print_exc()
+        try:
+            async with AsyncSessionLocal() as db:
+                await AlertService.update_ai_results(db, alert_id, {}, status='failed', verdict="Error: Failed")
+        except Exception as persist_err:
+            print(f"⚠️ [Socket] Could not record the failed scan: {persist_err}")
         await sio.emit('agent_update', {
             'alert_id': alert_id,
             'node': 'error',
@@ -966,4 +738,4 @@ async def run_scan_pipeline(alert_id: str, raw_data: any):
             print(f"🧹 [Socket] Cleaned up status for: {alert_id}")
 
 # Export singleton instance
-__all__ = ['sio', 'socket_app', 'check_services_health', 'reload_integration_settings']
+__all__ = ['sio', 'socket_app', 'trigger_ai_scan']

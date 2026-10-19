@@ -25,14 +25,15 @@ def upgrade() -> None:
     op.add_column("alerts_v2", sa.Column("case_id", sa.String(), nullable=True))
     op.add_column("alerts_v2", sa.Column("case_url", sa.String(), nullable=True))
 
-    # Existing escalations. Flowintel ids were stored as "FI-<id>"; the case id is the number.
-    op.execute(
-        "UPDATE alerts_v2 SET case_system = 'flowintel', case_id = regexp_replace(flowintel_id, '^FI-', '') "
-        "WHERE flowintel_id IS NOT NULL"
-    )
+    # Existing escalations. When an alert went to both, TheHive wins, as it did in the UI.
+    # Flowintel ids were stored as "FI-<id>"; the case id is the number.
     op.execute(
         "UPDATE alerts_v2 SET case_system = 'thehive', case_id = thehive_id "
-        "WHERE thehive_id IS NOT NULL AND case_id IS NULL"
+        "WHERE thehive_id IS NOT NULL"
+    )
+    op.execute(
+        "UPDATE alerts_v2 SET case_system = 'flowintel', case_id = regexp_replace(flowintel_id, '^FI-', '') "
+        "WHERE flowintel_id IS NOT NULL AND case_id IS NULL"
     )
 
     # Time-range queries (history, statistics) scan the whole table without it

@@ -22,6 +22,13 @@ interface DashboardLayoutProps {
 
 export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, activeTab, setActiveTab, subTab }) => {
     const { serviceStatus } = useSocket();
+    const connectors = serviceStatus.connectors || {};
+    const activeSoarId = serviceStatus.active_soar || 'thehive';
+    const activeSoarState = connectors.soar?.[activeSoarId]?.state;
+    // The header shows Wazuh, or the webhook source when Wazuh is not set up at all
+    const siem = connectors.siem || {};
+    const siemId = siem.wazuh?.state === 'not_configured' && siem.webhook && siem.webhook.state !== 'not_configured' ? 'webhook' : 'wazuh';
+    const siemState = siem[siemId]?.state;
 
     const [isSidebarCollapsed, setIsSidebarCollapsed] = React.useState(true);
     // Removed redundant local polling to reduce network noise
@@ -63,7 +70,11 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, acti
                         wazuhStatus={serviceStatus.wazuh === 'CONNECTED' ? 'CONNECTED' : 'DISCONNECTED'}
                         thehiveStatus={serviceStatus.thehive === 'CONNECTED' ? 'CONNECTED' : 'DISCONNECTED'}
                         flowintelStatus={serviceStatus.flowintel === 'CONNECTED' ? 'CONNECTED' : 'DISCONNECTED'}
-                        activeSoar={(serviceStatus.active_soar as any) || 'thehive'}
+                        activeSoar={activeSoarId}
+                        activeSoarOnline={activeSoarState ? ['connected', 'configured'].includes(activeSoarState) : undefined}
+                        systemOnline={serviceStatus.system ? serviceStatus.system === 'ONLINE' : undefined}
+                        siemId={siemId}
+                        siemOnline={siemState ? ['connected', 'receiving', 'ready'].includes(siemState) : undefined}
                         activeTab={activeTab}
                         subTab={subTab}
                         onNavigate={setActiveTab}

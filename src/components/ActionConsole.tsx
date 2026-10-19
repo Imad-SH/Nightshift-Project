@@ -25,6 +25,7 @@ import type { BlueSecReportData } from '../utils/pdfGenerator';
 import { useSocAuth } from '../contexts/AuthContext';
 import { useSettings } from '../contexts/SettingsContext';
 import { apiBase } from '../config';
+import { soarInfo } from '../soar';
 
 interface ActionConsoleProps {
     alert: {
@@ -165,19 +166,9 @@ function StandbyState() {
 
 export const ActionConsole: React.FC<ActionConsoleProps> = ({ alert, isScanning }) => {
     const { socket, resetEvent, events, serviceStatus } = useSocket();
-    const [localActiveSoar, setLocalActiveSoar] = React.useState<'thehive' | 'flowintel' | null>(() => {
-        return (localStorage.getItem('local_active_soar') as any) || null;
-    });
-
-    // Listen for local switch events for absolute zero-latency
-    React.useEffect(() => {
-        const handleSwitch = (e: any) => setLocalActiveSoar(e.detail);
-        window.addEventListener('soar_switch', handleSwitch);
-        return () => window.removeEventListener('soar_switch', handleSwitch);
-    }, []);
-
-    const effectiveSoar = localActiveSoar || (serviceStatus as any).active_soar || 'thehive';
-    const activeSoar = effectiveSoar; // Map for ease of use in existing logic
+    // The SOAR escalations go to: chosen by an admin under Integrations, sent by the server
+    const activeSoar: string = (serviceStatus as any).active_soar || 'thehive';
+    const soar = soarInfo(activeSoar);
 
     const { token, user } = useSocAuth();
     const currentUsername = (user as any)?.preferred_username || (user as any)?.name || 'Analyst';
@@ -429,7 +420,8 @@ export const ActionConsole: React.FC<ActionConsoleProps> = ({ alert, isScanning 
     const [manualForm, setManualForm] = React.useState({ title: '', description: '', severity: 1, tlp: 'AMBER', tags: '' });
 
     const onSoarClick = () => {
-        const existingId = (activeEvent as any)?.thehive_id || (alert as any)?.thehive_id ||
+        const existingId = (activeEvent as any)?.case_id || (alert as any)?.case_id ||
+                           (activeEvent as any)?.thehive_id || (alert as any)?.thehive_id ||
                            (activeEvent as any)?.flowintel_id || (alert as any)?.flowintel_id;
         if (existingId) {
             setShowEscalateConfirm(true);
@@ -451,15 +443,14 @@ export const ActionConsole: React.FC<ActionConsoleProps> = ({ alert, isScanning 
 
     const handleManualEscalate = async () => {
         if (!alert?.id || isEscalating) return;
-        const soarPath = activeSoar === 'thehive' ? 'thehive' : 'flowintel';
-        const soarName = activeSoar === 'thehive' ? 'TheHive' : 'Flowintel';
+        const soarName = soar.name;
         setIsEscalating(true);
         setShowPreEscalateModal(false);
         setShowError(null);
         try {
             const levelFromSeverity = manualForm.severity === 3 ? 13 : manualForm.severity === 2 ? 8 : 3;
             const extraTags = [`Escalated by ${currentUsername}`, `TLP:${manualForm.tlp}`, ...(manualForm.tags ? manualForm.tags.split(',').map(t => t.trim()).filter(Boolean) : [])];
-            const response = await fetch(`${apiBase()}/api/v1/${soarPath}/escalate`, {
+            const response = await fetch(`${apiBase()}/api/integrations/escalate`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
                 body: JSON.stringify({
@@ -490,8 +481,7 @@ export const ActionConsole: React.FC<ActionConsoleProps> = ({ alert, isScanning 
         if (!alert?.id || isEscalating) return;
 
         // Dynamic target configuration
-        const soarPath = activeSoar === 'thehive' ? 'thehive' : 'flowintel';
-        const soarName = activeSoar === 'thehive' ? 'TheHive' : 'Flowintel';
+        const soarName = soar.name;
 
         // USABILITY SYNC: Robust check same as UI display
         const hasVerdict = !!(activeEvent?.verdict || alert?.verdict || activeEvent?.node_results?.agent_judge?.verdict);
@@ -508,7 +498,7 @@ export const ActionConsole: React.FC<ActionConsoleProps> = ({ alert, isScanning 
         try {
             console.log(`📤 [ActionConsole] Escalating to ${soarName}: ${alert.id}`);
 
-            const response = await fetch(`${apiBase()}/api/v1/${soarPath}/escalate`, {
+            const response = await fetch(`${apiBase()}/api/integrations/escalate`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -572,7 +562,8 @@ export const ActionConsole: React.FC<ActionConsoleProps> = ({ alert, isScanning 
     const isCompleted = pipelineStatus === 'completed' || hasVerdict;
 
     // State to remember if we ever completed, to prevent layout flashing back to A during re-scan
-    const soarId = (activeEvent as any)?.thehive_id || (alert as any)?.thehive_id || 
+    const soarId = (activeEvent as any)?.case_id || (alert as any)?.case_id ||
+                   (activeEvent as any)?.thehive_id || (alert as any)?.thehive_id || 
                    (activeEvent as any)?.flowintel_id || (alert as any)?.flowintel_id;
     const [hasCompletedOnce, setHasCompletedOnce] = React.useState(isCompleted);
 
@@ -649,7 +640,7 @@ export const ActionConsole: React.FC<ActionConsoleProps> = ({ alert, isScanning 
                                 </div>
                                 <div className="p-5 space-y-4">
                                     <p className="text-slate-300 text-sm leading-relaxed">
-                                        This alert has already been successfully pushed to {activeSoar === 'thehive' ? 'TheHive' : 'Flowintel'}. Creating it again will result in a <span className="text-amber-400 font-bold">duplicate case</span> in your instance.
+                                        This alert has already been successfully pushed to {soar.name}. Creating it again will result in a <span className="text-amber-400 font-bold">duplicate case</span> in your instance.
                                     </p>
                                     <div className="flex gap-3 pt-2">
                                         <button
@@ -681,8 +672,8 @@ export const ActionConsole: React.FC<ActionConsoleProps> = ({ alert, isScanning 
                 <AnimatePresence>
                     {showPreEscalateModal && (() => {
                         const isHive = activeSoar === 'thehive';
-                        const soarName = isHive ? 'TheHive' : 'Flowintel';
-                        const soarLogo = isHive ? '/assets/TheHive Logo.png' : '/assets/flowintel_logo.png';
+                        const soarName = soar.name;
+                        const soarLogo = soar.logo;
                         const C = isHive
                             ? { border: 'border-amber-500/30', headerBg: 'bg-amber-950/50', headerBorder: 'border-b border-amber-500/30', accent: 'text-amber-400', sub: 'text-amber-200/70', cardActive: 'bg-amber-500/15 border-amber-400/60 shadow-[0_0_20px_rgba(251,191,36,0.15)]', cardHover: 'hover:border-amber-500/40', dot: 'bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.8)]', formBorder: 'border-amber-500/20', formFocus: 'focus:border-amber-400/60', btn: 'bg-amber-500/20 text-amber-400 border-amber-500/50 hover:bg-amber-500/30 hover:shadow-[0_0_15px_rgba(251,191,36,0.3)]', shadow: 'shadow-[0_20px_50px_rgba(0,0,0,0.5),0_0_20px_rgba(251,191,36,0.05)]' }
                             : { border: 'border-violet-500/30', headerBg: 'bg-violet-950/50', headerBorder: 'border-b border-violet-500/30', accent: 'text-violet-400', sub: 'text-violet-200/70', cardActive: 'bg-violet-500/15 border-violet-400/60 shadow-[0_0_20px_rgba(139,92,246,0.15)]', cardHover: 'hover:border-violet-500/40', dot: 'bg-violet-400 shadow-[0_0_8px_rgba(139,92,246,0.8)]', formBorder: 'border-violet-500/20', formFocus: 'focus:border-violet-400/60', btn: 'bg-violet-500/20 text-violet-400 border-violet-500/50 hover:bg-violet-500/30 hover:shadow-[0_0_15px_rgba(139,92,246,0.3)]', shadow: 'shadow-[0_20px_50px_rgba(0,0,0,0.5),0_0_20px_rgba(139,92,246,0.05)]' };
@@ -704,7 +695,7 @@ export const ActionConsole: React.FC<ActionConsoleProps> = ({ alert, isScanning 
                                 {/* Header — matches duplicate modal style with SOAR branding */}
                                 <div className={cn("p-4 flex items-center justify-between", C.headerBg, C.headerBorder)}>
                                     <div className="flex items-center gap-3">
-                                        <img src={soarLogo} alt={soarName} className="h-6 object-contain" />
+                                        {soarLogo && <img src={soarLogo} alt={soarName} className="h-6 object-contain" />}
                                         <div>
                                             <h3 className={cn("font-bold font-mono tracking-tight text-sm", C.accent)}>CREATE CASE — {soarName}</h3>
                                             <p className={cn("text-[10px] uppercase font-mono tracking-wider", C.sub)}>This alert has no AI verdict yet — pick a path below</p>
@@ -862,10 +853,10 @@ export const ActionConsole: React.FC<ActionConsoleProps> = ({ alert, isScanning 
                     <CyberCard
                         icon={soarId ? Bot : ExternalLink}
                         title={soarId ? "CASE CREATED" : "CREATE CASE"}
-                        subtitle={isEscalating ? "PROCESSING..." : (soarId ? "(Case Created)" : `Escalate to ${activeSoar === 'thehive' ? 'TheHive' : 'Flowintel'}`)}
-                        color={soarId ? "slate" : (activeSoar === 'thehive' ? "amber" : "violet")}
+                        subtitle={isEscalating ? "PROCESSING..." : (soarId ? "(Case Created)" : soar.escalateLabel.toUpperCase())}
+                        color={soarId ? "slate" : soar.color}
                         hasPlaceholder
-                        imageSrc={activeSoar === 'thehive' ? "/assets/TheHive Logo.png" : "/assets/flowintel_logo.png"}
+                        imageSrc={soar.logo}
                         onClick={onSoarClick}
                         isScanning={isEscalating}
                     />
@@ -897,10 +888,10 @@ export const ActionConsole: React.FC<ActionConsoleProps> = ({ alert, isScanning 
                     <CyberCard
                         icon={soarId ? Bot : ExternalLink}
                         title={soarId ? "CASE CREATED" : "CREATE CASE"}
-                        subtitle={isEscalating ? "PROCESSING..." : (soarId ? `SUCCESS (ID: ${soarId})` : `Escalate to ${activeSoar === 'thehive' ? 'TheHive' : 'Flowintel'}`)}
-                        color={soarId ? "slate" : (activeSoar === 'thehive' ? "amber" : "cyan")}
+                        subtitle={isEscalating ? "PROCESSING..." : (soarId ? `SUCCESS (ID: ${soarId})` : soar.escalateLabel.toUpperCase())}
+                        color={soarId ? "slate" : soar.color}
                         hasPlaceholder
-                        imageSrc={activeSoar === 'thehive' ? "/assets/TheHive Logo.png" : "/assets/flowintel_logo.png"}
+                        imageSrc={soar.logo}
                         onClick={onSoarClick}
                         isScanning={isEscalating}
                     />

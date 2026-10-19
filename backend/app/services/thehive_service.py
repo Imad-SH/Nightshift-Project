@@ -3,6 +3,7 @@ import json
 import os
 from typing import Any, Dict, List
 from app.core.config import settings
+from app.core import severity
 from datetime import datetime, timezone
 
 
@@ -22,9 +23,11 @@ class TheHiveService:
     Service to interact with TheHive v4/v5 API for formal Case Management.
     """
     
-    def __init__(self):
-        self.url = settings.thehive_url.rstrip("/")
-        self.api_key = settings.thehive_api_key
+    def __init__(self, url: str = None, api_key: str = None, verify_tls: bool = False):
+        # Defaults to the global settings; connectors pass explicit values per call
+        self.url = (url if url is not None else settings.thehive_url or "").rstrip("/")
+        self.api_key = api_key if api_key is not None else settings.thehive_api_key
+        self.verify_tls = verify_tls
         # TheHive v4/v5 usually expects 'Bearer' or 'Key' prefix. 
         # We provide both standard 'Authorization' and 'X-API-KEY' for compatibility.
         self._build_headers()
@@ -65,7 +68,7 @@ class TheHiveService:
             return False
             
         try:
-            async with httpx.AsyncClient(verify=False, timeout=5.0) as client:
+            async with httpx.AsyncClient(verify=self.verify_tls, timeout=5.0) as client:
                 # TheHive health check based on user details
                 response = await client.get(
                     f"{self.url}/api/user/current",
@@ -103,13 +106,8 @@ class TheHiveService:
         # 2. Extract Observables
         observables = self._extract_observables(node_results)
 
-        # 3. Map Severity (1-3)
-        if rule_level >= 12:
-            severity = 3 # High
-        elif rule_level >= 8:
-            severity = 2 # Medium
-        else:
-            severity = 1 # Low
+        # 3. Map Severity (TheHive: 1 low .. 4 critical), using the same bands as the rest of the app
+        case_severity = severity.soar_level(rule_level)
 
         # 4. Adjust for Duplicates
         if manual_description:
@@ -128,16 +126,16 @@ class TheHiveService:
         payload = {
             "title": title,
             "description": description,
-            "severity": severity,
+            "severity": case_severity,
             "type": "external",
-            "source": "Cognitive-SOC",
+            "source": settings.product_name,
             "sourceRef": source_ref,
             "externalLink": f"{settings.frontend_url}/alerts/{alert_id}",
             "observables": observables,
             "tags": (manual_tags if manual_description else (["AI-Analyzed"] if is_ai_analyzed else [])) + [f"Agent:{alert_agent}"]
         }
 
-        async with httpx.AsyncClient(verify=False) as client:
+        async with httpx.AsyncClient(verify=self.verify_tls) as client:
             response = await client.post(
                 f"{self.url}/api/alert",
                 headers=self.headers,

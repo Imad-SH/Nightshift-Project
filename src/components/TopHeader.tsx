@@ -3,8 +3,9 @@ import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSocAuth } from '../contexts/AuthContext';
-import { User, Info } from 'lucide-react';
+import { User, Info, Webhook } from 'lucide-react';
 import { BRAND } from '../brand';
+import { soarInfo } from '../soar';
 import type { AppTab } from '../types';
 
 export function cn(...inputs: (string | undefined | null | false)[]) {
@@ -15,45 +16,44 @@ interface TopHeaderProps {
     wazuhStatus: 'CONNECTED' | 'DISCONNECTED';
     thehiveStatus: 'CONNECTED' | 'DISCONNECTED';
     flowintelStatus?: 'CONNECTED' | 'DISCONNECTED';
-    activeSoar?: 'thehive' | 'flowintel';
+    activeSoar?: string;
+    /** Whether the active SOAR is usable (any SOAR type). Defaults to the TheHive/Flowintel statuses. */
+    activeSoarOnline?: boolean;
+    /** Overall alert intake status from the server (any SIEM). Defaults to the Wazuh status. */
+    systemOnline?: boolean;
+    /** SIEM shown in the status panel: Wazuh, or the webhook source when Wazuh is not used */
+    siemId?: string;
+    siemOnline?: boolean;
     activeTab: AppTab;
     subTab?: string | null;
     onNavigate?: (tab: AppTab) => void;
 }
 
-export const TopHeader: React.FC<TopHeaderProps> = ({ wazuhStatus, thehiveStatus, flowintelStatus = 'DISCONNECTED', activeSoar = 'thehive', activeTab, subTab, onNavigate }) => {
+export const TopHeader: React.FC<TopHeaderProps> = ({ wazuhStatus, thehiveStatus, flowintelStatus = 'DISCONNECTED', activeSoar = 'thehive', activeSoarOnline, systemOnline, siemId = 'wazuh', siemOnline, activeTab, subTab, onNavigate }) => {
     const isWazuhOnline = wazuhStatus === 'CONNECTED';
     const isTheHiveOnline = thehiveStatus === 'CONNECTED';
     const isFlowintelOnline = flowintelStatus === 'CONNECTED';
-    const isCoreOnline = isWazuhOnline; 
+    const isCoreOnline = systemOnline ?? isWazuhOnline;
+    const isSiemOnline = siemOnline ?? isWazuhOnline;
+    const isWazuhSiem = siemId === 'wazuh';
+    const siemLabel = isWazuhSiem ? 'WAZUH' : 'WEBHOOK SOURCE';
     
     const { user, isSocAdmin, userTitle } = useSocAuth();
     const [isHovered, setIsHovered] = useState(false);
     const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
-    const [localActiveSoar, setLocalActiveSoar] = useState<'thehive' | 'flowintel' | null>(() => {
-        if (typeof window !== 'undefined') {
-            return (localStorage.getItem('local_active_soar') as any) || null;
-        }
-        return null;
-    });
-
-    // Listen for local switch events for absolute zero-latency
-    React.useEffect(() => {
-        const handleSwitch = (e: any) => {
-            const mode = e.detail;
-            setLocalActiveSoar(mode);
-        };
-        window.addEventListener('soar_switch', handleSwitch);
-        return () => window.removeEventListener('soar_switch', handleSwitch);
-    }, []);
-
-    const effectiveSoar = localActiveSoar || activeSoar;
+    // The SOAR escalations go to, as chosen by an admin under Integrations
+    const effectiveSoar = activeSoar;
+    const soar = soarInfo(effectiveSoar);
 
     // Choose active SOAR info for display
-    const activeSoarName = effectiveSoar === 'thehive' ? 'THEHIVE' : 'FLOWINTEL';
-    const isActiveSoarOnline = effectiveSoar === 'thehive' ? isTheHiveOnline : isFlowintelOnline;
-    const activeSoarLogo = effectiveSoar === 'thehive' ? '/assets/TheHive Logo.png' : '/assets/flowintel_logo.png';
-    const activeSoarDesc = isActiveSoarOnline 
+    const activeSoarName = soar.name.toUpperCase();
+    const isActiveSoarOnline = activeSoarOnline ?? (effectiveSoar === 'thehive' ? isTheHiveOnline : isFlowintelOnline);
+    const activeSoarLogo = soar.logo;
+    const activeSoarDesc = effectiveSoar === 'none'
+        ? "No case-management system is selected. Choose one under Integrations to enable escalation."
+        : effectiveSoar === 'webhook'
+        ? (isActiveSoarOnline ? "Escalations are delivered to the configured webhook." : "The escalation webhook is not configured.")
+        : isActiveSoarOnline 
         ? (effectiveSoar === 'thehive' 
             ? "System is actively synced with TheHive, enabling direct alert escalation and case management."
             : "System is actively synced with Flowintel, enabling direct case management and malicious indicator tracking.")
@@ -61,7 +61,9 @@ export const TopHeader: React.FC<TopHeaderProps> = ({ wazuhStatus, thehiveStatus
             ? "Synchronisation with TheHive is lost. Escalation to cases and orchestration features are currently unavailable."
             : "Connection to Flowintel is inactive. External intelligence correlation and case creation are disabled.");
 
-    const wazuhDesc = isWazuhOnline 
+    const wazuhDesc = !isWazuhSiem
+        ? (isSiemOnline ? "Alerts are received from the webhook source." : "No alerts received from the webhook source yet.")
+        : isSiemOnline 
         ? "Real-time communication with Wazuh Manager for host security telemetry and active response."
         : "Wazuh Manager API is unreachable. Alert ingestion and agent synchronization are suspended.";
 
@@ -246,19 +248,23 @@ export const TopHeader: React.FC<TopHeaderProps> = ({ wazuhStatus, thehiveStatus
                                                 <div className="flex items-center gap-3">
                                                     <div className={cn(
                                                         "flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center border overflow-hidden transition-all duration-300",
-                                                        isWazuhOnline ? "bg-cyan-500/10 border-cyan-500/30 shadow-[0_0_10px_rgba(34,211,238,0.2)]" : "bg-rose-500/10 border-rose-500/30"
+                                                        isSiemOnline ? "bg-cyan-500/10 border-cyan-500/30 shadow-[0_0_10px_rgba(34,211,238,0.2)]" : "bg-rose-500/10 border-rose-500/30"
                                                     )}>
-                                                        <img
-                                                            src="/assets/Wazuh Logo.png"
-                                                            alt="Wazuh"
-                                                            className="w-[90%] h-[90%] object-contain"
-                                                        />
+                                                        {isWazuhSiem ? (
+                                                            <img
+                                                                src="/assets/Wazuh Logo.png"
+                                                                alt="Wazuh"
+                                                                className="w-[90%] h-[90%] object-contain"
+                                                            />
+                                                        ) : (
+                                                            <Webhook size={16} className="text-cyan-300" />
+                                                        )}
                                                     </div>
                                                     <span className={cn(
                                                         "text-xs font-mono font-bold uppercase tracking-wider leading-tight",
-                                                        isWazuhOnline ? "text-cyan-100 drop-shadow-[0_0_5px_rgba(34,211,238,0.5)]" : "text-rose-500 drop-shadow-[0_0_5px_rgba(244,63,94,0.5)]"
+                                                        isSiemOnline ? "text-cyan-100 drop-shadow-[0_0_5px_rgba(34,211,238,0.5)]" : "text-rose-500 drop-shadow-[0_0_5px_rgba(244,63,94,0.5)]"
                                                     )}>
-                                                        {isWazuhOnline ? "WAZUH CONNECTED" : "WAZUH DISCONNECTED"}
+                                                        {siemLabel} {isSiemOnline ? "CONNECTED" : "DISCONNECTED"}
                                                     </span>
                                                 </div>
 
@@ -270,11 +276,11 @@ export const TopHeader: React.FC<TopHeaderProps> = ({ wazuhStatus, thehiveStatus
                                                     
                                                     <div className={cn(
                                                         "absolute bottom-full right-0 mb-2 w-56 p-2 backdrop-blur-xl border rounded-lg text-[9px] leading-relaxed opacity-0 group-hover/wazuh-info:opacity-100 pointer-events-none transition-all duration-200 translate-y-2 group-hover/wazuh-info:translate-y-0 z-[60] shadow-[0_4px_20px_rgba(0,0,0,0.5)] font-mono text-left bg-slate-950/90 text-cyan-100",
-                                                        isWazuhOnline ? "border-cyan-500/30" : "border-rose-500/30"
+                                                        isSiemOnline ? "border-cyan-500/30" : "border-rose-500/30"
                                                     )}>
                                                         <div className={cn(
                                                             "font-bold mb-1 border-b pb-0.5 uppercase tracking-tighter",
-                                                            isWazuhOnline ? "text-cyan-400 border-cyan-500/20" : "text-rose-400 border-rose-500/20"
+                                                            isSiemOnline ? "text-cyan-400 border-cyan-500/20" : "text-rose-400 border-rose-500/20"
                                                         )}>
                                                             Current Status
                                                         </div>

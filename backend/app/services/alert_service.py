@@ -26,7 +26,8 @@ class AlertService:
             source=alert_data.get('source', 'Unknown'),
             status=alert_data.get('status', 'new'),
             verdict=alert_data.get('verdict'),
-            raw_data=actual_raw
+            raw_data=actual_raw,
+            source_system=alert_data.get('source_system') or 'wazuh',
         )
         db.add(db_alert)
         await db.commit()

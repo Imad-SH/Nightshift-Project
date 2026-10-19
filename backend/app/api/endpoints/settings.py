@@ -46,18 +46,17 @@ class VerifyRequest(BaseModel):
 @router.post("/invalidate-status", dependencies=[ADMIN])
 async def invalidate_status(request: dict):
     """
-    Mark a service as DISCONNECTED immediately in the global status.
-    Called when the UI detects that an admin is tampering with credentials.
+    Mark a service as not verified immediately in the global status.
+    Called when the UI detects that an admin is editing its credentials.
     """
     service = request.get("service")
     if not service:
         return {"status": "error"}
 
-    from app.core.socket import last_service_status, sio
-    if service in last_service_status:
-        last_service_status[service] = 'DISCONNECTED'
-        await sio.emit('service_status', last_service_status)
-        print(f"🛑 [Status] Service '{service}' invalidated by UI (tampering detected)")
+    from app.services import integrations
+    if integrations.mark_unverified(service):
+        await integrations.broadcast_status()
+        print(f"🛑 [Status] Service '{service}' invalidated by UI (credentials being edited)")
     return {"status": "ok"}
     
 @router.get("/")
@@ -330,45 +329,12 @@ async def verify_integration(request: IntegrationVerifyRequest):
 @router.post("/reload-integrations", dependencies=[ADMIN])
 async def reload_integrations(db: AsyncSession = Depends(get_db)):
     """
-    Force the backend services to reload their credentials from the database.
-    Called after saving new Wazuh/TheHive settings from the UI.
+    Reload settings from the database and re-check every integration.
+    Called after saving integration or LLM settings from the UI.
     """
     try:
-        # Fetch all integration-related settings from DB
         all_settings = await settings_store.load_all(db)
-
-        reloaded = []
-
-        # Reload TheHive & Flowintel service credentials
-        from app.services.thehive_service import thehive_service
-        from app.services.flowintel_service import flowintel_service
-        
-        new_thehive_url = all_settings.get('thehive_url')
-        new_thehive_key = all_settings.get('thehive_api_key')
-        new_flowintel_url = all_settings.get('flowintel_url')
-        new_flowintel_key = all_settings.get('flowintel_api_key')
-        
-        # Update TheHive
-        if new_thehive_url or new_thehive_key:
-            thehive_service.reload_credentials(
-                url=new_thehive_url,
-                api_key=new_thehive_key
-            )
-            reloaded.append('thehive')
-
-        # Update Flowintel (Now correctly uses its own URL/KEY)
-        if new_flowintel_url or new_flowintel_key:
-            flowintel_service.reload_credentials(
-                url=new_flowintel_url,
-                api_key=new_flowintel_key
-            )
-            reloaded.append('flowintel')
-            
-        print(f"🔄 [Reload] SOAR services (TheHive: {new_thehive_url}, Flowintel: {new_flowintel_url}) updated from DB")
-
-        # Reload global settings from DB (ensures LLM keys are updated)
-        from app.core.config import settings
-        settings.update_from_dict(all_settings)
+        app_settings.update_from_dict(all_settings)
         print(f"🔄 [Reload] Global settings hot-reloaded from DB")
 
         # Invalidate AI Agent LLM clients so they rebuild with new keys
@@ -378,17 +344,11 @@ async def reload_integrations(db: AsyncSession = Depends(get_db)):
         agent_judge.llm = None
         print(f"🔄 [Reload] AI Agents (Extractor & Judge) LLM clients invalidated")
 
-        # Reload Wazuh health check credentials (stored in socket module's global)
-        from app.core.socket import reload_integration_settings, perform_immediate_health_check
-        reload_integration_settings(all_settings)
-        reloaded.append('wazuh')
-        reloaded.append('llm')
-        print(f"🔄 [Reload] Wazuh & LLM health check credentials updated from DB")
-        
-        # Trigger an immediate health check so the UI reflects the status instantly
-        # We await this to ensure the frontend gets the socket update BEFORE the save promise resolves
-        await perform_immediate_health_check()
+        # Re-check integrations now so the UI reflects the change immediately
+        from app.services import integrations
+        await integrations.check_all()
 
+        reloaded = ['thehive', 'flowintel', 'wazuh', 'llm']
         return {
             "status": "ok",
             "reloaded": reloaded,

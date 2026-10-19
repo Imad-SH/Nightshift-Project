@@ -9,13 +9,24 @@ let globalSocket: Socket | null = null;
 let globalAlerts: Alert[] = [];
 let globalEventsState: Record<string, SocketEvent> = {};
 let globalIsConnected = false;
-let globalServiceStatus = { wazuh: 'DISCONNECTED', thehive: 'DISCONNECTED', flowintel: 'DISCONNECTED', active_soar: 'thehive' };
+export interface ConnectorStatus { state: string; message: string; checked_at?: string | null }
+export interface ServiceStatus {
+    wazuh: string;
+    thehive: string;
+    flowintel: string;
+    active_soar: string;
+    /** Overall alert intake status (any SIEM): ONLINE / OFFLINE */
+    system?: string;
+    /** Per-connector health, by kind then connector id (a SIEM and a SOAR may share an id) */
+    connectors?: { siem?: Record<string, ConnectorStatus>; soar?: Record<string, ConnectorStatus> };
+}
+let globalServiceStatus: ServiceStatus = { wazuh: 'DISCONNECTED', thehive: 'DISCONNECTED', flowintel: 'DISCONNECTED', active_soar: 'thehive' };
 
 const listeners = new Set<(state: { 
     alerts: Alert[]; 
     events: Record<string, SocketEvent>; 
     isConnected: boolean;
-    serviceStatus: { wazuh: string; thehive: string; flowintel: string; active_soar: string };
+    serviceStatus: ServiceStatus;
 }) => void>();
 
 let notificationTimeout: ReturnType<typeof setTimeout> | null = null;
@@ -66,7 +77,7 @@ export const useSocket = () => {
             alerts: Alert[]; 
             events: Record<string, SocketEvent>; 
             isConnected: boolean;
-            serviceStatus: { wazuh: string; thehive: string; flowintel: string; active_soar: string };
+            serviceStatus: ServiceStatus;
         }) => {
             if (isMounted) {
                 setAlerts(state.alerts);
@@ -124,6 +135,9 @@ export const useSocket = () => {
                     flowintel_id: rawAlert.flowintel_id || null,
                     flowintel_url: rawAlert.flowintel_url || null,
                     case_url: rawAlert.case_url || null,
+                    case_system: rawAlert.case_system || null,
+                    case_id: rawAlert.case_id || null,
+                    source_system: rawAlert.source_system || 'wazuh',
                 }));
 
                 if (isAppend) {
@@ -151,6 +165,8 @@ export const useSocket = () => {
                         flowintel_id: rawAlert.flowintel_id || null,
                         flowintel_url: rawAlert.flowintel_url || null,
                         case_url: rawAlert.case_url || null,
+                        case_system: rawAlert.case_system || null,
+                        case_id: rawAlert.case_id || null,
                     };
 
                     if (rawAlert.updates && rawAlert.updates.length > 0) {
@@ -214,7 +230,9 @@ export const useSocket = () => {
                     wazuh: status.wazuh, 
                     thehive: status.thehive,
                     flowintel: status.flowintel || 'DISCONNECTED',
-                    active_soar: status.active_soar || 'thehive'
+                    active_soar: status.active_soar || 'thehive',
+                    system: status.system,
+                    connectors: status.connectors,
                 };
                 notifyListeners(true); // Immediate: health status changes must reflect instantly
             });
@@ -280,7 +298,7 @@ export const useSocket = () => {
                         }
                     }
 
-                    if (update.thehive_id || update.flowintel_id || update.case_url) {
+                    if (update.thehive_id || update.flowintel_id || update.case_url || update.case_id) {
                         const globalAlert = globalAlerts.find(a => a.id === update.alert_id);
                         if (globalAlert) {
                             if (update.thehive_id) (globalAlert as any).thehive_id = update.thehive_id;
@@ -288,12 +306,16 @@ export const useSocket = () => {
                             if (update.flowintel_id) (globalAlert as any).flowintel_id = update.flowintel_id;
                             if (update.flowintel_url) (globalAlert as any).flowintel_url = update.flowintel_url;
                             if (update.case_url) (globalAlert as any).case_url = update.case_url;
+                            if (update.case_id) (globalAlert as any).case_id = update.case_id;
+                            if (update.case_system) (globalAlert as any).case_system = update.case_system;
                         }
                         if (update.thehive_id) (updatedEvt as any).thehive_id = update.thehive_id;
                         if (update.thehive_url) (updatedEvt as any).thehive_url = update.thehive_url;
                         if (update.flowintel_id) (updatedEvt as any).flowintel_id = update.flowintel_id;
                         if (update.flowintel_url) (updatedEvt as any).flowintel_url = update.flowintel_url;
                         if (update.case_url) (updatedEvt as any).case_url = update.case_url;
+                        if (update.case_id) (updatedEvt as any).case_id = update.case_id;
+                        if (update.case_system) (updatedEvt as any).case_system = update.case_system;
                     }
 
                     globalEventsState[update.alert_id] = updatedEvt;

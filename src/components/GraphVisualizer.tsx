@@ -14,6 +14,7 @@ import { StandbyState } from './StandbyState';
 import { createPortal } from 'react-dom';
 import { BRAND } from '../brand';
 import { useSettings } from '../contexts/SettingsContext';
+import { soarInfo } from '../soar';
 
 const getIocTypeStyle = (ioc: string): { label: string; badge: string; rowIdle: string; rowSelected: string; glow: string } => {
     const c = String(ioc).trim();
@@ -858,8 +859,12 @@ export const GraphVisualizer = ({ selectedAlertId }: GraphVisualizerProps) => {
 
     const thehiveId = (currentEvent as any)?.thehive_id || (selectedAlert as any)?.thehive_id;
     const flowintelId = (currentEvent as any)?.flowintel_id || (selectedAlert as any)?.flowintel_id;
-    const soarId = thehiveId || flowintelId;
-    const isHiveCase = !!thehiveId;
+    // Generic case reference first (any SOAR), then the legacy TheHive/Flowintel ids
+    const caseId = (currentEvent as any)?.case_id || (selectedAlert as any)?.case_id;
+    const caseSystem: string | null = (currentEvent as any)?.case_system || (selectedAlert as any)?.case_system
+        || (thehiveId ? 'thehive' : flowintelId ? 'flowintel' : null);
+    const soarId = caseId || thehiveId || flowintelId;
+    const caseSoar = soarInfo(caseSystem);
     const rawCaseUrl: string | null = (currentEvent as any)?.case_url || (selectedAlert as any)?.case_url || null;
     const caseUrl: string | null = rawCaseUrl
         ? rawCaseUrl.replace(/host\.docker\.internal/g, window.location.hostname)
@@ -1598,21 +1603,25 @@ export const GraphVisualizer = ({ selectedAlertId }: GraphVisualizerProps) => {
                 <div className="flex items-center gap-2">
 
                 {soarId && (() => {
-                    const colorCls = isHiveCase
+                    const colorCls = caseSystem === 'thehive'
                         ? "bg-amber-950/60 border-amber-500/40 text-amber-400 hover:bg-amber-900/80 hover:text-amber-200 hover:border-amber-400/60 shadow-[0_0_12px_rgba(245,158,11,0.2)] hover:shadow-[0_0_18px_rgba(245,158,11,0.4)]"
+                        : caseSystem === 'webhook'
+                        ? "bg-cyan-950/60 border-cyan-500/40 text-cyan-400 hover:bg-cyan-900/80 hover:text-cyan-200 hover:border-cyan-400/60 shadow-[0_0_12px_rgba(34,211,238,0.2)] hover:shadow-[0_0_18px_rgba(34,211,238,0.4)]"
                         : "bg-violet-950/60 border-violet-500/40 text-violet-400 hover:bg-violet-900/80 hover:text-violet-200 hover:border-violet-400/60 shadow-[0_0_12px_rgba(139,92,246,0.2)] hover:shadow-[0_0_18px_rgba(139,92,246,0.4)]";
                     const baseCls = cn("flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border text-[9px] font-black font-mono uppercase tracking-wider backdrop-blur-md transition-all cursor-pointer hover:scale-105 group focus:outline-none", colorCls);
                     const inner = <>
-                        <img
-                            src={isHiveCase ? "/assets/TheHive Logo.png" : "/assets/flowintel_logo.png"}
-                            alt={isHiveCase ? "TheHive" : "Flowintel"}
-                            className="h-3.5 w-3.5 object-contain"
-                        />
+                        {caseSoar.logo && (
+                            <img
+                                src={caseSoar.logo}
+                                alt={caseSoar.name}
+                                className="h-3.5 w-3.5 object-contain"
+                            />
+                        )}
                         <span>Case Created</span>
                         <ExternalLink size={9} className="group-hover:drop-shadow-[0_0_4px_rgba(245,158,11,0.8)] transition-all" />
                     </>;
                     return caseUrl
-                        ? <a href={caseUrl} target="_blank" rel="noopener noreferrer" title={`Open in ${isHiveCase ? 'TheHive' : 'Flowintel'}`} className={baseCls}>{inner}</a>
+                        ? <a href={caseUrl} target="_blank" rel="noopener noreferrer" title={`Open in ${caseSoar.name}`} className={baseCls}>{inner}</a>
                         : <span className={baseCls} title="Case URL not available">{inner}</span>;
                 })()}
 
