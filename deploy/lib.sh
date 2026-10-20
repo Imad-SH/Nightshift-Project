@@ -77,12 +77,98 @@ wait_all_healthy() {
   done
 }
 
-# Whether the Nightshift images of a version are already in Docker
+# Third-party images a release pins and ships alongside its own (keep in sync with
+# docker-compose.yml)
+THIRD_PARTY_IMAGES="postgres:15-alpine redis:7-alpine"
+
+# Every image an installation of a version runs, under the registry prefix it was
+# downloaded from (none for images loaded from the package)
+image_refs() {
+  local version="$1" registry="${2:-}" name
+  for name in backend web keycloak; do printf '%snightshift-%s:%s\n' "$registry" "$name" "$version"; done
+  for name in $THIRD_PARTY_IMAGES; do printf '%s%s\n' "$registry" "$name"; done
+}
+
+# Whether the images of a version are already in Docker
 images_present() {
-  local name
-  for name in backend web keycloak; do
-    docker image inspect "nightshift-$name:$1" >/dev/null 2>&1 || return 1
+  local ref
+  for ref in $(image_refs "$1" "${2:-}"); do
+    docker image inspect "$ref" >/dev/null 2>&1 || return 1
   done
+}
+
+# Whether the kit contains the offline image bundle
+has_bundle() { compgen -G "$1/images/*.tar*" >/dev/null; }
+
+# The registry prefix to download images from: none for a kit with the image bundle
+# (offline package), else the --registry option, the installation's current setting,
+# or the registry recorded in the kit (REGISTRY file)
+resolve_registry() {
+  local kit="$1" option="$2" current="$3" registry=""
+  if has_bundle "$kit"; then
+    [ -z "$option" ] || warn "Ignoring --registry: this package contains the images."
+  elif [ -n "$option" ]; then registry="$option"
+  elif [ -n "$current" ]; then registry="$current"
+  elif [ -s "$kit/REGISTRY" ]; then registry="$(tr -d '[:space:]' < "$kit/REGISTRY")"
+  fi
+  case "$registry" in ""|*/) ;; *) registry="$registry/" ;; esac
+  [ -z "$registry" ] || [[ "$registry" =~ ^[A-Za-z0-9._:/-]+$ ]] || die "Invalid registry '$registry' (e.g. registry.example.com/bluesec/)."
+  printf '%s' "$registry"
+}
+
+# Server part of a registry prefix such as ghcr.io/bluesec/ (empty for Docker Hub)
+registry_host() {
+  local first="${1%%/*}"
+  case "$first" in *.*|*:*|localhost) printf '%s' "$first" ;; esac
+}
+
+# Read the registry password for a user name: asked when interactive, else the first line
+# of standard input. Done first thing, before other steps can consume standard input.
+read_registry_password() {
+  REGISTRY_PASSWORD=""
+  if [ -t 0 ]; then
+    read -r -s -p "Registry password for $1: " REGISTRY_PASSWORD; echo
+  else
+    IFS= read -r REGISTRY_PASSWORD || true
+  fi
+  [ -n "$REGISTRY_PASSWORD" ] || die "No registry password given."
+}
+
+# Sign in to the registry with the password read by read_registry_password. Docker keeps
+# the credentials (in root's ~/.docker/config.json), so later upgrades download without
+# asking again.
+registry_login() {
+  local host out
+  host="$(registry_host "$1")"
+  out="$(printf '%s' "$REGISTRY_PASSWORD" | docker login ${host:+"$host"} --username "$2" --password-stdin 2>&1)" \
+    || die "Signing in to ${host:-Docker Hub} as $2 failed: $(printf '%s' "$out" | tail -n1)"
+  ok "Signed in to ${host:-Docker Hub} as $2"
+}
+
+# Download the images of a version from the registry
+pull_images() {
+  local ref out
+  info "Downloading the images from ${2%/} (this can take a few minutes)..."
+  for ref in $(image_refs "$1" "$2"); do
+    out="$(docker pull --quiet "$ref" 2>&1)" || { warn "Could not download $ref: $(printf '%s' "$out" | tail -n1)"; return 1; }
+  done
+  ok "Images downloaded"
+}
+
+# Make the images of a version available: already there, loaded from the kit's bundle,
+# or downloaded from the registry (after signing in when a user name is given)
+get_images() {
+  local kit="$1" version="$2" registry="$3" user="$4"
+  if [ -n "$registry" ] && [ -n "$user" ]; then registry_login "$registry" "$user"; fi
+  if images_present "$version" "$registry"; then
+    ok "Images for $version already loaded"
+  elif [ -z "$registry" ]; then
+    load_images "$kit" || die "This package has no images (images/ folder) and no registry to download them from. Use the full package, or --registry (see docs/INSTALL.md)."
+  elif [ -n "$user" ]; then
+    pull_images "$version" "$registry" || die "Check that this server can reach ${registry%/} over HTTPS and that your account has access."
+  else
+    pull_images "$version" "$registry" || die "Check that this server can reach ${registry%/} over HTTPS. If it asks for a sign-in, add --registry-user NAME (the account BlueSec gave you)."
+  fi
 }
 
 # Load the image bundle shipped with the kit (offline installs), if present

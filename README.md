@@ -85,11 +85,17 @@ SIEM alerts then arrive on `POST /api/ingest/<connector id>` with the source's t
 ## Releasing
 
 ```bash
-./release.sh 1.2.0                   # images + kit with the offline image bundle
-./release.sh 1.2.0 --no-bundle       # kit only (clients pull from a registry)
-./release.sh 1.2.0 --push registry.example.com/bluesec/
+./release.sh 1.2.0                   # full package: kit + offline image bundle (~550 MB)
+./release.sh 1.2.0 --no-bundle --push registry.example.com/bluesec/
+                                     # small package (~20 KB): images pushed to the registry
 ```
 
 The kit (`release/nightshift-<version>.tar.gz`, with its `.sha256`) is what clients
 install. Before shipping a release, install it on a clean Linux server and run an
 upgrade from the previous version.
+
+For the small package, `docker login` to the registry first. `--push` also pushes
+the Postgres and Redis images, so clients need access to that one registry only, and
+the kit records the registry (`REGISTRY` file) for `install.sh` and `upgrade.sh`. Give
+each client its own pull-only account on the registry, so access can be revoked per
+client.

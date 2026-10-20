@@ -17,10 +17,14 @@
    sudo ./upgrade.sh --dir /srv/ns   # other location
    ```
 
+   With a small package, the server signs in to the registry with the account saved at
+   installation. If BlueSec gave you a new account, add `--registry-user <account>`.
+
 The upgrade:
 
 1. takes a backup (`/opt/nightshift/backups/`);
-2. loads the new images;
+2. loads the new images (small package: downloads them; if that fails, the upgrade
+   stops before changing anything);
 3. installs the new files: `nightshift.env`, the certificate and your data are kept;
 4. restarts on the new version and waits until every service is healthy. Database
    changes are applied automatically at startup.

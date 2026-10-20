@@ -2,8 +2,9 @@
 # Build a BlueSec Nightshift release kit (run on the vendor side, from the repository).
 #
 #   ./release.sh 1.0.0                  images + kit with the offline image bundle
-#   ./release.sh 1.0.0 --no-bundle      kit without images (clients pull from a registry)
 #   ./release.sh 1.0.0 --push registry.example.com/bluesec/   also push the images
+#   ./release.sh 1.0.0 --no-bundle --push registry.example.com/bluesec/
+#                                       small kit that downloads the images from that registry
 #   ./release.sh 1.0.0 --allow-dirty    build from uncommitted changes (testing only)
 #
 # Output in release/: nightshift-<version>.tar.gz and its .sha256
@@ -23,13 +24,17 @@ while [ $# -gt 0 ]; do
   esac
 done
 [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+([-.][A-Za-z0-9.]+)?$ ]] || { echo "Usage: ./release.sh <version, e.g. 1.0.0> [options]" >&2; exit 1; }
+case "$PUSH" in ""|*/) ;; *) PUSH="$PUSH/" ;; esac
+if [ "$BUNDLE" = false ] && [ -z "$PUSH" ]; then
+  echo "Note: --no-bundle without --push: clients will have to name a registry with install.sh --registry." >&2
+fi
 
 if [ -n "$(git status --porcelain)" ] && [ "$ALLOW_DIRTY" != true ]; then
   echo "The working tree has uncommitted changes. Commit them, or use --allow-dirty for a test build." >&2
   exit 1
 fi
 REVISION="$(git rev-parse --short HEAD)"
-THIRD_PARTY="postgres:15-alpine redis:7-alpine"
+THIRD_PARTY="$(. deploy/lib.sh && echo "$THIRD_PARTY_IMAGES")"
 LABELS=(--label "org.opencontainers.image.version=$VERSION" --label "org.opencontainers.image.revision=$REVISION"
         --label "org.opencontainers.image.vendor=BlueSec")
 
@@ -44,6 +49,12 @@ if [ -n "$PUSH" ]; then
   for name in backend web keycloak; do
     docker tag "nightshift-$name:$VERSION" "${PUSH}nightshift-$name:$VERSION"
     docker push "${PUSH}nightshift-$name:$VERSION"
+  done
+  # The third-party images too: clients then need access to one registry only, and get
+  # exactly the images this release was tested with
+  for image in $THIRD_PARTY; do
+    docker tag "$image" "$PUSH$image"
+    docker push "$PUSH$image"
   done
 fi
 
@@ -65,6 +76,8 @@ if [ "$BUNDLE" = true ]; then
     | gzip > "$KIT/images/nightshift-images-$VERSION.tar.gz"
 else
   rmdir "$KIT/images"
+  # Where install.sh and upgrade.sh download the images from
+  [ -z "$PUSH" ] || echo "$PUSH" > "$KIT/REGISTRY"
 fi
 
 echo "== Packaging"

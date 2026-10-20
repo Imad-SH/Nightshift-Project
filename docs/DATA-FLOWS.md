@@ -11,10 +11,11 @@ for security and privacy reviews.
 | **Threat-intelligence services** | Public indicators only (public IPs, domains, URLs, hashes, emails, CVE IDs) | When an alert is AI-scanned | Do not configure those services |
 | **Your SOAR** | Case title, description with the AI analysis, indicators | On escalation | Choose "none" |
 | **Your Wazuh API** | Your Wazuh API credentials | Health check every 15 s | Leave the API settings empty |
-| **BlueSec** | Nothing | Never | — |
+| **BlueSec's image registry** | Your registry account, to download the Nightshift images (no alert or configuration data) | Installing and upgrading, small package only | Use the full package |
+| **BlueSec** (otherwise) | Nothing | Never | — |
 
-Nightshift has no telemetry and makes no calls to BlueSec. The MITRE ATT&CK data and
-all fonts are bundled.
+Nightshift has no telemetry: the running application makes no calls to BlueSec. The
+MITRE ATT&CK data and all fonts are bundled.
 
 ## Which alerts are analyzed
 

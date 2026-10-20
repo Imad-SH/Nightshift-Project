@@ -4,11 +4,15 @@
 #   sudo ./install.sh --url https://soc.example.local
 #
 # Options:
-#   --url URL            address analysts will open (asked if omitted)
-#   --dir DIR            installation directory (default /opt/nightshift)
-#   --admin-user NAME    first administrator account (default: admin)
-#   --admin-email EMAIL  its email address
-#   --no-tls             a reverse proxy in front terminates TLS
+#   --url URL              address analysts will open (asked if omitted)
+#   --dir DIR              installation directory (default /opt/nightshift)
+#   --admin-user NAME      first administrator account (default: admin)
+#   --admin-email EMAIL    its email address
+#   --no-tls               a reverse proxy in front terminates TLS
+#   --registry-user NAME   sign in to the image registry (package without images); the
+#                          password is asked, or read from standard input
+#   --registry PREFIX      download the images from this registry instead of the one the
+#                          package names, e.g. registry.example.com/bluesec/
 #
 # Safe to run again: existing configuration, certificates, accounts and tokens are kept.
 set -euo pipefail
@@ -21,8 +25,10 @@ PUBLIC_URL=""
 ADMIN_USER="admin"
 ADMIN_EMAIL=""
 NO_TLS=false
+REGISTRY_OPT=""
+REGISTRY_USER=""
 
-usage() { sed -n '2,13p' "$0" | sed 's/^# \{0,1\}//'; }
+usage() { sed -n '2,17p' "$0" | sed 's/^# \{0,1\}//'; }
 while [ $# -gt 0 ]; do
   case "$1" in
     --url) PUBLIC_URL="${2:-}"; shift 2 ;;
@@ -30,12 +36,15 @@ while [ $# -gt 0 ]; do
     --admin-user) ADMIN_USER="${2:-}"; shift 2 ;;
     --admin-email) ADMIN_EMAIL="${2:-}"; shift 2 ;;
     --no-tls) NO_TLS=true; shift ;;
+    --registry) REGISTRY_OPT="${2:-}"; shift 2 ;;
+    --registry-user) REGISTRY_USER="${2:-}"; shift 2 ;;
     -h|--help) usage; exit 0 ;;
     *) die "Unknown option: $1 (see --help)" ;;
   esac
 done
 
 [[ "$ADMIN_USER" =~ ^[A-Za-z0-9._-]+$ ]] || die "Invalid --admin-user (letters, digits, . _ - only)."
+[ -z "$REGISTRY_USER" ] || read_registry_password "$REGISTRY_USER"
 [ -z "$ADMIN_EMAIL" ] || [[ "$ADMIN_EMAIL" =~ ^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+$ ]] || die "Invalid --admin-email."
 
 VERSION="$(tr -d '[:space:]' < "$KIT_DIR/VERSION" 2>/dev/null || true)"
@@ -68,11 +77,10 @@ ok "Files installed"
 
 # ---------------------------------------------------------------------------------------
 step "3/7  Images"
-if images_present "$VERSION"; then
-  ok "Images for $VERSION already loaded"
-elif load_images "$KIT_DIR"; then :; else
-  info "No image bundle in the kit: images will be pulled from the registry set in nightshift.env."
-fi
+CURRENT_REGISTRY=""
+if [ -f "$INSTALL_DIR/$ENV_FILE" ]; then CURRENT_REGISTRY="$(env_get NIGHTSHIFT_REGISTRY)"; fi
+REGISTRY="$(resolve_registry "$KIT_DIR" "$REGISTRY_OPT" "$CURRENT_REGISTRY")"
+get_images "$KIT_DIR" "$VERSION" "$REGISTRY" "$REGISTRY_USER"
 
 # ---------------------------------------------------------------------------------------
 step "4/7  Configuration"
@@ -110,9 +118,9 @@ else
   env_set NIGHTSHIFT_VERSION "$VERSION"
   ok "Keeping the existing $ENV_FILE"
 fi
+env_set NIGHTSHIFT_REGISTRY "$REGISTRY"
 PUBLIC_URL="$(env_get NIGHTSHIFT_PUBLIC_URL)"
 TLS_ENABLED="$(env_get TLS_ENABLED)"
-REGISTRY="$(env_get NIGHTSHIFT_REGISTRY)"
 HOST="$(printf '%s' "$PUBLIC_URL" | sed 's#^https\{0,1\}://##; s#:[0-9]*$##')"
 
 # ---------------------------------------------------------------------------------------
@@ -179,7 +187,6 @@ if [ -z "$(dc ps -q web 2>/dev/null)" ]; then
     fi
   done
 fi
-[ -n "$REGISTRY" ] && dc pull --quiet
 dc up -d || true
 wait_all_healthy 900 || die "Nightshift did not start correctly (see the logs above)."
 

@@ -23,6 +23,7 @@ Install Docker from https://docs.docker.com/engine/install/ if needed.
 | Inbound | 80/TCP (`HTTP_PORT`) | Redirect to HTTPS (optional) |
 | Outbound | 443/TCP | Your LLM provider and threat-intelligence services, if you use cloud ones (see DATA-FLOWS.md) |
 | Outbound | Your SIEM / SOAR | Wazuh API (55000) for health checks; your case-management system |
+| Outbound | 443/TCP to the image registry | Small package only: downloading the images when installing and upgrading |
 
 Nothing else is exposed: the database, cache, identity server and API are only
 reachable inside the server.
@@ -30,7 +31,12 @@ reachable inside the server.
 ## 1. Check the package
 
 You receive `nightshift-<version>.tar.gz` and `nightshift-<version>.tar.gz.sha256`
-(and possibly an `.asc` signature).
+(and possibly an `.asc` signature), in one of two forms:
+
+- **Full package** (about 550 MB): contains the images. Installs without internet access.
+- **Small package** (about 20 KB): the images are downloaded from BlueSec's registry
+  during installation, with the registry account BlueSec gives you (see
+  [Small package](#small-package-signing-in-to-the-registry)).
 
 ```bash
 sha256sum -c nightshift-<version>.tar.gz.sha256
@@ -54,6 +60,8 @@ will reach the server by (DNS name, or IP address). Other options:
 | `--dir DIR` | Install somewhere other than `/opt/nightshift` |
 | `--admin-user NAME`, `--admin-email EMAIL` | First administrator account (default `admin`) |
 | `--no-tls` | A reverse proxy in front of Nightshift terminates TLS (see below) |
+| `--registry-user NAME` | Small package: your registry account (see below) |
+| `--registry PREFIX` | Small package: download the images from another registry, e.g. your own mirror `registry.internal.example/bluesec/` |
 
 The installer checks the server, loads the images (no internet needed), generates a
 random password for every internal service, creates a TLS certificate if you did not
@@ -66,6 +74,22 @@ prints:
 
 They are shown only once: note them before closing the terminal. Running
 `install.sh` again is safe; it keeps the existing configuration, accounts and data.
+
+### Small package: signing in to the registry
+
+Add your registry account to the install command:
+
+```bash
+sudo ./install.sh --url https://soc.example.local --registry-user <account>
+```
+
+You are asked for the account's password before anything else happens. For an
+unattended install, pass it on standard input instead:
+`echo "$REGISTRY_TOKEN" | sudo ./install.sh --url ... --registry-user <account>`.
+
+Docker keeps the sign-in (in root's `~/.docker/config.json`), so upgrades download
+without asking again; `sudo docker logout <registry>` removes it. If the download fails,
+the installer stops before changing anything and shows Docker's error.
 
 ## 3. First login and setup
 
@@ -115,6 +139,7 @@ sudo docker compose -p nightshift logs --tail 100 backend   # or web, keycloak, 
 | Symptom | Check |
 |---|---|
 | Installer stops at "did not start correctly" | The logs it prints; most often memory (8 GB+) or disk space |
+| Installer stops at "Could not download" | The server cannot reach the registry (firewall; behind an HTTP proxy, [configure Docker's proxy](https://docs.docker.com/engine/daemon/proxy/)), or it needs `--registry-user` |
 | Browser shows a certificate warning | Expected with the self-signed certificate; install your own |
 | "Port 443 is already in use" | Another web server runs on this machine: stop it or set `HTTPS_PORT` |
 | Login page loops or shows "invalid redirect" | The address you open must match `NIGHTSHIFT_PUBLIC_URL` exactly (including the port) |

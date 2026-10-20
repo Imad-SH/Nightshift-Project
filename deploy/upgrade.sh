@@ -2,11 +2,13 @@
 # Upgrade an installation to the version in this kit. Run it from the NEW, extracted kit:
 #
 #   sudo ./upgrade.sh [--dir /opt/nightshift] [--no-backup]
+#                     [--registry-user NAME] [--registry PREFIX]
 #
-# Steps: back up, load the new images, install the new files (nightshift.env and the
-# certificate are kept), restart on the new version, wait until healthy.
-# If the new version does not come up healthy, the previous version and the
+# Steps: back up, load (or download) the new images, install the new files
+# (nightshift.env and the certificate are kept), restart on the new version, wait until
+# healthy. If the new version does not come up healthy, the previous version and the
 # pre-upgrade backup are restored automatically.
+# --registry-user and --registry work as for install.sh (packages without images).
 set -euo pipefail
 KIT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=lib.sh
@@ -14,19 +16,25 @@ KIT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 INSTALL_DIR="$INSTALL_DIR_DEFAULT"
 BACKUP=true
+REGISTRY_OPT=""
+REGISTRY_USER=""
 while [ $# -gt 0 ]; do
   case "$1" in
     --dir) INSTALL_DIR="${2:-}"; shift 2 ;;
     --no-backup) BACKUP=false; shift ;;
-    -h|--help) sed -n '2,10p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
+    --registry) REGISTRY_OPT="${2:-}"; shift 2 ;;
+    --registry-user) REGISTRY_USER="${2:-}"; shift 2 ;;
+    -h|--help) sed -n '2,12p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
     *) die "Unknown option: $1" ;;
   esac
 done
 
 require_docker
 [ -f "$INSTALL_DIR/$ENV_FILE" ] || die "No installation found in $INSTALL_DIR (use --dir)."
+[ -z "$REGISTRY_USER" ] || read_registry_password "$REGISTRY_USER"
 NEW_VERSION="$(tr -d '[:space:]' < "$KIT_DIR/VERSION")"
 OLD_VERSION="$(env_get NIGHTSHIFT_VERSION)"
+OLD_REGISTRY="$(env_get NIGHTSHIFT_REGISTRY)"
 printf '%sBlueSec Nightshift upgrade: %s -> %s%s\n' "$C_B" "$OLD_VERSION" "$NEW_VERSION" "$C_0"
 [ "$NEW_VERSION" != "$OLD_VERSION" ] || { ok "Already on $NEW_VERSION, nothing to do."; exit 0; }
 
@@ -41,11 +49,8 @@ else
 fi
 
 step "2/4  New images"
-if images_present "$NEW_VERSION"; then
-  ok "Images for $NEW_VERSION already loaded"
-elif load_images "$KIT_DIR"; then :; else
-  info "No image bundle in the kit: pulling from the registry."
-fi
+REGISTRY="$(resolve_registry "$KIT_DIR" "$REGISTRY_OPT" "$OLD_REGISTRY")"
+get_images "$KIT_DIR" "$NEW_VERSION" "$REGISTRY" "$REGISTRY_USER"
 
 step "3/4  Installing the new version"
 ROLLBACK="$INSTALL_DIR/.rollback-$OLD_VERSION"
@@ -57,7 +62,7 @@ for item in VERSION docker-compose.yml lib.sh install.sh upgrade.sh backup.sh re
 done
 chmod +x "$INSTALL_DIR"/*.sh "$INSTALL_DIR"/postgres/init/*.sh
 env_set NIGHTSHIFT_VERSION "$NEW_VERSION"
-[ -n "$(env_get NIGHTSHIFT_REGISTRY)" ] && dc pull --quiet
+env_set NIGHTSHIFT_REGISTRY "$REGISTRY"
 
 step "4/4  Starting $NEW_VERSION (database migrations run automatically)"
 # compose up itself fails when a service never gets healthy: treat it like a failed health wait
@@ -73,6 +78,7 @@ for item in "$ROLLBACK"/*; do
   name="$(basename "$item")"; rm -rf "${INSTALL_DIR:?}/$name"; cp -R "$item" "$INSTALL_DIR/"
 done
 env_set NIGHTSHIFT_VERSION "$OLD_VERSION"
+env_set NIGHTSHIFT_REGISTRY "$OLD_REGISTRY"
 if [ -n "$ARCHIVE" ]; then
   # The new version may already have migrated the database: restore the pre-upgrade backup
   "$INSTALL_DIR/restore.sh" "$ARCHIVE" --yes || die "Rollback restore failed. Backup: $ARCHIVE"
