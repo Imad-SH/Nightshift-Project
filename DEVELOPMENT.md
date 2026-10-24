@@ -98,6 +98,12 @@ install steps. Host it in the same folder as the package, or set
 GitHub release assets); `deploy/download-page/build.sh <version> [address]` rebuilds it
 alone.
 
+To publish a release on GitHub, run `deploy/download-page/publish-github.sh <version>`.
+It uploads the package as release assets of the public repository
+`Imad-SH/nightshift-downloads` (`NIGHTSHIFT_DOWNLOADS_REPO`), creating the repository if
+it does not exist, and puts the download page on its GitHub Pages site. That repository
+holds the page and the packages only, and anyone with the link can download them.
+
 For the small package, `docker login` to the registry first. `--push` also pushes
 the Postgres and Redis images, so clients need access to that one registry only, and
 the kit records the registry (`REGISTRY` file) for `install.sh` and `upgrade.sh`. Give
