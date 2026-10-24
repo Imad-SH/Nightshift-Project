@@ -1,4 +1,4 @@
-# Installing BlueSec Nightshift
+# Installing Nightshift
 
 Nightshift runs as a set of containers on one Linux server. Analysts use it from
 their browser; nothing is installed on their machines.

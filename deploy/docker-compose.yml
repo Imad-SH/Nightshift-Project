@@ -1,4 +1,4 @@
-# BlueSec Nightshift: production stack.
+# Nightshift: production stack.
 #
 # Configuration comes from nightshift.env (see nightshift.env.example):
 #   docker compose --env-file nightshift.env up -d

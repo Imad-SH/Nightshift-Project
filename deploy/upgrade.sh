@@ -35,7 +35,7 @@ require_docker
 NEW_VERSION="$(tr -d '[:space:]' < "$KIT_DIR/VERSION")"
 OLD_VERSION="$(env_get NIGHTSHIFT_VERSION)"
 OLD_REGISTRY="$(env_get NIGHTSHIFT_REGISTRY)"
-printf '%sBlueSec Nightshift upgrade: %s -> %s%s\n' "$C_B" "$OLD_VERSION" "$NEW_VERSION" "$C_0"
+printf '%sNightshift upgrade: %s -> %s%s\n' "$C_B" "$OLD_VERSION" "$NEW_VERSION" "$C_0"
 [ "$NEW_VERSION" != "$OLD_VERSION" ] || { ok "Already on $NEW_VERSION, nothing to do."; exit 0; }
 
 step "1/4  Backup"
@@ -87,4 +87,4 @@ else
   wait_all_healthy 900 || die "Rollback did not come up healthy. Check: docker compose logs"
 fi
 rm -rf "$ROLLBACK"
-die "Upgrade failed and $OLD_VERSION was restored. Please send the logs above to BlueSec support."
+die "Upgrade failed and $OLD_VERSION was restored. The logs above show the cause."

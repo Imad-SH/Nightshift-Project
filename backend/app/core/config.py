@@ -20,7 +20,7 @@ class Settings(BaseSettings):
     product_name: str = "Nightshift"
 
     # API Settings
-    app_name: str = "BlueSec Nightshift"
+    app_name: str = "Nightshift"
     app_version: str = "1.0.0"
     debug: bool = True
 
@@ -131,8 +131,8 @@ class Settings(BaseSettings):
 
     @property
     def brand_name(self) -> str:
-        """Full product name shown to users, e.g. 'BlueSec Nightshift'."""
-        return f"{self.vendor_name} {self.product_name}".strip()
+        """Product name shown to users (the vendor is not part of it)."""
+        return self.product_name
 
     def update_from_dict(self, updates: dict):
         """Hot-reload settings from a dictionary (e.g. database values)"""

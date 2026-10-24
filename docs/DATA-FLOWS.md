@@ -1,6 +1,6 @@
 # Data flows and security
 
-What BlueSec Nightshift sends where, what it stores, and how it is protected. Written
+What Nightshift sends where, what it stores, and how it is protected. Written
 for security and privacy reviews.
 
 ## Summary

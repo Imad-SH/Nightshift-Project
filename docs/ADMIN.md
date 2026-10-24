@@ -1,4 +1,4 @@
-# Administering BlueSec Nightshift
+# Administering Nightshift
 
 Commands assume the default installation directory, `/opt/nightshift`, and are run as
 root (or with `sudo`). All `docker compose` commands use the same options:

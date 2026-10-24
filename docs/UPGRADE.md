@@ -36,7 +36,7 @@ them); they remain available in the SIEM itself. Upgrade in a quiet period.
 **If the new version does not start correctly, the upgrade rolls back by itself**: it
 puts the previous version's files back, restores the backup taken in step 1 (the new
 version may already have changed the database) and starts the previous version. The
-command then ends with an error: send its output to BlueSec support.
+command then ends with an error; its output shows the cause.
 
 After a successful upgrade, free the disk space used by old images with
 `sudo docker image prune`.

@@ -1,7 +1,7 @@
 {
   "id": "d11839fa-3458-4ecf-8bea-04b4ced01ec3",
   "realm": "nightshift",
-  "displayName": "BlueSec Nightshift",
+  "displayName": "Nightshift",
   "notBefore": 0,
   "defaultSignatureAlgorithm": "RS256",
   "revokeRefreshToken": false,

@@ -1,4 +1,4 @@
-# Connecting Wazuh to BlueSec Nightshift
+# Connecting Wazuh to Nightshift
 
 The Wazuh manager sends each alert to Nightshift as it happens, through a small
 integration script. You need:

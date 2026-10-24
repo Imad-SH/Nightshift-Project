@@ -1,4 +1,4 @@
-# Shared helpers for the BlueSec Nightshift operator scripts. Sourced, not run.
+# Shared helpers for the Nightshift operator scripts. Sourced, not run.
 # shellcheck shell=bash
 
 PROJECT=nightshift

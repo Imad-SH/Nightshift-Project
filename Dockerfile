@@ -1,4 +1,4 @@
-# BlueSec Nightshift web: the built frontend, served by nginx, which also
+# Nightshift web: the built frontend, served by nginx, which also
 # reverse-proxies /api and /socket.io to the backend and /auth to Keycloak.
 # Site configuration and config.json are written at startup from environment
 # variables (deploy/web/40-nightshift.sh), so one image serves any installation.

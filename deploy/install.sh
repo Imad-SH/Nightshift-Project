@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# BlueSec Nightshift installer.
+# Nightshift installer.
 #
 #   sudo ./install.sh --url https://soc.example.local
 #
@@ -49,7 +49,7 @@ done
 
 VERSION="$(tr -d '[:space:]' < "$KIT_DIR/VERSION" 2>/dev/null || true)"
 [ -n "$VERSION" ] || die "VERSION file not found: run install.sh from an extracted release kit."
-printf '%sBlueSec Nightshift %s installer%s\n' "$C_B" "$VERSION" "$C_0"
+printf '%sNightshift %s installer%s\n' "$C_B" "$VERSION" "$C_0"
 
 # ---------------------------------------------------------------------------------------
 step "1/7  Checking this server"
@@ -230,7 +230,7 @@ else
 fi
 
 # ---------------------------------------------------------------------------------------
-printf '\n%sBlueSec Nightshift %s is running%s\n\n' "$C_OK$C_B" "$VERSION" "$C_0"
+printf '\n%sNightshift %s is running%s\n\n' "$C_OK$C_B" "$VERSION" "$C_0"
 printf '  Open:             %s\n' "$PUBLIC_URL"
 if [ -n "$ADMIN_PASSWORD" ]; then
   printf '  First login:      %s / %s   (you will choose a new password)\n' "$ADMIN_USER" "$ADMIN_PASSWORD"

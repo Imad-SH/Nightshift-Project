@@ -1,6 +1,6 @@
 #!/var/ossec/framework/python/bin/python3
 """
-BlueSec Nightshift integration for the Wazuh manager.
+Nightshift integration for the Wazuh manager.
 
 Wazuh's integrator runs it for every alert matching the <integration> block in
 ossec.conf, with the arguments: <alert file> <api_key> <hook_url>.

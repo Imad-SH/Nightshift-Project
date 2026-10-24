@@ -24,7 +24,7 @@ def main(export_path: str) -> None:
     realm = json.loads(Path(export_path).read_text(encoding="utf-8"))
 
     realm["realm"] = "nightshift"
-    realm["displayName"] = "BlueSec Nightshift"
+    realm["displayName"] = "Nightshift"
     realm["loginTheme"] = "bluesec"
     realm["sslRequired"] = "external"
     realm["registrationAllowed"] = False

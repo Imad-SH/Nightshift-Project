@@ -1,4 +1,4 @@
-# BlueSec Nightshift API (FastAPI + Socket.IO + AI pipeline).
+# Nightshift API (FastAPI + Socket.IO + AI pipeline).
 # Production image: no source mounts, no auto-reload, non-root user.
 # The development compose file overrides the command to add --reload.
 

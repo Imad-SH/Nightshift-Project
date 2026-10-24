@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Stop and remove BlueSec Nightshift.
+# Stop and remove Nightshift.
 #
 #   sudo ./uninstall.sh            remove the containers; data and configuration are kept
 #   sudo ./uninstall.sh --purge    also delete all data, the configuration and the certificate

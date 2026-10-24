@@ -1,5 +1,5 @@
 #!/bin/sh
-# BlueSec Nightshift integration launcher for the Wazuh manager.
+# Nightshift integration launcher for the Wazuh manager.
 # Runs custom-nightshift.py with the Python interpreter bundled with Wazuh.
 WAZUH_PATH="$(cd "$(dirname "$0")/.." && pwd)"
 exec "${WAZUH_PATH}/framework/python/bin/python3" "$0.py" "$@"

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Build a BlueSec Nightshift release kit (run on the vendor side, from the repository).
+# Build a Nightshift release kit (run on the vendor side, from the repository).
 #
 #   ./release.sh 1.0.0                  images + kit with the offline image bundle
 #   ./release.sh 1.0.0 --push registry.example.com/bluesec/   also push the images

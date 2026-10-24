@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Back up BlueSec Nightshift: both databases (alerts/settings and accounts), the
+# Back up Nightshift: both databases (alerts/settings and accounts), the
 # configuration, the TLS certificate and generated reports, in one archive.
 #
 #   sudo ./backup.sh [--output DIR]      (default: backups/ in the installation directory)
@@ -29,7 +29,7 @@ trap 'rm -rf "$WORK"' EXIT
 umask 077
 mkdir -p "$OUT"
 
-step "Backing up BlueSec Nightshift $VERSION"
+step "Backing up Nightshift $VERSION"
 for db in nightshift keycloak; do
   dc exec -T postgres pg_dump -U nightshift -d "$db" -Fc > "$WORK/$db.dump" \
     || die "Could not dump the $db database (is the stack running?)."

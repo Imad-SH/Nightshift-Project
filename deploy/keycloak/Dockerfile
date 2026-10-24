@@ -1,4 +1,4 @@
-# BlueSec Nightshift identity server: Keycloak with the BlueSec login theme and
+# Nightshift identity server: Keycloak with the BlueSec login theme and
 # the Nightshift realm, served under /auth behind the web container.
 # Build context: this folder; the theme comes from the "theme" build context:
 #   docker build --build-context theme=../../backend/keycloak-theme -t nightshift-keycloak .

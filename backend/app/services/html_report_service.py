@@ -34,7 +34,6 @@ class HTMLReportService:
 
     def generate_report(self, alert_id: str, event_data: Dict[str, Any]) -> str:
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        brand_vendor = html.escape(settings.vendor_name.upper())
         brand_product = html.escape(settings.product_name.upper())
         brand_full = html.escape(settings.brand_name.upper())
         verdict = self.clean_data(event_data.get("verdict", "N/A")).upper()
@@ -336,7 +335,7 @@ class HTMLReportService:
     <div class="report-isolation">
         <div class="page">
         <header>
-            <div class="brand">{brand_vendor}<span>{brand_product}</span></div>
+            <div class="brand"><span>{brand_product}</span></div>
             <div class="doc-meta">
                 <div>REF: {alert_id}</div>
                 <div>ISSUED: {timestamp}</div>
