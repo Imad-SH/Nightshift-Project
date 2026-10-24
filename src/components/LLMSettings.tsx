@@ -61,9 +61,9 @@ export const LLMSettings = ({ onSubTabChange }: { onSubTabChange?: (tab: string 
         anthropicKey: '',
         geminiKey: '',
         customUrl: 'https://api.tokenfactory.nebius.com/v1/',
-        agent1Model: 'meta-llama/Llama-3.3-70B-Instruct-fast',
+        agent1Model: 'deepseek-ai/DeepSeek-V4.1-Flash',
         agent1Prompt: '',
-        agent3Model: 'deepseek-ai/DeepSeek-R1-Distill-Llama-70B',
+        agent3Model: 'deepseek-ai/DeepSeek-V4-Pro',
         agent3Prompt: '',
         localUrl: 'http://localhost:11434/v1/',
         localAgent1Model: 'llama3',
@@ -735,9 +735,10 @@ export const LLMSettings = ({ onSubTabChange }: { onSubTabChange?: (tab: string 
                                                 : configData[`local${ag.id.charAt(0).toUpperCase() + ag.id.slice(1)}Model` as keyof typeof configData];
                                             
                                             const fallbackModels = arch === 'API' ? [
-                                                { value: "meta-llama/Llama-3.3-70B-Instruct-fast", label: "Llama-3.3-70B-Instruct" },
-                                                { value: "deepseek-ai/DeepSeek-R1-Distill-Llama-70B", label: "DeepSeek-R1-Distill" },
-                                                { value: "deepseek-ai/DeepSeek-R1-0528", label: "DeepSeek-R1-Turbo" }
+                                                { value: "deepseek-ai/DeepSeek-V4.1-Flash", label: "DeepSeek-V4.1-Flash" },
+                                                { value: "deepseek-ai/DeepSeek-V4-Pro", label: "DeepSeek-V4-Pro" },
+                                                { value: "Qwen/Qwen3-235B-A22B-Instruct-2507", label: "Qwen3-235B-A22B-Instruct" },
+                                                { value: "Qwen/Qwen3-30B-A3B-Instruct-2507", label: "Qwen3-30B-A3B-Instruct" }
                                             ] : [
                                                 { value: "llama3", label: "Llama 3 (Ollama)" },
                                                 { value: "mistral", label: "Mistral (Ollama)" },

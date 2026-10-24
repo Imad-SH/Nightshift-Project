@@ -283,7 +283,7 @@ IMPORTANT:
             prompt = prompt.replace("{{FORMAT_INSTRUCTIONS}}", self.parser.get_format_instructions())
             
             llm = self._get_llm()
-            active_model = llm.model_name if hasattr(llm, 'model_name') else "Llama-3.3-70B"
+            active_model = llm.model_name if hasattr(llm, 'model_name') else "DeepSeek-V4.1-Flash"
 
             if sio:
                 await sio.emit('agent_update', {

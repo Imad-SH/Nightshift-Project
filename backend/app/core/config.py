@@ -69,13 +69,13 @@ class Settings(BaseSettings):
     gemini_api_key: Optional[str] = None
     groq_api_key: Optional[str] = None
     nebius_base_url: str = "https://api.tokenfactory.nebius.com/v1/"
-    nebius_model: str = "deepseek-ai/DeepSeek-V3.2" # Default fallback
-    nebius_extractor_model: str = "meta-llama/Llama-3.3-70B-Instruct"
-    nebius_judge_model: str = "deepseek-ai/DeepSeek-V3.2"
+    nebius_model: str = "deepseek-ai/DeepSeek-V4-Pro" # Default fallback
+    nebius_extractor_model: str = "deepseek-ai/DeepSeek-V4.1-Flash"
+    nebius_judge_model: str = "deepseek-ai/DeepSeek-V4-Pro"
     
     # Generic Agent Model Selection (Preferred for UI)
-    ai_extractor_model: str = "meta-llama/Llama-3.3-70B-Instruct"
-    ai_judge_model: str = "deepseek-ai/DeepSeek-V3.2"
+    ai_extractor_model: str = "deepseek-ai/DeepSeek-V4.1-Flash"
+    ai_judge_model: str = "deepseek-ai/DeepSeek-V4-Pro"
     
     groq_model: str = "llama-3.3-70b-versatile"
     

@@ -50,7 +50,7 @@ class AgentJudge:
                 base_url = settings.local_base_url
                 api_key = "ollama" # Placeholder for local
             else:
-                model = settings.agent3_model or settings.ai_judge_model or settings.nebius_judge_model or "deepseek-ai/DeepSeek-V3.2"
+                model = settings.agent3_model or settings.ai_judge_model or settings.nebius_judge_model or "deepseek-ai/DeepSeek-V4-Pro"
                 base_url = settings.nebius_base_url or "https://api.tokenfactory.nebius.com/v1/"
                 api_key = settings.nebius_api_key
             
@@ -106,7 +106,7 @@ class AgentJudge:
         """
         try:
             llm = self._get_llm()
-            active_model = llm.model_name if hasattr(llm, 'model_name') else "DeepSeek-V3"
+            active_model = llm.model_name if hasattr(llm, 'model_name') else "DeepSeek-V4-Pro"
             
             # 🔥 CRITICAL: Combined broadcast to sync Model + Status + Log immediately
             from app.core.socket import sio
