@@ -8,7 +8,8 @@
 #   ./release.sh 1.0.0 --allow-dirty    build from uncommitted changes (testing only)
 #
 # Output in release/: nightshift-<version>.tar.gz and its .sha256
-# (plus a detached .asc signature when NIGHTSHIFT_GPG_KEY names a GPG key).
+# (plus a detached .asc signature when NIGHTSHIFT_GPG_KEY names a GPG key), and the download
+# page release/index.html (set NIGHTSHIFT_DOWNLOAD_BASE when the package is hosted apart from it).
 set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$ROOT"
@@ -102,6 +103,8 @@ rm -rf "$KIT"
 if [ -n "${NIGHTSHIFT_GPG_KEY:-}" ]; then
   gpg --local-user "$NIGHTSHIFT_GPG_KEY" --armor --detach-sign "release/nightshift-$VERSION.tar.gz"
 fi
+
+deploy/download-page/build.sh "$VERSION" "${NIGHTSHIFT_DOWNLOAD_BASE:-}"
 
 echo
 echo "Release ready:"

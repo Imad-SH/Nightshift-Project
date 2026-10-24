@@ -91,6 +91,13 @@ install. Before shipping a release, install it on a clean Linux server and run a
 upgrade from the previous version. Then tag the commit it was built from
 (`git tag -a v1.2.0`) and push the tag.
 
+`release.sh` also writes the download page, `release/index.html` (template in
+`deploy/download-page/`): requirements, download buttons, the checksum and copy-paste
+install steps. Host it in the same folder as the package, or set
+`NIGHTSHIFT_DOWNLOAD_BASE` to the address where the package is hosted (for example
+GitHub release assets); `deploy/download-page/build.sh <version> [address]` rebuilds it
+alone.
+
 For the small package, `docker login` to the registry first. `--push` also pushes
 the Postgres and Redis images, so clients need access to that one registry only, and
 the kit records the registry (`REGISTRY` file) for `install.sh` and `upgrade.sh`. Give
