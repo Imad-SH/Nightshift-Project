@@ -78,7 +78,7 @@ done
 echo "== Download page"
 "$ROOT/deploy/download-page/build.sh" "$VERSION" "https://github.com/$REPO/releases/download/$TAG/"
 git clone -q --depth 1 "https://github.com/$REPO.git" "$TMP/site"
-cp "$ROOT/release/index.html" "$ROOT/release/favicon.png" "$TMP/site/"
+cp "$ROOT/release/index.html" "$ROOT/release/favicon.png" "$ROOT/release/bluesec-logo.svg" "$ROOT/release/preview.png" "$TMP/site/"
 touch "$TMP/site/.nojekyll"
 cat > "$TMP/site/README.md" <<EOF
 # Nightshift downloads

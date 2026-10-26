@@ -4,342 +4,430 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Download Nightshift {{VERSION}}</title>
-<meta name="description" content="Download and install Nightshift {{VERSION}} on your own Linux server.">
-<meta name="color-scheme" content="dark">
+<meta name="description" content="Download Nightshift {{VERSION}}, the AI analyst that never clocks out, and install it on your own Linux server.">
+<meta name="color-scheme" content="light">
 <link rel="icon" href="favicon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
 <!--
   Download page for one Nightshift release. deploy/download-page/build.sh fills in the
-  {{...}} values and writes it to release/index.html: host it in the same folder as the
-  package and its .sha256, or pass build.sh the address where the package is hosted.
+  {{...}} values and writes it to release/ with its images: host it in the same folder as
+  the package and its .sha256, or pass build.sh the address where the package is hosted.
+  Colours follow the BlueSec brand (bluesec.ma).
 -->
 <style>
   :root {
-    --bg: #03070a;
-    --ink: #e9f7f7;
-    --muted: #93aab1;
-    --faint: #62777f;
-    --accent: #00f2ea;
-    --accent-ink: #02201f;
-    --hair: rgba(255, 255, 255, 0.07);
-    --hair-strong: rgba(255, 255, 255, 0.12);
-    --shell: rgba(255, 255, 255, 0.022);
-    --core-top: #0b151b;
-    --core-bottom: #070f14;
-    --code-bg: #04090c;
+    --navy: #233987;
+    --blue: #475ea8;
+    --teal: #70c3b8;
+    --deep: #111d54;
+    --deeper: #0b1440;
+    --text: #57647d;
+    --soft: #f5f7fb;
+    --line: #dbe2f5;
+    --line-soft: #e8ecf6;
+    --mint: #eef8f6;
+    --tint: #dce6ff;
     --ease: cubic-bezier(0.32, 0.72, 0, 1);
-    --sans: "Outfit", ui-sans-serif, system-ui, sans-serif;
-    --mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+    --sans: "Geist", "Aptos", "Segoe UI Variable", "Segoe UI", system-ui, sans-serif;
+    --mono: "Geist Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
   }
   * { box-sizing: border-box; }
-  html { scroll-behavior: smooth; scroll-padding-top: 110px; }
-  body {
-    margin: 0;
-    background: var(--bg);
-    color: var(--ink);
-    font: 400 17px/1.6 var(--sans);
-    -webkit-font-smoothing: antialiased;
-    overflow-x: hidden;
-  }
-  /* Fixed ambient layers: glows and a faint grid, never repainted while scrolling */
-  body::before {
-    content: "";
-    position: fixed; inset: 0; pointer-events: none; z-index: -2;
-    background:
-      radial-gradient(700px 520px at 78% -8%, rgba(0, 242, 234, 0.16), transparent 70%),
-      radial-gradient(620px 520px at -6% 38%, rgba(56, 189, 248, 0.09), transparent 70%),
-      radial-gradient(560px 460px at 92% 88%, rgba(139, 92, 246, 0.08), transparent 70%);
-  }
-  body::after {
-    content: "";
-    position: fixed; inset: 0; pointer-events: none; z-index: -1;
-    background-image:
-      linear-gradient(to right, rgba(0, 242, 234, 0.045) 1px, transparent 1px),
-      linear-gradient(to bottom, rgba(0, 242, 234, 0.045) 1px, transparent 1px);
-    background-size: 64px 64px;
-    -webkit-mask-image: radial-gradient(ellipse 70% 60% at 50% 30%, #000 30%, transparent 100%);
-    mask-image: radial-gradient(ellipse 70% 60% at 50% 30%, #000 30%, transparent 100%);
-  }
+  html { scroll-behavior: smooth; scroll-padding-top: 96px; }
+  body { margin: 0; background: #fff; color: var(--text); font: 400 17px/1.65 var(--sans); -webkit-font-smoothing: antialiased; overflow-x: hidden; }
   a { color: inherit; }
-  .wrap { width: min(1180px, 100% - 48px); margin: 0 auto; }
-  .mono { font-family: var(--mono); }
+  img { display: block; max-width: 100%; }
+  .wrap { width: min(1240px, 100% - 64px); margin: 0 auto; }
+  h1, h2, h3 { margin: 0; color: var(--navy); letter-spacing: -0.035em; }
+  h2 { font-size: clamp(2.1rem, 4.2vw, 3.4rem); line-height: 1.04; font-weight: 600; }
+  h2 .lt { font-weight: 300; color: var(--blue); }
+  p { margin: 0; }
+  code { font-family: var(--mono); font-size: 0.86em; color: var(--navy); background: var(--tint); padding: 2px 7px; }
 
-  /* Floating island navigation */
-  .nav {
-    position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 10;
-    display: flex; align-items: center; gap: 6px;
-    padding: 6px 6px 6px 22px;
-    border-radius: 999px;
-    background: rgba(6, 13, 17, 0.62);
-    border: 1px solid var(--hair-strong);
-    -webkit-backdrop-filter: blur(20px) saturate(140%);
-    backdrop-filter: blur(20px) saturate(140%);
-    box-shadow: 0 20px 60px -30px rgba(0, 242, 234, 0.35);
-    white-space: nowrap;
-  }
-  .wordmark { font-weight: 600; letter-spacing: 0.02em; text-decoration: none; margin-right: 18px; display: flex; align-items: center; gap: 10px; }
-  .wordmark i { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 14px var(--accent); }
-  .nav a.link { text-decoration: none; color: var(--muted); font-size: 14px; padding: 8px 14px; border-radius: 999px; transition: color 500ms var(--ease), background 500ms var(--ease); }
-  .nav a.link:hover { color: var(--ink); background: rgba(255, 255, 255, 0.05); }
-  .nav a.mini {
-    text-decoration: none; font-size: 14px; font-weight: 500; color: var(--accent-ink);
-    background: var(--accent); padding: 9px 16px; border-radius: 999px; margin-left: 6px;
-    transition: transform 500ms var(--ease), box-shadow 500ms var(--ease);
-  }
-  .nav a.mini:hover { box-shadow: 0 0 28px -4px rgba(0, 242, 234, 0.7); }
-  .nav a.mini:active { transform: scale(0.97); }
+  /* Eyebrow: teal rule + spaced capitals, as on bluesec.ma */
+  .eyebrow { display: inline-flex; align-items: center; gap: 14px; font-size: 11.5px; font-weight: 600; letter-spacing: 0.24em; text-transform: uppercase; color: var(--navy); }
+  .eyebrow::before { content: ""; width: 36px; height: 1.5px; background: var(--teal); }
+  .on-dark .eyebrow { color: #fff; }
 
-  /* Eyebrow tags and headings */
-  .eyebrow {
-    display: inline-flex; align-items: center; gap: 8px;
-    font-size: 11px; font-weight: 500; letter-spacing: 0.2em; text-transform: uppercase;
-    color: var(--accent); padding: 6px 12px; border-radius: 999px;
-    background: rgba(0, 242, 234, 0.07); border: 1px solid rgba(0, 242, 234, 0.18);
-  }
-  h1, h2, h3 { margin: 0; font-weight: 600; letter-spacing: -0.03em; }
-  h2 { font-size: clamp(2rem, 4vw, 3rem); line-height: 1.08; margin-top: 18px; }
-  .lede { color: var(--muted); font-size: 18px; max-width: 58ch; margin: 18px 0 0; }
-  section { padding: 120px 0; }
-  .section-head { margin-bottom: 56px; }
+  /* Header */
+  .top { position: sticky; top: 0; z-index: 20; transition: background 600ms var(--ease), box-shadow 600ms var(--ease); }
+  .top.scrolled { background: rgba(255, 255, 255, 0.86); -webkit-backdrop-filter: blur(16px) saturate(160%); backdrop-filter: blur(16px) saturate(160%); box-shadow: 0 1px 0 var(--line); }
+  .top .wrap { display: flex; align-items: center; gap: 28px; height: 84px; }
+  .brand { display: flex; align-items: center; gap: 18px; text-decoration: none; }
+  .brand img { height: 30px; width: auto; }
+  .brand .sep { width: 1px; height: 26px; background: var(--line); }
+  .brand .prodname { font-weight: 600; font-size: 18px; color: var(--navy); letter-spacing: -0.01em; }
+  .menu { display: flex; gap: 6px; margin-left: auto; }
+  .menu a { text-decoration: none; font-size: 14.5px; font-weight: 500; color: var(--deep); padding: 8px 14px; position: relative; }
+  .menu a::after { content: ""; position: absolute; left: 14px; right: 14px; bottom: 4px; height: 1.5px; background: var(--teal); transform: scaleX(0); transform-origin: left; transition: transform 600ms var(--ease); }
+  .menu a:hover::after { transform: scaleX(1); }
 
-  /* Hero: editorial split */
-  .hero { padding: 190px 0 120px; }
-  .hero .grid { display: grid; grid-template-columns: 1.08fr 0.92fr; gap: 72px; align-items: center; }
-  .hero h1 { font-size: clamp(2.7rem, 6.2vw, 5rem); line-height: 1.0; margin-top: 26px; }
-  .hero h1 em { font-style: normal; color: var(--accent); }
-  .hero .lede { font-size: 19px; }
-  .cta-row { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; margin-top: 40px; }
+  /* Buttons: square navy, like the BlueSec site */
   .btn {
-    display: inline-flex; align-items: center; gap: 16px;
-    padding: 7px 7px 7px 26px; border-radius: 999px; text-decoration: none;
-    font-weight: 500; font-size: 16px; color: var(--accent-ink); background: var(--accent);
-    box-shadow: 0 18px 50px -18px rgba(0, 242, 234, 0.65), inset 0 1px 0 rgba(255, 255, 255, 0.45);
-    transition: transform 600ms var(--ease), box-shadow 600ms var(--ease);
+    display: inline-flex; align-items: center; gap: 14px; text-decoration: none; font-weight: 600; font-size: 15px; letter-spacing: -0.005em;
+    color: #fff; background: var(--navy); padding: 16px 22px 16px 26px; position: relative; overflow: hidden; isolation: isolate;
+    transition: transform 500ms var(--ease), box-shadow 600ms var(--ease);
+    box-shadow: 0 14px 34px -18px rgba(35, 57, 135, 0.8);
   }
-  .btn:hover { box-shadow: 0 22px 60px -14px rgba(0, 242, 234, 0.8), inset 0 1px 0 rgba(255, 255, 255, 0.45); }
-  .btn:active { transform: scale(0.98); }
-  .btn .orb {
-    width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center;
-    background: rgba(2, 32, 31, 0.12); transition: transform 600ms var(--ease);
+  .btn::before { content: ""; position: absolute; inset: 0; z-index: -1; background: linear-gradient(115deg, var(--blue), var(--navy) 60%); opacity: 0; transition: opacity 600ms var(--ease); }
+  .btn:hover::before { opacity: 1; }
+  .btn:active { transform: scale(0.985); }
+  .btn .ico { display: grid; place-items: center; width: 30px; height: 30px; border: 1px solid rgba(255, 255, 255, 0.28); transition: transform 600ms var(--ease), background 600ms var(--ease); }
+  .btn:hover .ico { transform: translateY(2px); background: rgba(255, 255, 255, 0.1); }
+  .btn.small { padding: 11px 16px 11px 18px; font-size: 14px; box-shadow: none; }
+  .btn.light { background: #fff; color: var(--navy); }
+  .btn.light::before { background: linear-gradient(115deg, var(--mint), #fff 70%); }
+  .btn.light .ico { border-color: var(--line); }
+  .link { display: inline-flex; align-items: center; gap: 10px; font-weight: 600; font-size: 15px; color: var(--navy); text-decoration: none; }
+  .link svg { transition: transform 600ms var(--ease); color: var(--teal); }
+  .link:hover svg { transform: translate(3px, -3px); }
+  .btn:focus-visible, .link:focus-visible, .menu a:focus-visible, .tab:focus-visible, .copy:focus-visible, .brand:focus-visible { outline: 2px solid var(--teal); outline-offset: 3px; }
+
+  /* Hero */
+  .hero { position: relative; padding: 72px 0 0; }
+  .hero::before {
+    content: ""; position: absolute; inset: -84px 0 0; z-index: -1; pointer-events: none;
+    background-image: linear-gradient(to right, var(--line-soft) 1px, transparent 1px), linear-gradient(to bottom, var(--line-soft) 1px, transparent 1px);
+    background-size: 124px 124px; background-position: -1px -1px;
+    -webkit-mask-image: linear-gradient(to bottom, #000 40%, transparent 96%); mask-image: linear-gradient(to bottom, #000 40%, transparent 96%);
   }
-  .btn:hover .orb { transform: translateY(2px) scale(1.05); }
-  .ghost {
-    display: inline-flex; align-items: center; gap: 10px; text-decoration: none; color: var(--ink);
-    padding: 15px 22px; border-radius: 999px; border: 1px solid var(--hair-strong); font-size: 16px;
-    transition: background 600ms var(--ease), border-color 600ms var(--ease);
-  }
-  .ghost:hover { background: rgba(255, 255, 255, 0.04); border-color: rgba(255, 255, 255, 0.2); }
-  .facts { display: flex; flex-wrap: wrap; gap: 8px 22px; margin-top: 30px; color: var(--faint); font-size: 14px; }
-  .facts span::before { content: ""; display: inline-block; width: 5px; height: 5px; border-radius: 50%; background: var(--accent); opacity: 0.6; margin-right: 9px; vertical-align: middle; }
+  .hero .grid { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr); gap: 40px; align-items: center; min-height: 600px; }
+  .hero h1 { font-size: clamp(3.4rem, 8.4vw, 7.2rem); line-height: 0.93; letter-spacing: -0.055em; margin-top: 34px; }
+  .hero h1 span { display: block; }
+  .hero h1 .b { font-weight: 700; }
+  .hero h1 .l { font-weight: 300; color: var(--blue); }
+  .hero h1 .l2 { font-weight: 300; }
+  .hero .intro { font-size: 19px; max-width: 54ch; margin-top: 32px; }
+  .hero .intro strong { color: var(--navy); font-weight: 600; }
+  .ctas { display: flex; flex-wrap: wrap; align-items: center; gap: 30px; margin-top: 40px; }
+  .places { margin-top: 30px; font-size: 11.5px; font-weight: 600; letter-spacing: 0.22em; text-transform: uppercase; color: var(--navy); opacity: 0.85; }
 
-  /* Double-bezel containers */
-  .shell { background: var(--shell); border: 1px solid var(--hair); padding: 6px; border-radius: 30px; }
-  .core {
-    background: linear-gradient(180deg, var(--core-top), var(--core-bottom));
-    border-radius: 24px; padding: 30px;
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 40px 80px -50px rgba(0, 0, 0, 0.9);
-  }
+  .orbit { position: relative; aspect-ratio: 1; width: 100%; max-width: 540px; justify-self: end; }
+  .orbit svg { width: 100%; height: 100%; overflow: visible; }
+  .orbit .spin { transform-origin: 280px 280px; animation: spin 90s linear infinite; }
+  .orbit .spin.rev { animation-duration: 140s; animation-direction: reverse; }
+  .orbit .pulse { transform-box: fill-box; transform-origin: center; animation: pulse 3.6s var(--ease) infinite; }
+  .orbit .center { position: absolute; inset: 0; display: grid; place-items: center; text-align: center; pointer-events: none; }
+  .orbit .center div { font-size: clamp(1.3rem, 2.3vw, 1.85rem); line-height: 1.12; color: var(--navy); font-weight: 300; letter-spacing: -0.02em; }
+  .orbit .center small { display: block; margin-top: 12px; font-size: 10px; font-weight: 700; letter-spacing: 0.26em; color: var(--navy); }
+  .orbit .coord { position: absolute; right: 0; bottom: -6px; font: 500 10.5px var(--mono); letter-spacing: 0.18em; color: var(--text); opacity: 0.8; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  @keyframes pulse { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.5); opacity: 0.35; } }
 
-  /* Release card */
-  .release .core { padding: 0; overflow: hidden; }
-  .release-head { padding: 26px 28px 22px; border-bottom: 1px solid var(--hair); display: flex; align-items: center; gap: 16px; }
-  .file-icon { width: 48px; height: 48px; border-radius: 14px; display: grid; place-items: center; background: rgba(0, 242, 234, 0.08); border: 1px solid rgba(0, 242, 234, 0.2); color: var(--accent); flex: none; }
-  .release-head .name { font-family: var(--mono); font-size: 15px; }
-  .release-head .kind { color: var(--muted); font-size: 14px; margin-top: 2px; }
-  .rows { padding: 8px 28px 10px; }
-  .row { display: grid; grid-template-columns: 120px 1fr; gap: 16px; padding: 14px 0; border-bottom: 1px solid var(--hair); font-size: 15px; }
-  .row:last-child { border-bottom: 0; }
-  .row dt { color: var(--faint); }
-  .row dd { margin: 0; }
-  .hash { font-family: var(--mono); font-size: 12.5px; color: var(--muted); word-break: break-all; line-height: 1.55; }
-  .release-foot { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 16px 28px; background: rgba(0, 0, 0, 0.22); border-top: 1px solid var(--hair); font-size: 14px; color: var(--muted); }
-  .release-foot a { color: var(--accent); text-decoration: none; }
-  .release-foot a:hover { text-decoration: underline; }
+  /* Release bar: the facts of this package */
+  .release { margin-top: 64px; display: grid; grid-template-columns: 1.5fr repeat(3, 0.62fr) 2fr; border: 1px solid var(--line); background: #fff; position: relative; }
+  .release::before { content: ""; position: absolute; left: -1px; top: -1px; width: 120px; height: 3px; background: linear-gradient(90deg, var(--teal), var(--blue)); }
+  .release > div { padding: 24px 26px; border-right: 1px solid var(--line); min-width: 0; }
+  .release > div:last-child { border-right: 0; }
+  .release dt { font-size: 11px; font-weight: 600; letter-spacing: 0.2em; text-transform: uppercase; color: var(--text); opacity: 0.85; margin-bottom: 8px; }
+  .release dd { margin: 0; color: var(--deep); font-weight: 500; font-size: 15.5px; }
+  .release .file dd { font-family: var(--mono); font-size: 14.5px; }
+  .release .kind { font-size: 13.5px; color: var(--text); margin-top: 4px; font-weight: 400; font-family: var(--sans); }
+  .release .hash { font-family: var(--mono); font-size: 12px; line-height: 1.6; word-break: break-all; color: var(--text); }
+  .release .hash a { display: inline-flex; gap: 6px; align-items: center; margin-top: 8px; font-family: var(--sans); font-size: 13.5px; font-weight: 600; color: var(--navy); text-decoration: none; }
+  .release .hash a:hover { text-decoration: underline; text-decoration-color: var(--teal); text-underline-offset: 4px; }
 
-  /* Requirements bento */
-  .bento { display: grid; grid-template-columns: repeat(12, 1fr); gap: 18px; }
-  .span-7 { grid-column: span 7; } .span-5 { grid-column: span 5; } .span-4 { grid-column: span 4; }
-  .bento .core { height: 100%; }
-  .icon-line { color: var(--accent); margin-bottom: 22px; display: block; }
-  .bento h3 { font-size: 20px; letter-spacing: -0.01em; }
-  .bento p { color: var(--muted); margin: 10px 0 0; font-size: 15.5px; }
-  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; }
-  .chip { font-size: 13.5px; padding: 7px 13px; border-radius: 999px; background: rgba(255, 255, 255, 0.04); border: 1px solid var(--hair); }
-  .spec { width: 100%; border-collapse: collapse; margin-top: 16px; font-size: 15px; }
-  .spec th { text-align: left; font-weight: 400; color: var(--faint); font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; padding: 0 0 8px; }
-  .spec td { padding: 9px 0; border-top: 1px solid var(--hair); }
-  .spec td:first-child { color: var(--muted); }
+  section { padding: 140px 0; position: relative; }
+  .head { display: grid; grid-template-columns: minmax(0, 0.42fr) minmax(0, 0.58fr); gap: 40px; align-items: start; margin-bottom: 72px; }
+  .head > .eyebrow { margin-top: 16px; }
+  .head p { margin-top: 18px; max-width: 56ch; }
 
-  /* Installation steps */
-  .steps { display: grid; gap: 22px; }
-  .step .core { display: grid; grid-template-columns: 76px 1fr; gap: 10px 26px; padding: 34px; }
-  .num { font-family: var(--mono); font-size: 13px; color: var(--accent); width: 52px; height: 52px; border-radius: 16px; display: grid; place-items: center; border: 1px solid rgba(0, 242, 234, 0.22); background: rgba(0, 242, 234, 0.06); }
-  .step h3 { font-size: 23px; letter-spacing: -0.015em; }
-  .step p { color: var(--muted); margin: 8px 0 0; max-width: 70ch; }
-  .step .body { min-width: 0; }
-  .note { margin-top: 16px; font-size: 14.5px; color: var(--faint); }
-  .note strong { color: var(--muted); font-weight: 500; }
-  .note code, p code, li code { font-family: var(--mono); font-size: 0.86em; color: var(--ink); background: rgba(255, 255, 255, 0.05); padding: 2px 6px; border-radius: 6px; }
+  /* Product band */
+  .product { background: var(--deep); color: #b9c3e3; overflow: hidden; }
+  .product::before { content: ""; position: absolute; inset: 0; pointer-events: none; background: radial-gradient(700px 420px at 85% 0%, rgba(112, 195, 184, 0.16), transparent 70%), radial-gradient(800px 500px at 0% 100%, rgba(71, 94, 168, 0.35), transparent 70%); }
+  .product h2 { color: #fff; }
+  .product h2 .lt { color: #9fb0e6; }
+  .product .head p { color: #b9c3e3; }
+  .frame { position: relative; padding: 10px; border: 1px solid rgba(255, 255, 255, 0.1); background: rgba(255, 255, 255, 0.03); box-shadow: 0 60px 120px -40px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(112, 195, 184, 0.06); }
+  .window { border: 1px solid rgba(255, 255, 255, 0.08); background: #070d24; overflow: hidden; }
+  .window .bar { display: flex; align-items: center; gap: 8px; padding: 12px 16px; border-bottom: 1px solid rgba(255, 255, 255, 0.07); }
+  .window .bar i { width: 10px; height: 10px; border-radius: 50%; background: rgba(255, 255, 255, 0.14); }
+  .window .bar span { margin-left: 14px; font: 400 12.5px var(--mono); color: #8b97c2; background: rgba(255, 255, 255, 0.05); padding: 5px 14px; }
+  .points { display: grid; grid-template-columns: repeat(3, 1fr); margin-top: 72px; border-top: 1px solid rgba(255, 255, 255, 0.12); }
+  .points div { padding: 30px 30px 0 0; }
+  .points div + div { padding-left: 30px; border-left: 1px solid rgba(255, 255, 255, 0.12); }
+  .points .n { font: 500 12px var(--mono); color: var(--teal); letter-spacing: 0.1em; }
+  .points h3 { color: #fff; font-size: 21px; font-weight: 500; letter-spacing: -0.015em; margin-top: 14px; }
+  .points p { margin-top: 8px; font-size: 15.5px; }
 
-  .code {
-    position: relative; margin-top: 20px; border-radius: 18px; background: var(--code-bg);
-    border: 1px solid var(--hair); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
-  }
-  .code pre { margin: 0; padding: 20px 110px 20px 22px; overflow-x: auto; font: 400 14px/1.75 var(--mono); color: #d7f5f4; }
-  .code .c { color: var(--faint); }
-  .code .p { color: var(--accent); user-select: none; }
+  /* Requirements grid (hairlines, as the BlueSec expertise grid) */
+  .cells { display: grid; grid-template-columns: repeat(3, 1fr); border-top: 1px solid var(--line); border-left: 1px solid var(--line); }
+  .cell { border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); padding: 34px 34px 38px; position: relative; transition: background 700ms var(--ease); }
+  .cell::before { content: ""; position: absolute; left: -1px; right: -1px; top: -1px; height: 2px; background: var(--teal); transform: scaleX(0); transform-origin: left; transition: transform 700ms var(--ease); }
+  .cell:hover { background: var(--mint); }
+  .cell:hover::before { transform: scaleX(1); }
+  .cell .n { font: 500 12px var(--mono); color: var(--text); opacity: 0.7; }
+  .cell svg { color: var(--blue); margin-top: 26px; }
+  .cell h3 { font-size: 21px; font-weight: 500; margin-top: 18px; letter-spacing: -0.015em; }
+  .cell p { margin-top: 10px; font-size: 15.5px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 16px; }
+  .chip { font-size: 13px; font-weight: 500; color: var(--navy); background: #fff; border: 1px solid var(--line); padding: 5px 11px; }
+  .spec { width: 100%; border-collapse: collapse; margin-top: 14px; font-size: 15px; }
+  .spec th { text-align: left; font-size: 10.5px; font-weight: 600; letter-spacing: 0.18em; text-transform: uppercase; color: var(--text); padding: 0 0 6px; opacity: 0.85; }
+  .spec td { padding: 7px 0; border-top: 1px solid var(--line); color: var(--deep); }
+  .spec td:first-child { color: var(--text); }
+
+  /* Installation */
+  .install { background: var(--soft); }
+  .install .cols { display: grid; grid-template-columns: minmax(0, 0.34fr) minmax(0, 0.66fr); gap: 72px; align-items: start; }
+  .rail { position: sticky; top: 120px; }
+  .rail h2 { margin-top: 22px; font-size: clamp(2rem, 3.1vw, 2.8rem); }
+  .rail p { margin-top: 18px; }
+  .rail ol { list-style: none; padding: 0; margin: 40px 0 0; border-left: 1px solid var(--line); }
+  .rail li a { display: flex; gap: 16px; align-items: baseline; padding: 11px 0 11px 22px; margin-left: -1px; border-left: 2px solid transparent; text-decoration: none; color: var(--text); font-weight: 500; transition: color 500ms var(--ease), border-color 500ms var(--ease); }
+  .rail li a span { font: 500 12px var(--mono); }
+  .rail li a.active { color: var(--navy); border-left-color: var(--teal); }
+  .steps { display: grid; grid-template-columns: minmax(0, 1fr); gap: 24px; min-width: 0; }
+  .step { background: #fff; border: 1px solid var(--line); padding: 40px 42px; position: relative; min-width: 0; }
+  .step .n { position: absolute; top: 40px; right: 42px; font: 500 13px var(--mono); color: var(--teal); }
+  .step h3 { font-size: 26px; font-weight: 600; letter-spacing: -0.025em; padding-right: 50px; }
+  .step > p { margin-top: 10px; max-width: 66ch; }
+  .note { margin-top: 18px; font-size: 14.5px; padding-left: 16px; border-left: 2px solid var(--line); }
+  .note strong { color: var(--deep); font-weight: 600; }
+
+  .term { min-width: 0; margin-top: 24px; background: var(--deeper); border: 1px solid #1c2a66; box-shadow: 0 30px 60px -36px rgba(17, 29, 84, 0.55); }
+  .term .bar { display: flex; align-items: center; justify-content: space-between; padding: 8px 8px 8px 18px; border-bottom: 1px solid rgba(255, 255, 255, 0.07); }
+  .term .bar span { font: 500 11px var(--mono); letter-spacing: 0.16em; text-transform: uppercase; color: #6f7cb0; }
+  .term pre { margin: 0; padding: 20px 22px 22px; overflow-x: auto; font: 400 14px/1.8 var(--mono); color: #e3e9ff; }
+  .term .p { color: var(--teal); user-select: none; }
+  .term .c { color: #6f7cb0; }
   .copy {
-    position: absolute; top: 12px; right: 12px; display: inline-flex; align-items: center; gap: 7px;
-    font: 500 12.5px var(--sans); color: var(--muted); background: rgba(255, 255, 255, 0.04);
-    border: 1px solid var(--hair); border-radius: 999px; padding: 7px 12px; cursor: pointer;
-    transition: color 500ms var(--ease), background 500ms var(--ease), transform 500ms var(--ease);
+    display: inline-flex; align-items: center; gap: 7px; cursor: pointer; font: 500 12.5px var(--sans); color: #c5cdef;
+    background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); padding: 7px 12px;
+    transition: background 500ms var(--ease), color 500ms var(--ease), transform 400ms var(--ease);
   }
-  .copy:hover { color: var(--ink); background: rgba(255, 255, 255, 0.08); }
+  .copy:hover { background: rgba(255, 255, 255, 0.1); color: #fff; }
   .copy:active { transform: scale(0.96); }
-  .copy.done { color: var(--accent); border-color: rgba(0, 242, 234, 0.3); }
+  .copy.done { color: var(--teal); border-color: rgba(112, 195, 184, 0.45); }
 
-  .tabs { display: inline-flex; gap: 4px; margin-top: 20px; padding: 4px; border-radius: 999px; background: rgba(255, 255, 255, 0.03); border: 1px solid var(--hair); }
-  .tab { font: 500 14px var(--sans); color: var(--muted); background: transparent; border: 0; padding: 8px 16px; border-radius: 999px; cursor: pointer; transition: color 500ms var(--ease), background 500ms var(--ease); }
-  .tab[aria-selected="true"] { color: var(--accent-ink); background: var(--accent); }
-  .tab:focus-visible, .copy:focus-visible, .btn:focus-visible, .ghost:focus-visible, .nav a:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+  .tabs { display: inline-flex; margin-top: 24px; border: 1px solid var(--line); background: var(--soft); }
+  .tab { font: 500 14px var(--sans); color: var(--text); background: transparent; border: 0; padding: 10px 18px; cursor: pointer; transition: color 500ms var(--ease), background 500ms var(--ease); }
+  .tab + .tab { border-left: 1px solid var(--line); }
+  .tab[aria-selected="true"] { color: #fff; background: var(--navy); }
   [role="tabpanel"][hidden] { display: none; }
 
-  .field { margin-top: 22px; }
-  .field label { display: block; font-size: 12px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--faint); margin-bottom: 10px; }
-  .field .shell { border-radius: 18px; padding: 4px; max-width: 560px; }
-  .field input {
-    width: 100%; font: 400 15px var(--mono); color: var(--ink); background: var(--code-bg);
-    border: 1px solid transparent; border-radius: 14px; padding: 14px 16px; outline: none;
-    transition: border-color 500ms var(--ease);
-  }
-  .field input:focus { border-color: rgba(0, 242, 234, 0.45); }
-  .field .hint { font-size: 13.5px; color: var(--faint); margin-top: 8px; }
-  .field .hint.bad { color: #fb7185; }
+  .field { margin-top: 26px; max-width: 560px; }
+  .field label { display: block; font-size: 11px; font-weight: 600; letter-spacing: 0.2em; text-transform: uppercase; color: var(--navy); margin-bottom: 10px; }
+  .field input { width: 100%; font: 400 15.5px var(--mono); color: var(--deep); background: #fff; border: 1px solid var(--line); padding: 15px 16px; outline: none; transition: border-color 500ms var(--ease), box-shadow 500ms var(--ease); }
+  .field input:focus { border-color: var(--blue); box-shadow: 0 0 0 4px rgba(71, 94, 168, 0.12); }
+  .field .hint { font-size: 13.5px; margin-top: 8px; }
+  .field .hint.bad { color: #9c2435; }
 
-  .checklist { list-style: none; padding: 0; margin: 20px 0 0; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-  .checklist li { display: flex; gap: 12px; align-items: flex-start; padding: 16px 18px; border-radius: 16px; background: rgba(255, 255, 255, 0.025); border: 1px solid var(--hair); color: var(--muted); font-size: 15px; }
-  .checklist b { color: var(--ink); font-weight: 500; display: block; }
-  .checklist svg { color: var(--accent); flex: none; margin-top: 3px; }
+  .checks { list-style: none; padding: 0; margin: 24px 0 0; display: grid; grid-template-columns: 1fr 1fr; border-top: 1px solid var(--line); border-left: 1px solid var(--line); }
+  .checks li { display: flex; gap: 14px; padding: 20px; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); font-size: 15px; }
+  .checks b { display: block; color: var(--navy); font-weight: 600; }
+  .checks svg { flex: none; color: var(--teal); margin-top: 3px; }
 
-  /* Upgrade and guides */
-  .split { display: grid; grid-template-columns: 0.9fr 1.1fr; gap: 64px; align-items: start; }
-  .guides { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-  .guide { padding: 22px; border-radius: 20px; background: rgba(255, 255, 255, 0.025); border: 1px solid var(--hair); }
-  .guide .mono { font-size: 13px; color: var(--accent); }
-  .guide h3 { font-size: 18px; margin-top: 10px; letter-spacing: -0.01em; }
-  .guide p { color: var(--muted); font-size: 14.5px; margin: 6px 0 0; }
+  /* Upgrade band */
+  .upgrade { background: var(--navy); color: #c9d2f2; overflow: hidden; }
+  .upgrade::after { content: ""; position: absolute; width: 760px; height: 760px; right: -260px; top: -300px; border-radius: 50%; border: 1px solid rgba(255, 255, 255, 0.08); box-shadow: 0 0 0 120px rgba(255, 255, 255, 0.025), 0 0 0 240px rgba(255, 255, 255, 0.02); pointer-events: none; }
+  .upgrade .cols { display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); gap: 80px; align-items: center; position: relative; z-index: 1; }
+  .upgrade h2 { color: #fff; margin-top: 22px; }
+  .upgrade h2 .lt { color: #a9b7ea; }
+  .upgrade p { margin-top: 18px; }
+  .upgrade .term { margin-top: 0; border-color: rgba(255, 255, 255, 0.12); box-shadow: 0 40px 80px -40px rgba(0, 0, 0, 0.6); }
+  .bul { list-style: none; padding: 0; margin: 28px 0 0; display: grid; gap: 12px; }
+  .bul li { display: flex; gap: 12px; align-items: baseline; color: #e8ecfb; }
+  .bul li::before { content: ""; width: 7px; height: 7px; background: var(--teal); flex: none; transform: translateY(-2px); }
 
-  footer { padding: 48px 0 64px; border-top: 1px solid var(--hair); color: var(--faint); font-size: 14px; }
-  footer .wrap { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+  /* Documentation */
+  .docs { display: grid; grid-template-columns: repeat(4, 1fr); border-top: 1px solid var(--line); border-left: 1px solid var(--line); }
+  .doc { padding: 30px 28px 34px; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); transition: background 700ms var(--ease); }
+  .doc:hover { background: var(--soft); }
+  .doc .f { font: 500 12.5px var(--mono); color: var(--blue); }
+  .doc h3 { font-size: 19px; font-weight: 500; margin-top: 30px; letter-spacing: -0.01em; }
+  .doc p { font-size: 15px; margin-top: 8px; }
+  .docs-note { margin-top: 22px; font-size: 14.5px; }
 
-  /* Entry animation (only when scripts run; content stays visible otherwise) */
-  .js .reveal { opacity: 0; transform: translateY(28px); filter: blur(8px); transition: opacity 1000ms var(--ease), transform 1000ms var(--ease), filter 1000ms var(--ease); }
+  /* Closing call to action */
+  .closing { padding: 0 0 140px; }
+  .closing .box { position: relative; overflow: hidden; background: linear-gradient(120deg, var(--navy) 0%, var(--blue) 62%, #4f86ad 100%); padding: 72px 64px; display: grid; grid-template-columns: 1fr auto; gap: 40px; align-items: center; }
+  .closing .box::before { content: ""; position: absolute; right: 18%; top: -120px; width: 380px; height: 380px; border-radius: 50%; border: 1px solid rgba(255, 255, 255, 0.14); box-shadow: 0 0 0 70px rgba(255, 255, 255, 0.03); }
+  .closing h2 { color: #fff; position: relative; }
+  .closing h2 .lt { color: #c6e9e3; }
+  .closing p { color: #dbe2f5; margin-top: 14px; position: relative; }
+  .closing .act { position: relative; display: grid; gap: 14px; justify-items: start; }
+  .closing .act a.sum { color: #dbe2f5; font-size: 14px; text-decoration: none; border-bottom: 1px solid rgba(255, 255, 255, 0.3); }
+
+  footer { background: var(--deep); color: #8f9bc8; padding: 80px 0 40px; font-size: 14.5px; }
+  footer .cols { display: grid; grid-template-columns: 1.4fr 0.8fr 0.8fr; gap: 40px; }
+  footer img { height: 34px; width: auto; filter: brightness(0) invert(1); }
+  footer .about { margin-top: 20px; max-width: 36ch; }
+  footer h4 { margin: 0 0 16px; font-size: 11px; font-weight: 600; letter-spacing: 0.22em; text-transform: uppercase; color: var(--teal); }
+  footer ul { list-style: none; padding: 0; margin: 0; display: grid; gap: 10px; }
+  footer a { text-decoration: none; color: #c9d2f2; }
+  footer a:hover { color: #fff; }
+  footer .legal { margin-top: 64px; padding-top: 24px; border-top: 1px solid rgba(255, 255, 255, 0.1); display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12px; font-size: 13px; }
+
+  /* Entry motion (only when scripts run: content stays visible otherwise) */
+  .js .reveal { opacity: 0; transform: translateY(32px); filter: blur(8px); transition: opacity 1100ms var(--ease), transform 1100ms var(--ease), filter 1100ms var(--ease); }
   .js .reveal.in { opacity: 1; transform: none; filter: none; }
-  .js .reveal.d1 { transition-delay: 120ms; } .js .reveal.d2 { transition-delay: 240ms; } .js .reveal.d3 { transition-delay: 360ms; }
+  .js .d1 { transition-delay: 110ms; } .js .d2 { transition-delay: 220ms; } .js .d3 { transition-delay: 330ms; } .js .d4 { transition-delay: 440ms; }
   @media (prefers-reduced-motion: reduce) {
     html { scroll-behavior: auto; }
     .js .reveal { opacity: 1; transform: none; filter: none; transition: none; }
+    .orbit .spin, .orbit .pulse { animation: none; }
   }
 
+  @media (max-width: 1080px) {
+    .release { grid-template-columns: 1fr 1fr 1fr; }
+    .release .file, .release .sha { grid-column: 1 / -1; border-right: 0; }
+    .release > div { border-bottom: 1px solid var(--line); }
+    .docs { grid-template-columns: 1fr 1fr; }
+  }
   @media (max-width: 900px) {
-    .hero { padding: 140px 0 72px; }
-    .hero .grid, .split { grid-template-columns: 1fr; gap: 48px; }
-    .bento { grid-template-columns: 1fr; }
-    .span-7, .span-5, .span-4 { grid-column: span 1; }
-    section { padding: 72px 0; }
-    .nav a.link { display: none; }
-    .checklist, .guides { grid-template-columns: 1fr; }
+    .menu { display: none; }
+    .top .wrap { justify-content: space-between; }
+    .hero .grid, .head, .install .cols, .upgrade .cols, .closing .box, footer .cols { grid-template-columns: 1fr; }
+    .hero .grid { min-height: 0; gap: 56px; }
+    .orbit { justify-self: center; max-width: 420px; }
+    .rail { position: static; }
+    .rail ol { display: none; }
+    .cells { grid-template-columns: 1fr 1fr; }
+    .points { grid-template-columns: 1fr; }
+    .points div + div { padding-left: 0; border-left: 0; border-top: 1px solid rgba(255, 255, 255, 0.12); }
+    .points div { padding-bottom: 28px; }
+    section { padding: 88px 0; }
+    .closing { padding-bottom: 88px; }
   }
   @media (max-width: 640px) {
     .wrap { width: calc(100% - 32px); }
-    .step .core { grid-template-columns: 1fr; padding: 24px; }
-    .core { padding: 24px; }
-    .row { grid-template-columns: 1fr; gap: 4px; }
-    .code pre { padding: 56px 18px 18px; font-size: 13px; }
-    .release-foot { flex-direction: column; align-items: flex-start; }
+    .brand img { height: 24px; }
+    .brand .sep, .brand .prodname { display: none; }
+    .top .btn.small .lbl { display: none; }
+    .hero { padding-top: 40px; }
+    .cells, .docs, .checks { grid-template-columns: 1fr; }
+    .release { grid-template-columns: 1fr; }
+    .release > div { border-right: 0; }
+    .step { padding: 30px 22px; }
+    .step .n { top: 30px; right: 22px; }
+    .closing .box { padding: 48px 26px; }
+    .term pre { font-size: 13px; }
   }
 </style>
 </head>
 <body>
 
-<nav class="nav" aria-label="Main">
-  <a class="wordmark" href="#top"><i></i>Nightshift</a>
-  <a class="link" href="#requirements">Requirements</a>
-  <a class="link" href="#install">Install</a>
-  <a class="link" href="#upgrade">Upgrade</a>
-  <a class="mini" href="{{DOWNLOAD_BASE}}nightshift-{{VERSION}}.tar.gz" download>Download</a>
-</nav>
-
-<header class="hero" id="top">
-  <div class="wrap grid">
-    <div>
-      <span class="eyebrow reveal">Linux server &middot; Version {{VERSION}}</span>
-      <h1 class="reveal d1">Install Nightshift on <em>your own</em> server.</h1>
-      <p class="lede reveal d2">Nightshift runs in your environment, next to your SIEM. One package, one command: the installer sets everything up and hands you the address to open. Analysts only need a browser.</p>
-      <div class="cta-row reveal d3">
-        <a class="btn" href="{{DOWNLOAD_BASE}}nightshift-{{VERSION}}.tar.gz" download>
-          Download {{VERSION}}
-          <span class="orb" aria-hidden="true">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v13"/><path d="m6 11 6 6 6-6"/><path d="M5 20h14"/></svg>
-          </span>
-        </a>
-        <a class="ghost" href="#install">Installation steps
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14"/><path d="m19 12-7 7-7-7"/></svg>
-        </a>
-      </div>
-      <div class="facts reveal d3">
-        <span>{{SIZE}}</span><span>Released {{DATE}}</span><span>Checksum-verified</span>
-      </div>
-    </div>
-
-    <div class="shell release reveal d2">
-      <div class="core">
-        <div class="release-head">
-          <div class="file-icon" aria-hidden="true">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8 12 3 3 8v8l9 5 9-5Z"/><path d="m3 8 9 5 9-5"/><path d="M12 13v8"/></svg>
-          </div>
-          <div>
-            <div class="name">nightshift-{{VERSION}}.tar.gz</div>
-            <div class="kind" data-kind-full>Full package: everything included, installs without internet access.</div>
-            <div class="kind" data-kind-small hidden>Small package: the application is downloaded during installation with your account.</div>
-          </div>
-        </div>
-        <dl class="rows">
-          <div class="row"><dt>Version</dt><dd>{{VERSION}}</dd></div>
-          <div class="row"><dt>Size</dt><dd>{{SIZE}}</dd></div>
-          <div class="row"><dt>Released</dt><dd>{{DATE}}</dd></div>
-          <div class="row"><dt>SHA-256</dt><dd class="hash">{{SHA256}}</dd></div>
-        </dl>
-        <div class="release-foot">
-          <span>Platform: Linux x86-64 with Docker</span>
-          <a href="{{DOWNLOAD_BASE}}nightshift-{{VERSION}}.tar.gz.sha256" download>Checksum file</a>
-        </div>
-      </div>
-    </div>
+<header class="top" id="top-bar">
+  <div class="wrap">
+    <a class="brand" href="#top" aria-label="Nightshift by BlueSec">
+      <img src="bluesec-logo.svg" alt="BlueSec" width="78" height="30">
+      <span class="sep"></span>
+      <span class="prodname">Nightshift</span>
+    </a>
+    <nav class="menu" aria-label="Sections">
+      <a href="#product">Product</a>
+      <a href="#requirements">Requirements</a>
+      <a href="#install">Install</a>
+      <a href="#upgrade">Upgrade</a>
+    </nav>
+    <a class="btn small" href="{{DOWNLOAD_BASE}}nightshift-{{VERSION}}.tar.gz" download><span class="lbl">Download {{VERSION}}</span>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v12"/><path d="m6 11 6 6 6-6"/><path d="M5 21h14"/></svg>
+    </a>
   </div>
 </header>
 
-<section id="requirements">
-  <div class="wrap">
-    <div class="section-head reveal">
-      <span class="eyebrow">Before you start</span>
-      <h2>What the server needs</h2>
-      <p class="lede">A single Linux machine, physical or virtual, in your network. Nothing is installed on analysts' computers.</p>
-    </div>
-    <div class="bento">
-      <div class="shell span-7 reveal">
-        <div class="core">
-          <svg class="icon-line" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.15" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></svg>
-          <h3>Operating system</h3>
-          <p>Any recent 64-bit Linux distribution supported by Docker.</p>
-          <div class="chips"><span class="chip">Ubuntu 22.04 / 24.04</span><span class="chip">Debian 12</span><span class="chip">RHEL 9</span><span class="chip">Rocky Linux 9</span><span class="chip">AlmaLinux 9</span></div>
+<main id="top">
+  <div class="hero">
+    <div class="wrap">
+      <div class="grid">
+        <div>
+          <span class="eyebrow reveal">Nightshift {{VERSION}} &middot; Linux server</span>
+          <h1 class="reveal d1"><span class="b">Install.</span><span class="l">Connect.</span><span class="l2">Triage.</span></h1>
+          <p class="intro reveal d2"><strong>Nightshift, the AI analyst that never clocks out,</strong> runs on your own Linux server next to your SIEM. One package, one command, and your analysts only need a browser.</p>
+          <div class="ctas reveal d3">
+            <a class="btn" id="download" href="{{DOWNLOAD_BASE}}nightshift-{{VERSION}}.tar.gz" download>Download Nightshift {{VERSION}}
+              <span class="ico" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v12"/><path d="m6 11 6 6 6-6"/><path d="M5 21h14"/></svg></span>
+            </a>
+            <a class="link" href="#install">Installation steps
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7"/><path d="M8 7h9v9"/></svg>
+            </a>
+          </div>
+          <div class="places reveal d4">Ubuntu &middot; Debian &middot; RHEL &middot; Rocky &middot; Alma</div>
+        </div>
+
+        <div class="orbit reveal d2" aria-hidden="true">
+          <svg viewBox="0 0 560 560">
+            <defs>
+              <linearGradient id="ring" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#70c3b8"/><stop offset="1" stop-color="#475ea8"/></linearGradient>
+            </defs>
+            <line x1="20" y1="150" x2="540" y2="410" stroke="#dbe2f5"/>
+            <line x1="60" y1="470" x2="500" y2="90" stroke="#dbe2f5"/>
+            <circle cx="280" cy="280" r="258" fill="none" stroke="#dbe2f5"/>
+            <circle cx="280" cy="280" r="190" fill="none" stroke="#cbd4ed"/>
+            <circle cx="280" cy="280" r="112" fill="#fff" stroke="url(#ring)" stroke-width="1.4"/>
+            <g class="spin">
+              <circle cx="280" cy="22" r="14" fill="#eef8f6"/><circle cx="280" cy="22" r="5.5" fill="#70c3b8" class="pulse"/>
+              <circle cx="503" cy="409" r="11" fill="#eef8f6"/><circle cx="503" cy="409" r="4.5" fill="#70c3b8"/>
+            </g>
+            <g class="spin rev">
+              <circle cx="90" cy="280" r="12" fill="#eef8f6"/><circle cx="90" cy="280" r="5" fill="#475ea8" class="pulse"/>
+              <circle cx="414" cy="146" r="9" fill="#eef8f6"/><circle cx="414" cy="146" r="3.8" fill="#70c3b8"/>
+            </g>
+          </svg>
+          <div class="center"><div>Detect.<br>Investigate.<br>Decide.<small>AI TRIAGE</small></div></div>
+          <div class="coord">24/7 &middot; ON-PREMISES</div>
         </div>
       </div>
-      <div class="shell span-5 reveal d1">
-        <div class="core">
-          <svg class="icon-line" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.15" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6" y="6" width="12" height="12" rx="2"/><path d="M9 2v4M15 2v4M9 18v4M15 18v4M2 9h4M2 15h4M18 9h4M18 15h4"/></svg>
+
+      <dl class="release reveal">
+        <div class="file"><dt>Package</dt><dd>nightshift-{{VERSION}}.tar.gz
+          <div class="kind" data-kind-full>Full package: everything included, installs without internet access.</div>
+          <div class="kind" data-kind-small hidden>Small package: the application downloads during installation with your account.</div></dd></div>
+        <div><dt>Version</dt><dd>{{VERSION}}</dd></div>
+        <div><dt>Size</dt><dd>{{SIZE}}</dd></div>
+        <div><dt>Released</dt><dd>{{DATE}}</dd></div>
+        <div class="sha"><dt>SHA-256</dt><dd class="hash">{{SHA256}}<br>
+          <a href="{{DOWNLOAD_BASE}}nightshift-{{VERSION}}.tar.gz.sha256" download>Checksum file
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v12"/><path d="m6 11 6 6 6-6"/></svg></a></dd></div>
+      </dl>
+    </div>
+  </div>
+
+  <section class="product on-dark" id="product">
+    <div class="wrap">
+      <div class="head">
+        <span class="eyebrow reveal">The product</span>
+        <div class="reveal d1">
+          <h2>What your analysts <span class="lt">open every morning.</span></h2>
+          <p>Every alert from your SIEM, already investigated: indicators checked against threat intelligence, a clear verdict with its evidence, and real threats escalated to your case-management system.</p>
+        </div>
+      </div>
+      <div class="frame reveal">
+        <div class="window">
+          <div class="bar"><i></i><i></i><i></i><span>https://soc.your-company.local</span></div>
+          <img src="preview.png" alt="Nightshift live alert dashboard with an investigation open" width="1440" height="900" loading="lazy">
+        </div>
+      </div>
+      <div class="points">
+        <div class="reveal"><div class="n">01</div><h3>Instant triage</h3><p>Every alert analyzed within seconds of arriving, nights and weekends included.</p></div>
+        <div class="reveal d1"><div class="n">02</div><h3>Clear verdicts</h3><p>Malicious, suspicious or false positive, with confidence, evidence and MITRE ATT&amp;CK mapping.</p></div>
+        <div class="reveal d2"><div class="n">03</div><h3>Your infrastructure</h3><p>Runs on your server. Use a local AI model and no alert data leaves your network.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="requirements">
+    <div class="wrap">
+      <div class="head">
+        <span class="eyebrow reveal">Before you start</span>
+        <div class="reveal d1">
+          <h2>One Linux server. <span class="lt">Nothing on analysts' computers.</span></h2>
+          <p>Physical or virtual, in your data center or your cloud. Here is what it needs.</p>
+        </div>
+      </div>
+      <div class="cells">
+        <div class="cell reveal">
+          <div class="n">01</div>
+          <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.15" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="12" rx="1.5"/><path d="M8 20h8M12 16v4"/></svg>
+          <h3>Operating system</h3>
+          <p>A recent 64-bit Linux distribution.</p>
+          <div class="chips"><span class="chip">Ubuntu 22.04 / 24.04</span><span class="chip">Debian 12</span><span class="chip">RHEL 9</span><span class="chip">Rocky 9</span><span class="chip">Alma 9</span></div>
+        </div>
+        <div class="cell reveal d1">
+          <div class="n">02</div>
+          <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.15" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6" y="6" width="12" height="12" rx="1.5"/><path d="M9 2v4M15 2v4M9 18v4M15 18v4M2 9h4M2 15h4M18 9h4M18 15h4"/></svg>
           <h3>Hardware</h3>
           <table class="spec">
             <tr><th></th><th>Minimum</th><th>Recommended</th></tr>
@@ -348,135 +436,181 @@
             <tr><td>Disk</td><td>40 GB</td><td>100 GB</td></tr>
           </table>
         </div>
-      </div>
-      <div class="shell span-4 reveal">
-        <div class="core">
-          <svg class="icon-line" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.15" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12h4l2-6 4 12 2-6h6"/></svg>
+        <div class="cell reveal d2">
+          <div class="n">03</div>
+          <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.15" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 8 12 3 3 8v8l9 5 9-5Z"/><path d="m3 8 9 5 9-5"/><path d="M12 13v8"/></svg>
           <h3>Docker</h3>
-          <p>Docker Engine 24 or later with the Compose plugin. Step 1 below shows how to install it.</p>
+          <p>Docker Engine 24 or later with the Compose plugin. Step 01 below installs it.</p>
         </div>
-      </div>
-      <div class="shell span-4 reveal d1">
-        <div class="core">
-          <svg class="icon-line" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.15" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg>
+        <div class="cell reveal">
+          <div class="n">04</div>
+          <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.15" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg>
           <h3>Network</h3>
-          <p>Inbound HTTPS (443) from analysts and your SIEM. Outbound HTTPS only for the cloud AI and threat-intelligence services you choose.</p>
+          <p>Inbound HTTPS (443) from analysts and your SIEM. Outbound HTTPS only for the cloud services you choose.</p>
         </div>
-      </div>
-      <div class="shell span-4 reveal d2">
-        <div class="core">
-          <svg class="icon-line" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.15" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+        <div class="cell reveal d1">
+          <div class="n">05</div>
+          <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.15" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="1.5"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
           <h3>Access</h3>
-          <p>An account with <code>sudo</code> rights on the server, and an address (DNS name or fixed IP) your users will open.</p>
+          <p>An account with <code>sudo</code> rights, and a fixed address for the server: a DNS name or an IP.</p>
+        </div>
+        <div class="cell reveal d2">
+          <div class="n">06</div>
+          <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.15" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="14" rx="1.5"/><path d="M3 8h18M7 6h.01M10 6h.01"/></svg>
+          <h3>Analysts</h3>
+          <p>A modern browser. Nothing to install, from any computer on your network.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="install" id="install">
+    <div class="wrap cols">
+      <div class="rail">
+        <span class="eyebrow reveal">Installation</span>
+        <h2 class="reveal d1">Up and running <span class="lt">in four steps.</span></h2>
+        <p class="reveal d2">Run these commands on the server. Most installations take about ten minutes from start to first sign-in.</p>
+        <ol class="reveal d3">
+          <li><a href="#step-1"><span>01</span>Install Docker</a></li>
+          <li><a href="#step-2"><span>02</span>Download and verify</a></li>
+          <li><a href="#step-3"><span>03</span>Run the installer</a></li>
+          <li><a href="#step-4"><span>04</span>Sign in and connect</a></li>
+        </ol>
+      </div>
+
+      <div class="steps">
+        <article class="step reveal" id="step-1">
+          <div class="n">01</div>
+          <h3>Install Docker</h3>
+          <p>Skip this step if <code>docker compose version</code> already works on the server.</p>
+          <div class="tabs" role="tablist" aria-label="Linux distribution">
+            <button class="tab" role="tab" aria-selected="true" aria-controls="docker-deb" id="tab-deb">Ubuntu / Debian</button>
+            <button class="tab" role="tab" aria-selected="false" aria-controls="docker-rhel" id="tab-rhel" tabindex="-1">RHEL / Rocky / Alma</button>
+          </div>
+          <div role="tabpanel" id="docker-deb" aria-labelledby="tab-deb">
+            <div class="term"><div class="bar"><span>Terminal</span></div><pre data-cmd="docker-deb"></pre></div>
+          </div>
+          <div role="tabpanel" id="docker-rhel" aria-labelledby="tab-rhel" hidden>
+            <div class="term"><div class="bar"><span>Terminal</span></div><pre data-cmd="docker-rhel"></pre></div>
+            <p class="note">On Rocky Linux and AlmaLinux, use <code>https://download.docker.com/linux/centos/docker-ce.repo</code> as the repository.</p>
+          </div>
+        </article>
+
+        <article class="step reveal" id="step-2">
+          <div class="n">02</div>
+          <h3>Download and verify the package</h3>
+          <p>The checksum proves the package arrived complete and unmodified.</p>
+          <div class="term"><div class="bar"><span>Terminal</span></div><pre data-cmd="download"></pre></div>
+          <p class="note"><strong>Server without internet access?</strong> Download both files on any computer with the buttons above, then copy them to the server, for example with <code>scp</code> or a USB drive.</p>
+        </article>
+
+        <article class="step reveal" id="step-3">
+          <div class="n">03</div>
+          <h3>Run the installer</h3>
+          <p>Enter the address your analysts will open: a DNS name or the server's IP. It must stay the same afterwards.</p>
+          <div class="field">
+            <label for="address">Nightshift address</label>
+            <input id="address" type="text" value="https://soc.example.local" spellcheck="false" autocomplete="off">
+            <div class="hint" id="address-hint">The command below updates as you type.</div>
+          </div>
+          <div class="term"><div class="bar"><span>Terminal</span></div><pre data-cmd="install"></pre></div>
+          <p class="note">The installer checks the server, loads the application, generates unique passwords and a certificate, and creates the first administrator. At the end it prints the <strong>temporary administrator password</strong> and the <strong>SIEM connection token</strong>. They are shown only once, so note them.</p>
+        </article>
+
+        <article class="step reveal" id="step-4">
+          <div class="n">04</div>
+          <h3>Sign in and connect your tools</h3>
+          <p>Open the address in a browser and sign in as <code>admin</code> with the temporary password. You choose your own password right away. Then, from the menu:</p>
+          <ul class="checks">
+            <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12 5 5 9-10"/></svg><span><b>Integrations</b>Connect your SIEM and case management, with a built-in guide.</span></li>
+            <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12 5 5 9-10"/></svg><span><b>LLM Settings</b>Choose your AI provider, or a model on your own hardware.</span></li>
+            <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12 5 5 9-10"/></svg><span><b>CTI Configuration</b>Add the keys of the threat-intelligence services you use.</span></li>
+            <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12 5 5 9-10"/></svg><span><b>Users Management</b>Create accounts for your SOC managers and analysts.</span></li>
+          </ul>
+          <p class="note">With the certificate the installer generates, browsers show a warning until you install your own certificate (see the installation guide).</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="upgrade on-dark" id="upgrade">
+    <div class="wrap cols">
+      <div>
+        <span class="eyebrow reveal">Upgrading</span>
+        <h2 class="reveal d1">New version? <span class="lt">One command.</span></h2>
+        <p class="reveal d2">Download the new package as in step 02, then run the upgrade from it.</p>
+        <ul class="bul reveal d3">
+          <li>A backup is taken before anything changes.</li>
+          <li>If the new version does not start correctly, the previous one is restored automatically.</li>
+          <li>Settings, accounts and alert history are kept.</li>
+        </ul>
+      </div>
+      <div class="term reveal d2"><div class="bar"><span>Terminal</span></div><pre data-cmd="upgrade"></pre></div>
+    </div>
+  </section>
+
+  <section id="docs">
+    <div class="wrap">
+      <div class="head">
+        <span class="eyebrow reveal">Documentation</span>
+        <div class="reveal d1">
+          <h2>Everything else <span class="lt">ships with the package.</span></h2>
+        </div>
+      </div>
+      <div class="docs">
+        <div class="doc reveal"><div class="f">docs/INSTALL.md</div><h3>Installation</h3><p>Options, your own certificate, reverse proxies and troubleshooting.</p></div>
+        <div class="doc reveal d1"><div class="f">docs/ADMIN.md</div><h3>Administration</h3><p>Everyday commands, users and roles, backups.</p></div>
+        <div class="doc reveal d2"><div class="f">docs/UPGRADE.md</div><h3>Upgrades and restores</h3><p>Upgrading, restoring a backup, moving to a new server.</p></div>
+        <div class="doc reveal d3"><div class="f">docs/DATA-FLOWS.md</div><h3>Data flows and security</h3><p>What is sent where, and how it is protected.</p></div>
+      </div>
+      <p class="docs-note reveal">The guides are in the <code>docs</code> folder of the package.</p>
+    </div>
+  </section>
+
+  <div class="closing">
+    <div class="wrap">
+      <div class="box reveal">
+        <div>
+          <h2>Ready when <span class="lt">your next alert is.</span></h2>
+          <p>Nightshift {{VERSION}} &middot; {{SIZE}} &middot; Linux x86-64</p>
+        </div>
+        <div class="act">
+          <a class="btn light" href="{{DOWNLOAD_BASE}}nightshift-{{VERSION}}.tar.gz" download>Download Nightshift {{VERSION}}
+            <span class="ico" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v12"/><path d="m6 11 6 6 6-6"/><path d="M5 21h14"/></svg></span>
+          </a>
+          <a class="sum" href="{{DOWNLOAD_BASE}}nightshift-{{VERSION}}.tar.gz.sha256" download>SHA-256 checksum file</a>
         </div>
       </div>
     </div>
   </div>
-</section>
-
-<section id="install">
-  <div class="wrap">
-    <div class="section-head reveal">
-      <span class="eyebrow">Installation</span>
-      <h2>Up and running in four steps</h2>
-      <p class="lede">Run these commands on the server. Most installations take about ten minutes from start to first sign-in.</p>
-    </div>
-
-    <div class="steps">
-      <div class="shell step reveal">
-        <div class="core">
-          <div class="num">01</div>
-          <div class="body">
-            <h3>Install Docker</h3>
-            <p>Skip this step if <code>docker compose version</code> already works on the server.</p>
-            <div class="tabs" role="tablist" aria-label="Linux distribution">
-              <button class="tab" role="tab" aria-selected="true" aria-controls="docker-deb" id="tab-deb">Ubuntu / Debian</button>
-              <button class="tab" role="tab" aria-selected="false" aria-controls="docker-rhel" id="tab-rhel" tabindex="-1">RHEL / Rocky / Alma</button>
-            </div>
-            <div role="tabpanel" id="docker-deb" aria-labelledby="tab-deb">
-              <div class="code"><pre data-cmd="docker-deb"></pre></div>
-            </div>
-            <div role="tabpanel" id="docker-rhel" aria-labelledby="tab-rhel" hidden>
-              <div class="code"><pre data-cmd="docker-rhel"></pre></div>
-              <p class="note">On Rocky Linux and AlmaLinux, use <code>https://download.docker.com/linux/centos/docker-ce.repo</code> as the repository.</p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="shell step reveal">
-        <div class="core">
-          <div class="num">02</div>
-          <div class="body">
-            <h3>Download and verify the package</h3>
-            <p>The checksum proves the package arrived complete and unmodified.</p>
-            <div class="code"><pre data-cmd="download"></pre></div>
-            <p class="note"><strong>Server without internet access?</strong> Download both files on any computer with the buttons above, then copy them to the server (for example with <code>scp</code> or a USB drive).</p>
-          </div>
-        </div>
-      </div>
-
-      <div class="shell step reveal">
-        <div class="core">
-          <div class="num">03</div>
-          <div class="body">
-            <h3>Run the installer</h3>
-            <p>Enter the address your analysts will open. It can be a DNS name or the server's IP address, and must stay the same afterwards.</p>
-            <div class="field">
-              <label for="address">Nightshift address</label>
-              <div class="shell"><input id="address" type="text" value="https://soc.example.local" spellcheck="false" autocomplete="off"></div>
-              <div class="hint" id="address-hint">The command below updates as you type.</div>
-            </div>
-            <div class="code"><pre data-cmd="install"></pre></div>
-            <p class="note">The installer checks the server, loads the application, generates unique passwords and a certificate, and creates the first administrator. At the end it prints the <strong>temporary administrator password</strong> and the <strong>SIEM connection token</strong>. They are shown only once, so note them.</p>
-          </div>
-        </div>
-      </div>
-
-      <div class="shell step reveal">
-        <div class="core">
-          <div class="num">04</div>
-          <div class="body">
-            <h3>Sign in and connect your tools</h3>
-            <p>Open the address in a browser and sign in as <code>admin</code> with the temporary password. You will choose your own password right away. Then, from the menu:</p>
-            <ul class="checklist">
-              <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12 5 5 9-10"/></svg><span><b>Integrations</b>Connect your SIEM and case-management system, with a built-in guide.</span></li>
-              <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12 5 5 9-10"/></svg><span><b>LLM Settings</b>Choose your AI provider, or a model running on your own hardware.</span></li>
-              <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12 5 5 9-10"/></svg><span><b>CTI Configuration</b>Add the keys of the threat-intelligence services you use.</span></li>
-              <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12 5 5 9-10"/></svg><span><b>Users Management</b>Create accounts for your SOC managers and analysts.</span></li>
-            </ul>
-            <p class="note">With the certificate generated by the installer, browsers show a warning until you install your own certificate (see the installation guide).</p>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<section id="upgrade">
-  <div class="wrap split">
-    <div class="reveal">
-      <span class="eyebrow">Upgrading</span>
-      <h2>New version? One command.</h2>
-      <p class="lede">Download the new package as in step 2, then run the upgrade from it. A backup is taken first, and if the new version does not start correctly, the previous one is restored automatically.</p>
-      <div class="code"><pre data-cmd="upgrade"></pre></div>
-    </div>
-    <div class="reveal d1">
-      <div class="guides">
-        <div class="guide"><div class="mono">docs/INSTALL.md</div><h3>Installation</h3><p>Options, your own certificate, reverse proxies, troubleshooting.</p></div>
-        <div class="guide"><div class="mono">docs/ADMIN.md</div><h3>Administration</h3><p>Everyday commands, users and roles, backups.</p></div>
-        <div class="guide"><div class="mono">docs/UPGRADE.md</div><h3>Upgrades and restores</h3><p>Upgrading, restoring a backup, moving to a new server.</p></div>
-        <div class="guide"><div class="mono">docs/DATA-FLOWS.md</div><h3>Data flows and security</h3><p>What is sent where, and how it is protected.</p></div>
-      </div>
-      <p class="note">These guides are included in the package, in the <code>docs</code> folder.</p>
-    </div>
-  </div>
-</section>
+</main>
 
 <footer>
   <div class="wrap">
-    <span>Nightshift {{VERSION}}</span>
-    <span>&copy; 2026 BlueSec. All rights reserved.</span>
+    <div class="cols">
+      <div>
+        <img src="bluesec-logo.svg" alt="BlueSec" width="88" height="34">
+        <p class="about">Nightshift, the AI analyst that never clocks out, is developed by BlueSec.</p>
+      </div>
+      <div>
+        <h4>Download</h4>
+        <ul>
+          <li><a href="#product">Product</a></li>
+          <li><a href="#requirements">Requirements</a></li>
+          <li><a href="#install">Installation</a></li>
+          <li><a href="#upgrade">Upgrading</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>This release</h4>
+        <ul>
+          <li>Version {{VERSION}}</li>
+          <li>Released {{DATE}}</li>
+          <li><a href="{{DOWNLOAD_BASE}}nightshift-{{VERSION}}.tar.gz.sha256" download>Checksum file</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="legal"><span>&copy; 2026 BlueSec. All rights reserved.</span><span>Nightshift {{VERSION}}</span></div>
   </div>
 </footer>
 
@@ -571,9 +705,8 @@
     });
   }
 
-  var copyIcon = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h9"/></svg>';
-  var pres = document.querySelectorAll('pre[data-cmd]');
-  pres.forEach(function (pre) {
+  var copyIcon = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="1.5"/><path d="M5 15V6a2 2 0 0 1 2-2h9"/></svg>';
+  document.querySelectorAll('pre[data-cmd]').forEach(function (pre) {
     render(pre);
     var btn = document.createElement('button');
     btn.className = 'copy'; btn.type = 'button';
@@ -586,7 +719,7 @@
         setTimeout(function () { btn.classList.remove('done'); btn.lastChild.textContent = 'Copy'; }, 1800);
       }, function () { btn.lastChild.textContent = 'Select and copy'; });
     });
-    pre.parentNode.appendChild(btn);
+    pre.parentNode.querySelector('.bar').appendChild(btn);
   });
 
   var input = document.getElementById('address');
@@ -616,15 +749,31 @@
     });
   });
 
-  // Entry animations
-  var items = document.querySelectorAll('.reveal');
   if ('IntersectionObserver' in window) {
+    // Entry animations
     var io = new IntersectionObserver(function (entries) {
       entries.forEach(function (e) { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
     }, { rootMargin: '0px 0px -8% 0px' });
-    items.forEach(function (el) { io.observe(el); });
+    document.querySelectorAll('.reveal').forEach(function (el) { io.observe(el); });
+
+    // Header turns solid once the hero scrolls under it
+    var bar = document.getElementById('top-bar');
+    new IntersectionObserver(function (entries) {
+      bar.classList.toggle('scrolled', !entries[0].isIntersecting);
+    }, { rootMargin: '-90px 0px 0px 0px' }).observe(document.querySelector('.hero .grid'));
+
+    // The step list follows the step being read
+    var links = {};
+    document.querySelectorAll('.rail a').forEach(function (a) { links[a.getAttribute('href').slice(1)] = a; });
+    var stepObserver = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) {
+        if (!e.isIntersecting) return;
+        Object.keys(links).forEach(function (id) { links[id].classList.toggle('active', id === e.target.id); });
+      });
+    }, { rootMargin: '-45% 0px -50% 0px' });
+    document.querySelectorAll('.step').forEach(function (s) { stepObserver.observe(s); });
   } else {
-    items.forEach(function (el) { el.classList.add('in'); });
+    document.querySelectorAll('.reveal').forEach(function (el) { el.classList.add('in'); });
   }
 })();
 </script>
