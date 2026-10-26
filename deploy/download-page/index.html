@@ -51,8 +51,14 @@
   .on-dark .eyebrow { color: #fff; }
 
   /* Header */
-  .top { position: sticky; top: 0; z-index: 20; transition: background 600ms var(--ease), box-shadow 600ms var(--ease); }
-  .top.scrolled { background: rgba(255, 255, 255, 0.86); -webkit-backdrop-filter: blur(16px) saturate(160%); backdrop-filter: blur(16px) saturate(160%); box-shadow: 0 1px 0 var(--line); }
+  /* Frosted glass: content scrolling underneath is blurred, so the logos stay readable */
+  .top {
+    position: sticky; top: 0; z-index: 20;
+    background: rgba(255, 255, 255, 0.72);
+    -webkit-backdrop-filter: blur(18px) saturate(160%); backdrop-filter: blur(18px) saturate(160%);
+    transition: background 600ms var(--ease), box-shadow 600ms var(--ease);
+  }
+  .top.scrolled { background: rgba(255, 255, 255, 0.9); box-shadow: 0 1px 0 var(--line), 0 14px 34px -26px rgba(17, 29, 84, 0.45); }
   .top .wrap { display: flex; align-items: center; gap: 28px; height: 92px; }
   .brand { display: flex; align-items: center; gap: 16px; text-decoration: none; }
   .brand .ns-logo { height: 46px; width: auto; }
@@ -88,7 +94,7 @@
   /* Hero */
   .hero { position: relative; padding: 72px 0 0; }
   .hero::before {
-    content: ""; position: absolute; inset: -84px 0 0; z-index: -1; pointer-events: none;
+    content: ""; position: absolute; inset: -92px 0 0; z-index: -1; pointer-events: none;
     background-image: linear-gradient(to right, var(--line-soft) 1px, transparent 1px), linear-gradient(to bottom, var(--line-soft) 1px, transparent 1px);
     background-size: 124px 124px; background-position: -1px -1px;
     -webkit-mask-image: linear-gradient(to bottom, #000 40%, transparent 96%); mask-image: linear-gradient(to bottom, #000 40%, transparent 96%);
@@ -760,11 +766,15 @@
     }, { rootMargin: '0px 0px -8% 0px' });
     document.querySelectorAll('.reveal').forEach(function (el) { io.observe(el); });
 
-    // Header turns solid once the hero scrolls under it
+    // Header firms up as soon as the page leaves the very top
     var bar = document.getElementById('top-bar');
+    var sentinel = document.createElement('div');
+    sentinel.setAttribute('aria-hidden', 'true');
+    sentinel.style.cssText = 'position:absolute;top:0;left:0;width:1px;height:12px;pointer-events:none';
+    document.body.prepend(sentinel);
     new IntersectionObserver(function (entries) {
       bar.classList.toggle('scrolled', !entries[0].isIntersecting);
-    }, { rootMargin: '-90px 0px 0px 0px' }).observe(document.querySelector('.hero .grid'));
+    }).observe(sentinel);
 
     // The step list follows the step being read
     var links = {};
