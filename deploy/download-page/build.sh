@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Write the download page of a release to release/index.html, with its images
-# (favicon.png, bluesec-logo.svg, preview.png).
+# (favicon, logos and preview.png).
 #
 #   deploy/download-page/build.sh 1.0.0
 #       the package is hosted in the same folder as the page
@@ -28,8 +28,8 @@ tar tzf "$PKG" | grep -q "^nightshift-$VERSION/REGISTRY$" && PACKAGE=small
 sed -e "s|{{VERSION}}|$VERSION|g" -e "s|{{SHA256}}|$SHA|g" -e "s|{{SIZE}}|$SIZE|g" \
     -e "s|{{DATE}}|$DATE|g" -e "s|{{PACKAGE}}|$PACKAGE|g" -e "s|{{DOWNLOAD_BASE}}|$DOWNLOAD_BASE|g" \
     "$ROOT/deploy/download-page/index.html" > "$ROOT/release/index.html"
-cp "$ROOT/public/assets/bluesec-transparent-favicon.png" "$ROOT/release/favicon.png"
-cp "$ROOT/deploy/download-page/bluesec-logo.svg" "$ROOT/release/bluesec-logo.svg"
+cp "$ROOT/deploy/download-page/nightshift-favicon.png" "$ROOT/release/favicon.png"
+for f in bluesec-logo.svg nightshift-logo.png nightshift-logo-white.png nightshift-mark.png; do cp "$ROOT/deploy/download-page/$f" "$ROOT/release/$f"; done
 cp "$ROOT/.github/assets/dashboard.png" "$ROOT/release/preview.png"
 if [ -n "$DOWNLOAD_BASE" ]; then
   echo "Download page: release/index.html ($PACKAGE package, $SIZE), downloads from $DOWNLOAD_BASE"
