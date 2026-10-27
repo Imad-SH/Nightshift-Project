@@ -228,19 +228,21 @@ const ConnectorCard = ({ connector, onOpen }: { connector: ConnectorView; onOpen
         <motion.button
             whileHover={{ y: -2 }}
             onClick={onOpen}
-            className={cn(
-                'w-full text-left relative bg-gradient-to-br from-slate-900/95 via-cyan-950/30 to-slate-900/95 backdrop-blur-xl border-2 rounded-2xl p-4 transition-all group',
-                connector.active ? 'border-cyan-400/70 shadow-[0_0_25px_rgba(34,211,238,0.15)]' : 'border-cyan-500/25 hover:border-cyan-400/50 hover:shadow-[0_0_24px_rgba(34,211,238,0.08)]'
-            )}
+            className="w-full text-left relative bg-gradient-to-br from-slate-900/95 via-cyan-950/30 to-slate-900/95 backdrop-blur-xl border-2 rounded-2xl p-4 transition-all group border-cyan-500/25 hover:border-cyan-400/50 hover:shadow-[0_0_24px_rgba(34,211,238,0.08)]"
         >
+            {/* Case management set up: whether escalations go to it */}
+            {connector.kind === 'soar' && connector.configured && (
+                <span className={cn('absolute right-4 bottom-4 flex items-center gap-1.5 px-3 py-1 rounded-md border text-[9px] font-mono font-black uppercase tracking-[0.2em]',
+                    connector.active ? 'bg-cyan-400/15 border-cyan-400/50 text-cyan-200' : 'bg-slate-500/10 border-slate-500/30 text-slate-400')}>
+                    {connector.active ? <Check size={10} strokeWidth={3} /> : <span className="w-1.5 h-1.5 rounded-full bg-slate-500" />}
+                    {connector.active ? 'Enabled' : 'Disabled'}
+                </span>
+            )}
             <div className="flex items-start gap-3">
                 <ConnectorLogo connector={connector} />
                 <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
                         <span className="text-sm font-black text-white tracking-wider uppercase">{connector.name}</span>
-                        {connector.active && (
-                            <span className="px-2 py-0.5 rounded-md bg-cyan-400/20 border border-cyan-400/50 text-[8px] font-mono font-black text-cyan-200 uppercase tracking-[0.2em]">Active</span>
-                        )}
                     </div>
                     <p className="text-[10.5px] text-slate-400 leading-relaxed mt-1 line-clamp-2">{connector.description}</p>
                     <div className="flex items-center gap-2 mt-3 flex-wrap">
