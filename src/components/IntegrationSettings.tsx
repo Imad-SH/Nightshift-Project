@@ -229,16 +229,10 @@ const ConnectorCard = ({ connector, onOpen }: { connector: ConnectorView; onOpen
             whileHover={{ y: -2 }}
             onClick={onOpen}
             className={cn(
-                'w-full text-left relative bg-gradient-to-br from-slate-900/95 via-cyan-950/30 to-slate-900/95 backdrop-blur-xl border-2 rounded-2xl p-4 pl-5 transition-all group overflow-hidden',
+                'w-full text-left relative bg-gradient-to-br from-slate-900/95 via-cyan-950/30 to-slate-900/95 backdrop-blur-xl border-2 rounded-2xl p-4 transition-all group',
                 connector.active ? 'border-cyan-400/70 shadow-[0_0_25px_rgba(34,211,238,0.15)]' : 'border-cyan-500/25 hover:border-cyan-400/50 hover:shadow-[0_0_24px_rgba(34,211,238,0.08)]'
             )}
         >
-            {/* Status edge: green connected, cyan ready, red error, grey not set up */}
-            <span className={cn('absolute left-0 top-3 bottom-3 w-[3px] rounded-r-full',
-                ['connected', 'receiving'].includes(connector.status.state) ? 'bg-emerald-400/80 shadow-[0_0_8px_rgba(52,211,153,0.6)]'
-                    : ['ready', 'configured'].includes(connector.status.state) ? 'bg-cyan-300/70'
-                    : connector.status.state === 'error' ? 'bg-red-400/80'
-                    : 'bg-slate-600/60')} />
             <div className="flex items-start gap-3">
                 <ConnectorLogo connector={connector} />
                 <div className="flex-1 min-w-0">
