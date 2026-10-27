@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { LayoutDashboard, Users, Fingerprint, BarChart3, Unplug, Loader2, Camera, Settings, Crosshair } from 'lucide-react';
+import React from 'react';
+import { LayoutDashboard, Users, Fingerprint, BarChart3, Unplug, Settings, Crosshair } from 'lucide-react';
 import { useSocAuth } from '../contexts/AuthContext';
 import { useSettings } from '../contexts/SettingsContext';
 import { BRAND } from '../brand';
@@ -118,34 +118,9 @@ interface SidebarProps {
 
 export const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, setIsCollapsed, activeTab, setActiveTab }) => {
     const { isSocAdmin, logout } = useSocAuth();
-    const { customLogo, updateSetting } = useSettings();
-    const [isUploading, setIsUploading] = useState(false);
+    // A logo saved earlier with the former "Change logo" control still replaces the Nightshift one
+    const { customLogo } = useSettings();
 
-    const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (!file) return;
-
-        // Limit to 2MB
-        if (file.size > 2 * 1024 * 1024) {
-            alert("File size exceeds 2MB limit.");
-            return;
-        }
-
-        setIsUploading(true);
-        const reader = new FileReader();
-        reader.onloadend = async () => {
-            const base64String = reader.result as string;
-            try {
-                await updateSetting('custom_logo', base64String);
-            } catch (err) {
-                alert("Failed to update logo.");
-            } finally {
-                setIsUploading(false);
-            }
-        };
-        reader.readAsDataURL(file);
-    };
-    
     return (
         <div className="w-20 flex-shrink-0 relative h-screen z-[2000] transition-all duration-300">
             <aside
@@ -160,31 +135,18 @@ export const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, setIsCollapsed, a
             {/* Logo Area */}
             <div className={cn(
                 "relative h-20 w-full transition-all duration-300 ease-in-out overflow-hidden z-20",
-                // Only admins can change the installation logo, so only they get the hover affordance
-                isSocAdmin && "group/logo",
                 "border-b border-cyan-500/50 shadow-[0_4px_15px_rgba(34,211,238,0.3)]"
             )}>
                 <div className="absolute bottom-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-cyan-300 to-transparent opacity-80" />
-                
-                <label className={cn(
-                    "relative inset-0 w-full h-full flex items-center justify-center transition-all duration-500",
-                    isSocAdmin ? "cursor-pointer" : "cursor-default",
-                    // Brightens an uploaded logo for the dark bar; the Nightshift logo is drawn for it already
-                    customLogo ? "cyber-lighting" : "drop-shadow-[0_0_8px_rgba(0,242,234,0.3)]",
-                    isUploading && "opacity-50 cursor-wait"
-                )}>
-                    <input 
-                        type="file" 
-                        className="hidden" 
-                        accept="image/*"
-                        onChange={handleLogoUpload}
-                        disabled={isUploading || !isSocAdmin}
-                    />
 
-                    {/* Logo (Slides UP on hover) */}
+                <div className={cn(
+                    "relative inset-0 w-full h-full flex items-center justify-center transition-all duration-500 cursor-default",
+                    // Brightens an uploaded logo for the dark bar; the Nightshift logo is drawn for it already
+                    customLogo ? "cyber-lighting" : "drop-shadow-[0_0_8px_rgba(0,242,234,0.3)]"
+                )}>
                     {customLogo ? (
                         <div className={cn(
-                            "absolute top-0 bottom-0 overflow-hidden transition-all duration-500 ease-in-out group-hover/logo:-translate-y-[120%]",
+                            "absolute top-0 bottom-0 overflow-hidden transition-all duration-500 ease-in-out",
                             isCollapsed ? "w-[44px] left-[20px] opacity-90" : "w-[160px] left-[60px] opacity-100"
                         )}>
                             <img
@@ -198,7 +160,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, setIsCollapsed, a
                         // The image is 1080x356 with the mark at x 96-352 and the name ending at x 989,
                         // drawn 61px high so the mark is 44px wide and the whole logo 154px.
                         <div className={cn(
-                            "absolute top-0 bottom-0 overflow-hidden transition-all duration-500 ease-in-out group-hover/logo:-translate-y-[120%]",
+                            "absolute top-0 bottom-0 overflow-hidden transition-all duration-500 ease-in-out",
                             isCollapsed ? "w-[44px] left-[18px] opacity-90" : "w-[154px] left-[51px] opacity-100"
                         )}>
                             <img
@@ -208,23 +170,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, setIsCollapsed, a
                             />
                         </div>
                     )}
-                    
-                    {/* Camera (Slides IN from bottom on hover) */}
-                    <div className={cn(
-                        "absolute inset-0 flex flex-col items-center justify-center gap-1 transition-all duration-500 ease-in-out translate-y-[120%] group-hover/logo:translate-y-0",
-                        isCollapsed ? "opacity-90" : "opacity-100",
-                        !customLogo && "cyber-lighting"
-                    )}>
-                        {isUploading ? (
-                            <Loader2 className="text-cyan-400 animate-spin" size={20} />
-                        ) : (
-                            <>
-                                <Camera className="text-cyan-400" size={22} />
-                                {!isCollapsed && <span className="text-[10px] font-mono font-bold text-cyan-300 uppercase tracking-widest mt-0.5">Change Logo</span>}
-                            </>
-                        )}
-                    </div>
-                </label>
+                </div>
             </div>
 
             {/* Navigation */}
