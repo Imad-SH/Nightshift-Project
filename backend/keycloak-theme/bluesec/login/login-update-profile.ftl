@@ -1,35 +1,29 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>UPDATE_PROFILE</title>
-    <link rel="stylesheet" href="${url.resourcesPath}/css/styles.css">
-</head>
-<body style="margin: 0; padding: 0; background-color: #050505;">
-<div class="glitch-form-wrapper">
-  <form id="kc-update-profile-form" class="glitch-card" action="${url.loginAction}" method="post">
-    <div class="card-header">
-      <div class="card-title"><span>REQUIRE_PROFILE_SYNC</span></div>
-    </div>
-    <div class="card-body">
-      <div class="form-group">
-        <input type="text" id="email" name="email" value="${(user.email!'')}" required placeholder=" " />
-        <label for="email" class="form-label" data-text="EMAIL">EMAIL</label>
-      </div>
-      <div class="form-group">
-        <input type="text" id="firstName" name="firstName" value="${(user.firstName!'')}" required placeholder=" " />
-        <label for="firstName" class="form-label" data-text="FIRST_NAME">FIRST_NAME</label>
-      </div>
-      <div class="form-group">
-        <input type="text" id="lastName" name="lastName" value="${(user.lastName!'')}" required placeholder=" " />
-        <label for="lastName" class="form-label" data-text="LAST_NAME">LAST_NAME</label>
-      </div>
-      <button data-text="SYNC_DATA" type="submit" class="submit-btn">
-        <span class="btn-text">SYNC_DATA</span>
-      </button>
-    </div>
-  </form>
-</div>
-</body>
-</html>
+<#import "template.ftl" as layout>
+<@layout.registrationLayout displayMessage=true; section>
+    <#if section = "header">
+        ${msg("loginProfileTitle")}
+    <#elseif section = "form">
+        <p class="ns-lede">Complete your profile to continue.</p>
+        <form id="kc-update-profile-form" class="ns-form" action="${url.loginAction}" method="post">
+            <div class="ns-group">
+                <label for="email" class="ns-label">${msg("email")}</label>
+                <input type="email" id="email" name="email" class="ns-input" value="${(user.email!'')}" required autocomplete="email" />
+            </div>
+            <div class="ns-group">
+                <label for="firstName" class="ns-label">${msg("firstName")}</label>
+                <input type="text" id="firstName" name="firstName" class="ns-input" value="${(user.firstName!'')}" required autocomplete="given-name" />
+            </div>
+            <div class="ns-group">
+                <label for="lastName" class="ns-label">${msg("lastName")}</label>
+                <input type="text" id="lastName" name="lastName" class="ns-input" value="${(user.lastName!'')}" required autocomplete="family-name" />
+            </div>
+            <div class="ns-buttons">
+                <button type="submit" class="ns-btn ns-btn-primary ns-btn-block">
+                    <span class="ns-btn-label">${msg("doSubmit")}</span>
+                    <span class="ns-btn-busy" aria-hidden="true">Saving&hellip;</span>
+                    <svg class="ns-btn-arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg>
+                </button>
+            </div>
+        </form>
+    </#if>
+</@layout.registrationLayout>
