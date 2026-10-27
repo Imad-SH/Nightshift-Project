@@ -169,7 +169,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, setIsCollapsed, a
                 <label className={cn(
                     "relative inset-0 w-full h-full flex items-center justify-center transition-all duration-500",
                     isSocAdmin ? "cursor-pointer" : "cursor-default",
-                    "cyber-lighting",
+                    // Brightens an uploaded logo for the dark bar; the Nightshift logo is drawn for it already
+                    customLogo ? "cyber-lighting" : "drop-shadow-[0_0_8px_rgba(0,242,234,0.3)]",
                     isUploading && "opacity-50 cursor-wait"
                 )}>
                     <input 
@@ -181,21 +182,38 @@ export const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, setIsCollapsed, a
                     />
 
                     {/* Logo (Slides UP on hover) */}
-                    <div className={cn(
-                        "absolute top-0 bottom-0 overflow-hidden transition-all duration-500 ease-in-out group-hover/logo:-translate-y-[120%]",
-                        isCollapsed ? "w-[44px] left-[20px] opacity-90" : "w-[160px] left-[60px] opacity-100"
-                    )}>
-                        <img
-                            src={customLogo || BRAND.logo}
-                            alt={BRAND.fullName}
-                            className="absolute top-1/2 -translate-y-1/2 left-0 h-12 object-left object-contain min-w-[160px] max-w-[160px]"
-                        />
-                    </div>
+                    {customLogo ? (
+                        <div className={cn(
+                            "absolute top-0 bottom-0 overflow-hidden transition-all duration-500 ease-in-out group-hover/logo:-translate-y-[120%]",
+                            isCollapsed ? "w-[44px] left-[20px] opacity-90" : "w-[160px] left-[60px] opacity-100"
+                        )}>
+                            <img
+                                src={customLogo}
+                                alt={BRAND.fullName}
+                                className="absolute top-1/2 -translate-y-1/2 left-0 h-12 object-left object-contain min-w-[160px] max-w-[160px]"
+                            />
+                        </div>
+                    ) : (
+                        // Collapsed: only the moon-and-hat mark shows; expanding reveals the name.
+                        // The image is 1080x356 with the mark at x 96-352 and the name ending at x 989,
+                        // drawn 61px high so the mark is 44px wide and the whole logo 154px.
+                        <div className={cn(
+                            "absolute top-0 bottom-0 overflow-hidden transition-all duration-500 ease-in-out group-hover/logo:-translate-y-[120%]",
+                            isCollapsed ? "w-[44px] left-[18px] opacity-90" : "w-[154px] left-[51px] opacity-100"
+                        )}>
+                            <img
+                                src={BRAND.productLogo}
+                                alt={BRAND.fullName}
+                                className="absolute top-1/2 -translate-y-1/2 left-[-16.5px] h-[61px] w-auto max-w-none"
+                            />
+                        </div>
+                    )}
                     
                     {/* Camera (Slides IN from bottom on hover) */}
                     <div className={cn(
                         "absolute inset-0 flex flex-col items-center justify-center gap-1 transition-all duration-500 ease-in-out translate-y-[120%] group-hover/logo:translate-y-0",
-                        isCollapsed ? "opacity-90" : "opacity-100"
+                        isCollapsed ? "opacity-90" : "opacity-100",
+                        !customLogo && "cyber-lighting"
                     )}>
                         {isUploading ? (
                             <Loader2 className="text-cyan-400 animate-spin" size={20} />
