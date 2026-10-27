@@ -141,23 +141,27 @@ class Settings(BaseSettings):
 
     def update_from_dict(self, updates: dict):
         """Hot-reload settings from a dictionary (e.g. database values)"""
+        declared = type(self).model_fields
         for key, value in updates.items():
             try:
-                if hasattr(self, key):
-                    if isinstance(getattr(self, key), bool) and isinstance(value, str):
+                if key in declared:
+                    current = getattr(self, key)
+                    if isinstance(current, bool) and isinstance(value, str):
                         setattr(self, key, value.lower() in ('true', '1', 'yes'))
-                    elif isinstance(getattr(self, key), int) and isinstance(value, str):
+                    elif isinstance(current, int) and not isinstance(current, bool) and isinstance(value, str):
                         try:
                             setattr(self, key, int(value))
-                        except:
+                        except ValueError:
                             pass
                     else:
                         setattr(self, key, value)
                 else:
-                    # Store dynamic keys (e.g. custom_cti_xxx_key) not declared in the model
+                    # Keys not declared in the model (auto-escalation, active SOAR, intake tokens,
+                    # custom_cti_xxx_key...): the model refuses setattr on them, every time, not
+                    # only the first, so they are always stored directly
                     object.__setattr__(self, key, value)
-            except Exception:
-                pass
+            except Exception as e:
+                print(f"⚠️ [Config] Could not apply setting '{key}': {e}")
         print(f"🔄 [Config] settings updated from dictionary ({len(updates)} keys processed)")
 
 

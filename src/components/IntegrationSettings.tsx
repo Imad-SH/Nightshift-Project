@@ -1,12 +1,12 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { formatDistanceToNow } from 'date-fns';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import {
     Check, ChevronRight, Copy, Eye, EyeOff, KeyRound, Loader2, Plug, RefreshCw, Save, Send,
-    ShieldAlert, Webhook, X, Zap, Radio, Briefcase,
+    ShieldAlert, Webhook, X, Zap, Radio, Briefcase, ArrowRight, Sparkles,
 } from 'lucide-react';
 import { useSocAuth } from '../contexts/AuthContext';
 import { useSocket } from '../hooks/useSocket';
@@ -224,10 +224,16 @@ const ConnectorCard = ({ connector, onOpen }: { connector: ConnectorView; onOpen
             whileHover={{ y: -2 }}
             onClick={onOpen}
             className={cn(
-                'w-full text-left relative bg-gradient-to-br from-slate-900/95 via-cyan-950/30 to-slate-900/95 backdrop-blur-xl border-2 rounded-2xl p-4 transition-all group',
-                connector.active ? 'border-cyan-400/70 shadow-[0_0_25px_rgba(34,211,238,0.15)]' : 'border-cyan-500/25 hover:border-cyan-400/50'
+                'w-full text-left relative bg-gradient-to-br from-slate-900/95 via-cyan-950/30 to-slate-900/95 backdrop-blur-xl border-2 rounded-2xl p-4 pl-5 transition-all group overflow-hidden',
+                connector.active ? 'border-cyan-400/70 shadow-[0_0_25px_rgba(34,211,238,0.15)]' : 'border-cyan-500/25 hover:border-cyan-400/50 hover:shadow-[0_0_24px_rgba(34,211,238,0.08)]'
             )}
         >
+            {/* Status edge: green connected, cyan ready, red error, grey not set up */}
+            <span className={cn('absolute left-0 top-3 bottom-3 w-[3px] rounded-r-full',
+                ['connected', 'receiving'].includes(connector.status.state) ? 'bg-emerald-400/80 shadow-[0_0_8px_rgba(52,211,153,0.6)]'
+                    : ['ready', 'configured'].includes(connector.status.state) ? 'bg-cyan-300/70'
+                    : connector.status.state === 'error' ? 'bg-red-400/80'
+                    : 'bg-slate-600/60')} />
             <div className="flex items-start gap-3">
                 <ConnectorLogo connector={connector} />
                 <div className="flex-1 min-w-0">
@@ -493,54 +499,169 @@ const ConnectorPanel = ({ connector, activeSoar, request, onChanged, onClose, on
 
 // ---- auto-escalation -----------------------------------------------------------------------
 
-const AutoEscalationPanel = ({ value, activeSoar, onSave }: { value: AutoEscalation; activeSoar: string; onSave: (v: Partial<{ auto_escalation_enabled: boolean; auto_escalation_min_score: number; auto_escalation_verdicts: string[] }>) => void }) => {
+// Verdict colours: what the AI decided, at a glance
+const VERDICT_STYLE: Record<string, { on: string; off: string }> = {
+    'Malicious': { on: 'bg-rose-500/20 border-rose-400/60 text-rose-100 shadow-[0_0_14px_rgba(244,63,94,0.2)]', off: 'border-rose-500/20 text-rose-300/40 hover:border-rose-400/50 hover:text-rose-200/80' },
+    'Suspicious': { on: 'bg-amber-500/20 border-amber-400/60 text-amber-100 shadow-[0_0_14px_rgba(245,158,11,0.2)]', off: 'border-amber-500/20 text-amber-300/40 hover:border-amber-400/50 hover:text-amber-200/80' },
+    'False Positive': { on: 'bg-slate-500/25 border-slate-300/50 text-slate-100', off: 'border-slate-600/50 text-slate-500 hover:border-slate-400 hover:text-slate-300' },
+};
+const SEVERITY_SHORT: Record<number, string> = { 4: 'Low+', 7: 'Medium+', 10: 'High+', 13: 'Critical' };
+
+/** Auto-escalation shown as the rule it applies: "when <verdicts> and <severity> -> open a case in <SOAR>". */
+const AutoEscalationPanel = ({ value, activeSoar, target, onSave }: { value: AutoEscalation; activeSoar: string; target?: ConnectorView; onSave: (v: Partial<{ auto_escalation_enabled: boolean; auto_escalation_min_score: number; auto_escalation_verdicts: string[] }>) => void }) => {
     const verdicts = value.auto_escalation_verdicts.split(',').map((v) => v.trim()).filter(Boolean);
     const toggleVerdict = (v: string) => {
         const next = verdicts.includes(v) ? verdicts.filter((x) => x !== v) : [...verdicts, v];
         onSave({ auto_escalation_verdicts: next });
     };
     const disabled = activeSoar === 'none';
+    const on = value.auto_escalation_enabled && !disabled;
+    const WORD = 'text-[10px] font-mono font-black uppercase tracking-[0.22em] text-cyan-400/60';
     return (
-        <div className={cn('rounded-2xl border-2 border-cyan-500/25 bg-gradient-to-br from-slate-900/95 via-cyan-950/20 to-slate-900/95 p-5 space-y-4', disabled && 'opacity-60')}>
-            <div className="flex items-center justify-between gap-4">
-                <div className="flex items-center gap-3">
-                    <Zap size={18} className="text-cyan-300" />
+        <section className={cn(
+            'relative rounded-3xl border-2 p-6 overflow-hidden transition-colors duration-500',
+            on ? 'border-cyan-400/40 bg-gradient-to-r from-cyan-950/60 via-slate-900/95 to-slate-900/95 shadow-[0_0_40px_rgba(34,211,238,0.08)]'
+               : 'border-cyan-500/20 bg-gradient-to-r from-slate-900/95 via-slate-900/90 to-slate-900/95',
+            disabled && 'opacity-60'
+        )}>
+            {on && <div className="absolute -top-24 -left-24 w-64 h-64 rounded-full bg-cyan-400/10 blur-3xl pointer-events-none" />}
+            <div className="relative flex items-center justify-between gap-6 flex-wrap">
+                <div className="flex items-center gap-4">
+                    <div className={cn('w-12 h-12 rounded-2xl flex items-center justify-center border transition-all duration-500',
+                        on ? 'border-cyan-300/60 bg-cyan-400/15 text-cyan-200 shadow-[0_0_24px_rgba(34,211,238,0.35)]' : 'border-slate-600 bg-slate-800/50 text-slate-500')}>
+                        <Zap size={20} className={cn(on && 'drop-shadow-[0_0_6px_rgba(165,243,252,0.8)]')} />
+                    </div>
                     <div>
-                        <div className="text-sm font-black text-white tracking-wider uppercase">Auto-escalation</div>
-                        <div className="text-[10.5px] text-slate-400 mt-0.5">
-                            {disabled ? 'Choose a case-management system first.' : 'After an AI scan, open a case automatically when these conditions match.'}
+                        <div className="text-lg font-black text-white tracking-[0.15em] uppercase">Auto-escalation</div>
+                        <div className="text-[11px] text-slate-400 mt-0.5">
+                            {disabled ? 'Choose a case-management system first.'
+                                : on ? 'After each AI scan, matching alerts become cases automatically.'
+                                : 'Off: analysts escalate alerts themselves, from the alert view.'}
                         </div>
                     </div>
                 </div>
-                <button type="button" role="switch" aria-checked={value.auto_escalation_enabled} disabled={disabled}
-                    onClick={() => onSave({ auto_escalation_enabled: !value.auto_escalation_enabled })}
-                    className={cn('relative w-11 h-6 rounded-full border transition-all flex-shrink-0', value.auto_escalation_enabled ? 'bg-cyan-500/40 border-cyan-400/60' : 'bg-slate-800 border-slate-600')}>
-                    <span className={cn('absolute top-0.5 w-[18px] h-[18px] rounded-full transition-all', value.auto_escalation_enabled ? 'left-[22px] bg-cyan-200' : 'left-0.5 bg-slate-400')} />
-                </button>
+                <div className="flex items-center gap-3">
+                    <span className={cn('text-[10px] font-mono font-black uppercase tracking-[0.25em]', on ? 'text-cyan-300' : 'text-slate-500')}>{on ? 'On' : 'Off'}</span>
+                    <button type="button" role="switch" aria-checked={value.auto_escalation_enabled} disabled={disabled} aria-label="Auto-escalation"
+                        onClick={() => onSave({ auto_escalation_enabled: !value.auto_escalation_enabled })}
+                        className={cn('relative w-14 h-7 rounded-full border transition-all flex-shrink-0', value.auto_escalation_enabled ? 'bg-cyan-500/40 border-cyan-400/60' : 'bg-slate-800 border-slate-600')}>
+                        <span className={cn('absolute top-[3px] w-5 h-5 rounded-full transition-all', value.auto_escalation_enabled ? 'left-[30px] bg-cyan-100 shadow-[0_0_10px_rgba(165,243,252,0.8)]' : 'left-[3px] bg-slate-400')} />
+                    </button>
+                </div>
             </div>
-            {value.auto_escalation_enabled && !disabled && (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                        <label className={LABEL}>Minimum severity</label>
-                        <select value={value.auto_escalation_min_score} onChange={(e) => onSave({ auto_escalation_min_score: Number(e.target.value) })} className={cn(INPUT, 'appearance-none cursor-pointer')}>
-                            {SEVERITY_FLOORS.map((s) => <option key={s.value} value={s.value} className="bg-slate-900">{s.label}</option>)}
-                        </select>
-                    </div>
-                    <div className="space-y-2">
-                        <label className={LABEL}>AI verdicts</label>
-                        <div className="flex flex-wrap gap-2">
-                            {VERDICTS.map((v) => (
-                                <button key={v} onClick={() => toggleVerdict(v)}
-                                    className={cn('px-3 py-2 rounded-lg border text-[10px] font-mono font-black uppercase tracking-wider transition-all',
-                                        verdicts.includes(v) ? 'bg-cyan-500/20 border-cyan-400/60 text-cyan-100' : 'bg-transparent border-slate-600 text-slate-500 hover:border-slate-400')}>
-                                    {v}
-                                </button>
-                            ))}
+
+            <AnimatePresence initial={false}>
+                {on && (
+                    <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }}
+                        transition={{ duration: 0.35, ease: [0.32, 0.72, 0, 1] }} className="relative">
+                        <div className="mt-6 pt-6 border-t border-cyan-500/15 flex flex-wrap items-center gap-x-4 gap-y-4">
+                            <span className={WORD}>When the AI verdict is</span>
+                            <div className="flex flex-wrap gap-2">
+                                {VERDICTS.map((v) => (
+                                    <button key={v} onClick={() => toggleVerdict(v)} aria-pressed={verdicts.includes(v)}
+                                        className={cn('px-3 py-1.5 rounded-lg border text-[10px] font-mono font-black uppercase tracking-wider transition-all',
+                                            verdicts.includes(v) ? VERDICT_STYLE[v].on : cn('bg-transparent', VERDICT_STYLE[v].off))}>
+                                        {v}
+                                    </button>
+                                ))}
+                            </div>
+                            <span className={WORD}>and severity is</span>
+                            <div className="inline-flex rounded-lg border border-cyan-500/25 bg-slate-950/40 p-0.5">
+                                {SEVERITY_FLOORS.map((s) => (
+                                    <button key={s.value} title={s.label} onClick={() => onSave({ auto_escalation_min_score: s.value })}
+                                        aria-pressed={value.auto_escalation_min_score === s.value}
+                                        className={cn('px-3 py-1.5 rounded-md text-[10px] font-mono font-black uppercase tracking-wider transition-all',
+                                            value.auto_escalation_min_score === s.value ? 'bg-cyan-500/25 text-cyan-100 shadow-[inset_0_0_0_1px_rgba(103,232,249,0.4)]' : 'text-slate-500 hover:text-cyan-200')}>
+                                        {SEVERITY_SHORT[s.value] || s.label}
+                                    </button>
+                                ))}
+                            </div>
+                            <ArrowRight size={16} className="text-cyan-400/70" />
+                            <span className={WORD}>open a case in</span>
+                            {target && (
+                                <span className="inline-flex items-center gap-2 pl-1 pr-3 py-1 rounded-lg border border-cyan-400/40 bg-cyan-500/10">
+                                    <span className="scale-[0.6] -m-2"><ConnectorLogo connector={target} /></span>
+                                    <span className="text-[11px] font-black text-white uppercase tracking-wider">{target.name}</span>
+                                </span>
+                            )}
                         </div>
-                    </div>
-                </div>
-            )}
+                        {verdicts.length === 0 && (
+                            <div className="mt-3 text-[10.5px] text-amber-300/80">Select at least one verdict, otherwise nothing is escalated.</div>
+                        )}
+                    </motion.div>
+                )}
+            </AnimatePresence>
+        </section>
+    );
+};
+
+// ---- pipeline overview ----------------------------------------------------------------------
+
+const PipelineNode = ({ icon: Icon, title, value, detail, ok, center }: { icon: any; title: string; value: string; detail: string; ok: boolean; center?: boolean }) => (
+    <div className={cn('relative rounded-2xl border px-4 py-4 flex items-center gap-3 min-w-0 transition-colors duration-500',
+        center ? 'border-cyan-400/50 bg-cyan-500/10 shadow-[0_0_32px_rgba(34,211,238,0.14)]'
+            : ok ? 'border-emerald-500/30 bg-emerald-500/[0.04]' : 'border-slate-600/40 bg-slate-800/30')}>
+        <div className={cn('w-11 h-11 rounded-xl flex items-center justify-center border flex-shrink-0',
+            center ? 'border-cyan-300/60 bg-cyan-400/15 text-cyan-100' : ok ? 'border-emerald-400/40 bg-emerald-500/10 text-emerald-200' : 'border-slate-600 text-slate-500')}>
+            <Icon size={19} />
         </div>
+        <div className="min-w-0">
+            <div className={LABEL}>{title}</div>
+            <div className="text-sm font-black text-white uppercase tracking-wider truncate mt-1">{value}</div>
+            <div className="text-[10px] font-mono text-slate-400 mt-0.5 leading-snug flex items-start gap-1.5">
+                {(ok || center) && <span className={cn('w-1.5 h-1.5 mt-[4px] rounded-full flex-shrink-0 animate-pulse', center ? 'bg-cyan-300' : 'bg-emerald-400')} />}
+                {detail}
+            </div>
+        </div>
+    </div>
+);
+
+/** A link between two pipeline steps; packets flow along it while the link is live. */
+const FlowLink = ({ live, label }: { live: boolean; label?: string }) => {
+    const reduce = useReducedMotion();
+    return (
+        <div className="flex md:flex-col items-center justify-center gap-1.5 py-1 md:py-0">
+            <div className={cn('relative h-8 w-px md:h-px md:w-20 lg:w-24', live ? 'bg-cyan-400/30' : 'border-l md:border-l-0 md:border-t border-dashed border-slate-600')}>
+                {live && !reduce && [0, 0.6, 1.2].map((delay) => (
+                    <motion.span key={delay}
+                        className="absolute left-[-2.5px] top-0 md:top-[-2.5px] md:left-0 w-1.5 h-1.5 rounded-full bg-cyan-300 shadow-[0_0_8px_rgba(103,232,249,0.9)]"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: [0, 1, 1, 0], ...(typeof window !== 'undefined' && window.innerWidth >= 768 ? { left: ['0%', '100%'] } : { top: ['0%', '100%'] }) }}
+                        transition={{ duration: 1.8, delay, repeat: Infinity, ease: 'linear' }} />
+                ))}
+                <ChevronRight size={14} className={cn('absolute -right-[7px] -top-[7px] hidden md:block', live ? 'text-cyan-300' : 'text-slate-600')} />
+            </div>
+            {label && <span className={cn('text-[8.5px] font-mono font-black uppercase tracking-[0.2em] whitespace-nowrap', live ? 'text-cyan-300/70' : 'text-slate-500')}>{label}</span>}
+        </div>
+    );
+};
+
+const PipelineOverview = ({ siem, target, autoEscalation }: { siem: ConnectorView[]; target?: ConnectorView; autoEscalation: AutoEscalation }) => {
+    const live = siem.filter((c) => ['connected', 'receiving', 'ready'].includes(c.status.state));
+    const lastAlert = siem.map((c) => c.last_alert_at).filter(Boolean).sort().pop();
+    const targetOk = !!target && ['connected', 'configured'].includes(target.status.state);
+    const auto = autoEscalation.auto_escalation_enabled && !!target;
+    return (
+        <section className="relative rounded-3xl border border-cyan-500/20 bg-gradient-to-br from-slate-900/90 via-cyan-950/25 to-slate-900/90 p-6 overflow-hidden">
+            <div className="absolute -top-20 right-10 w-72 h-40 rounded-full bg-cyan-500/10 blur-3xl pointer-events-none" />
+            <div className="relative flex items-end justify-between gap-4 mb-5">
+                <div>
+                    <div className="text-2xl font-black text-white tracking-[0.15em] uppercase">Alert pipeline</div>
+                    <div className="text-[10px] font-mono text-cyan-500/60 uppercase tracking-[0.2em] mt-1">How alerts flow through Nightshift</div>
+                </div>
+            </div>
+            <div className="relative grid grid-cols-1 md:grid-cols-[minmax(0,1fr)_auto_minmax(0,1.15fr)_auto_minmax(0,1fr)] items-center gap-2 md:gap-3">
+                <PipelineNode icon={Radio} title="Alert sources" ok={live.length > 0}
+                    value={live.length ? live.map((c) => c.name).join(' + ') : 'None connected'}
+                    detail={lastAlert ? `Last alert ${formatDistanceToNow(new Date(lastAlert), { addSuffix: true })}` : live.length ? 'Waiting for the first alert' : 'Connect a SIEM below'} />
+                <FlowLink live={live.length > 0} label="Alerts" />
+                <PipelineNode icon={Sparkles} title="AI triage" center value="3 AI agents" detail="Extract · Investigate · Decide" ok />
+                <FlowLink live={auto && targetOk} label={!target ? 'No escalation' : auto ? 'Auto-escalation' : 'Manual escalation'} />
+                <PipelineNode icon={Briefcase} title="Case management" ok={targetOk}
+                    value={target ? target.name : 'None selected'}
+                    detail={target ? (STATE_STYLE[target.status.state] || STATE_STYLE.unknown).label : 'Choose one below'} />
+            </div>
+        </section>
     );
 };
 
@@ -620,37 +741,46 @@ export const IntegrationSettings: React.FC<{ onSubTabChange?: (tab: string | nul
                 {!data ? (
                     <div className="flex items-center justify-center py-24 text-cyan-500/60"><Loader2 className="animate-spin" /></div>
                 ) : (
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                        {/* SIEM */}
-                        <section className="space-y-4">
-                            <div className="flex items-center gap-3">
-                                <Radio size={18} className="text-cyan-300" />
-                                <div>
-                                    <div className="text-2xl font-black text-white tracking-[0.15em] uppercase">Alert sources</div>
-                                    <div className="text-[10px] font-mono text-cyan-500/60 uppercase tracking-[0.2em]">SIEMs that send alerts to Nightshift</div>
-                                </div>
-                            </div>
-                            {siem.map((c) => <ConnectorCard key={c.id} connector={c} onOpen={() => setOpenId({ kind: 'siem', id: c.id })} />)}
-                        </section>
+                    <>
+                        <PipelineOverview siem={siem} target={soar.find((c) => c.id === activeSoar)} autoEscalation={data.auto_escalation} />
 
-                        {/* SOAR */}
-                        <section className="space-y-4">
-                            <div className="flex items-center gap-3">
-                                <Briefcase size={18} className="text-cyan-300" />
-                                <div>
-                                    <div className="text-2xl font-black text-white tracking-[0.15em] uppercase">Case management</div>
-                                    <div className="text-[10px] font-mono text-cyan-500/60 uppercase tracking-[0.2em]">Where escalated alerts become cases</div>
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                            {/* SIEM */}
+                            <section className="space-y-4">
+                                <div className="flex items-center gap-3">
+                                    <Radio size={18} className="text-cyan-300" />
+                                    <div>
+                                        <div className="text-xl font-black text-white tracking-[0.15em] uppercase">Alert sources</div>
+                                        <div className="text-[10px] font-mono text-cyan-500/60 uppercase tracking-[0.2em]">SIEMs that send alerts to Nightshift</div>
+                                    </div>
                                 </div>
-                            </div>
-                            {soar.map((c) => <ConnectorCard key={c.id} connector={c} onOpen={() => setOpenId({ kind: 'soar', id: c.id })} />)}
-                            {activeSoar !== 'none' && (
-                                <button onClick={() => setSwitchTo('none')} className="text-[10px] font-mono font-bold uppercase tracking-[0.2em] text-slate-500 hover:text-slate-300 transition-colors">
-                                    Turn escalation off
-                                </button>
-                            )}
-                            <AutoEscalationPanel value={data.auto_escalation} activeSoar={activeSoar} onSave={saveAutoEscalation} />
-                        </section>
-                    </div>
+                                {siem.map((c) => <ConnectorCard key={c.id} connector={c} onOpen={() => setOpenId({ kind: 'siem', id: c.id })} />)}
+                            </section>
+
+                            {/* SOAR */}
+                            <section className="space-y-4">
+                                <div className="flex items-center justify-between gap-3">
+                                    <div className="flex items-center gap-3">
+                                        <Briefcase size={18} className="text-cyan-300" />
+                                        <div>
+                                            <div className="text-xl font-black text-white tracking-[0.15em] uppercase">Case management</div>
+                                            <div className="text-[10px] font-mono text-cyan-500/60 uppercase tracking-[0.2em]">Where escalated alerts become cases</div>
+                                        </div>
+                                    </div>
+                                    {activeSoar !== 'none' && (
+                                        <button onClick={() => setSwitchTo('none')}
+                                            className="px-3 py-1.5 rounded-lg border border-slate-600/50 text-[9px] font-mono font-bold uppercase tracking-[0.2em] text-slate-500 hover:text-rose-300 hover:border-rose-400/40 transition-colors whitespace-nowrap">
+                                            Turn escalation off
+                                        </button>
+                                    )}
+                                </div>
+                                {soar.map((c) => <ConnectorCard key={c.id} connector={c} onOpen={() => setOpenId({ kind: 'soar', id: c.id })} />)}
+                            </section>
+                        </div>
+
+                        <AutoEscalationPanel value={data.auto_escalation} activeSoar={activeSoar}
+                            target={soar.find((c) => c.id === activeSoar)} onSave={saveAutoEscalation} />
+                    </>
                 )}
             </div>
 
