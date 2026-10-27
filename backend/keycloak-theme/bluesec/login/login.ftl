@@ -69,15 +69,27 @@
                 var el = document.getElementById('ns-greeting');
                 if (el) el.textContent = text;
             })();
-            // Fields start empty: browsers must not leave a previous user's credentials on shared SOC screens
-            window.addEventListener('load', function () {
-                setTimeout(function () {
-                    var u = document.getElementById('username');
-                    var p = document.getElementById('password');
-                    if (u) u.value = '';
-                    if (p) p.value = '';
-                }, 50);
-            });
+            // Fields start empty: browsers must not leave a previous user's credentials on shared SOC
+            // screens. Only what the browser pre-filled is cleared, never what someone already typed.
+            (function () {
+                var typed = false;
+                var mark = function () { typed = true; };
+                ['username', 'password'].forEach(function (id) {
+                    var el = document.getElementById(id);
+                    if (!el) return;
+                    el.addEventListener('keydown', mark);
+                    el.addEventListener('paste', mark);
+                });
+                window.addEventListener('load', function () {
+                    setTimeout(function () {
+                        if (typed) return;
+                        var u = document.getElementById('username');
+                        var p = document.getElementById('password');
+                        if (u) u.value = '';
+                        if (p) p.value = '';
+                    }, 50);
+                });
+            })();
         </script>
     <#elseif section = "info" >
         <#if realm.password && realm.registrationAllowed && !registrationDisabled??>

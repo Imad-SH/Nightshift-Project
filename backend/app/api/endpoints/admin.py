@@ -3,8 +3,13 @@ from typing import Dict, Any, List, Optional
 from app.core.security import require_role, get_current_user
 from app.services.keycloak_service import keycloak_service
 from pydantic import BaseModel, EmailStr
+import time
 
 router = APIRouter()
+
+# A session counts as active while its sign-in was renewed recently (open tabs renew every
+# few minutes; access tokens last 5 minutes)
+ACTIVE_SESSION_WINDOW_SECONDS = 10 * 60
 
 class UserCreate(BaseModel):
     name: str
@@ -105,17 +110,25 @@ async def get_admin_stats(user: Dict[str, Any] = Depends(require_role("soc_admin
     """
     try:
         sessions = await keycloak_service.get_active_sessions()
+        # An open Nightshift tab renews its sign-in every few minutes, which updates the
+        # session's lastAccess. Sessions idle for longer belong to closed browsers: Keycloak
+        # keeps them until its idle timeout, but they are not in use.
+        cutoff_ms = (time.time() - ACTIVE_SESSION_WINDOW_SECONDS) * 1000
+        in_use = [s for s in sessions if (s.get("lastAccess") or s.get("start") or 0) >= cutoff_ms]
+        in_use.sort(key=lambda s: s.get("lastAccess") or 0, reverse=True)
         active_users = [
             {
                 "username": s.get("username"),
                 "ip": s.get("ipAddress"),
-                "start": s.get("start")
+                "start": s.get("start"),
+                "last_access": s.get("lastAccess")
             }
-            for s in sessions
+            for s in in_use
         ]
         return {
-            "active_sessions": len(sessions),
-            "active_users": active_users
+            "active_sessions": len(in_use),
+            "active_users": active_users,
+            "idle_sessions": len(sessions) - len(in_use)
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to fetch stats: {str(e)}")

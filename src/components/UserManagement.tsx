@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Activity, Search, RotateCcw, AlertCircle, AlertTriangle, Settings, X, ChevronDown, Check, Save, Shield, Flag, Lock, Unlock, Trash2, Users, UserPlus, Eye, EyeOff } from 'lucide-react';
 import { clsx } from 'clsx';
@@ -184,7 +184,7 @@ const StatusBadge = ({ status }: { status: string }) => {
     );
 };
 
-const TacticalTooltip = ({ isOpen, x, y, children, type = 'cyan', side = 'right', width = '320px' }: { isOpen: boolean, x: number, y: number, children: React.ReactNode, type?: 'cyan' | 'rose', side?: 'top' | 'right' | 'left', width?: string }) => {
+const TacticalTooltip = ({ isOpen, x, y, children, type = 'cyan', side = 'right', width = '320px', interactive = false, onMouseEnter, onMouseLeave }: { isOpen: boolean, x: number, y: number, children: React.ReactNode, type?: 'cyan' | 'rose', side?: 'top' | 'right' | 'left', width?: string, interactive?: boolean, onMouseEnter?: () => void, onMouseLeave?: () => void }) => {
     if (!isOpen) return null;
 
     return createPortal(
@@ -200,12 +200,15 @@ const TacticalTooltip = ({ isOpen, x, y, children, type = 'cyan', side = 'right'
                     animate={{ opacity: 1, x: 0, y: 0, scale: 1 }}
                     exit={{ opacity: 0, scale: 0.95 }}
                     transition={{ duration: 0.15, ease: "easeOut" }}
+                    onMouseEnter={onMouseEnter}
+                    onMouseLeave={onMouseLeave}
                     style={{
                         position: 'fixed',
                         left: x,
-                        top: y,
+                        // Interactive windows stay fully on screen (they are centred on y)
+                        top: interactive && side === 'right' ? Math.min(Math.max(y, 250), window.innerHeight - 250) : y,
                         zIndex: 999999,
-                        pointerEvents: 'none',
+                        pointerEvents: interactive ? 'auto' : 'none',
                         width: width
                     }}
                     className={cn(
@@ -240,6 +243,15 @@ const TacticalTooltip = ({ isOpen, x, y, children, type = 'cyan', side = 'right'
 const BentoStatCard = ({ icon: Icon, label, value, subValue, color, children, className, hoverDetail, tooltipWidth }: { icon: any, label: string, value?: string | number, subValue?: string, color?: string, children?: React.ReactNode, className?: string, hoverDetail?: React.ReactNode, tooltipWidth?: string }) => {
     const [isHovered, setIsHovered] = useState(false);
     const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+    // The detail window opens where the pointer entered and stays open while the pointer is
+    // over the number or the window (with a short grace period to cross the gap between them)
+    const closeTimer = useRef<number | undefined>(undefined);
+    const keepOpen = () => { window.clearTimeout(closeTimer.current); setIsHovered(true); };
+    const closeSoon = () => {
+        window.clearTimeout(closeTimer.current);
+        closeTimer.current = window.setTimeout(() => setIsHovered(false), 250);
+    };
+    useEffect(() => () => window.clearTimeout(closeTimer.current), []);
 
     const numColor = color === 'emerald' ? 'text-cyan-400' : color === 'rose' ? 'text-rose-400' : 'text-cyan-300';
     const iconColor = color === 'emerald' ? 'text-cyan-500/60' : color === 'rose' ? 'text-rose-500/60' : 'text-cyan-500/40';
@@ -277,6 +289,9 @@ const BentoStatCard = ({ icon: Icon, label, value, subValue, color, children, cl
                     y={mousePos.y}
                     type={color === 'rose' ? 'rose' : 'cyan'}
                     width={tooltipWidth}
+                    interactive
+                    onMouseEnter={keepOpen}
+                    onMouseLeave={closeSoon}
                 >
                     {hoverDetail}
                 </TacticalTooltip>
@@ -287,9 +302,8 @@ const BentoStatCard = ({ icon: Icon, label, value, subValue, color, children, cl
             </div>
             {value !== undefined && (
                 <p
-                    onMouseMove={(e) => setMousePos({ x: e.clientX, y: e.clientY })}
-                    onMouseEnter={() => setIsHovered(true)}
-                    onMouseLeave={() => setIsHovered(false)}
+                    onMouseEnter={(e) => { if (!isHovered) setMousePos({ x: e.clientX, y: e.clientY }); keepOpen(); }}
+                    onMouseLeave={closeSoon}
                     className={cn("text-3xl font-bold font-mono tracking-tight leading-none relative z-10 transition-transform duration-300 group-hover:translate-x-0.5", numColor, !!hoverDetail && "cursor-help")}
                 >
                     {value}
@@ -1088,9 +1102,11 @@ export const UserManagement = () => {
                                                     : '--:--';
                                                 const durationMs = session.start ? Date.now() - session.start : 0;
                                                 const durationMin = Math.max(1, Math.floor(durationMs / 60000));
-                                                const durationStr = durationMin >= 60 
-                                                    ? `${Math.floor(durationMin / 60)}h ${durationMin % 60}m` 
+                                                const durationStr = durationMin >= 60
+                                                    ? `${Math.floor(durationMin / 60)}h ${durationMin % 60}m`
                                                     : `${durationMin}m`;
+                                                const idleMin = session.last_access ? Math.floor((Date.now() - session.last_access) / 60000) : null;
+                                                const lastActive = idleMin === null ? '--' : idleMin < 1 ? 'Just now' : `${idleMin}m ago`;
 
                                                 return (
                                                     <div key={idx} className="space-y-2 border-l-2 border-cyan-500/30 pl-3 py-1 bg-cyan-500/[0.01]">
@@ -1109,6 +1125,10 @@ export const UserManagement = () => {
                                                         <div className="flex items-center justify-between">
                                                             <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Session Time</span>
                                                             <span className="text-[11px] font-black text-cyan-400">{durationStr}</span>
+                                                        </div>
+                                                        <div className="flex items-center justify-between">
+                                                            <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Last Active</span>
+                                                            <span className="text-[11px] font-black text-emerald-300">{lastActive}</span>
                                                         </div>
                                                         {idx < activeUsersList.length - 1 && <div className="h-[1px] bg-white/5 mt-2" />}
                                                     </div>
