@@ -11,11 +11,14 @@ for security and privacy reviews.
 | **Threat-intelligence services** | Public indicators only (public IPs, domains, URLs, hashes, emails, CVE IDs) | When an alert is AI-scanned | Do not configure those services |
 | **Your SOAR** | Case title, description with the AI analysis, indicators | On escalation | Choose "none" |
 | **Your Wazuh API** | Your Wazuh API credentials | Health check every 15 s | Leave the API settings empty |
+| **MITRE's ATT&CK repository** (raw.githubusercontent.com) | Nothing about you: a download of MITRE's public ATT&CK data | Once a day, and only a new ATT&CK release is downloaded | `MITRE_AUTO_UPDATE=false` |
 | **BlueSec's image registry** | Your registry account, to download the Nightshift images (no alert or configuration data) | Installing and upgrading, small package only | Use the full package |
 | **BlueSec** (otherwise) | Nothing | Never | — |
 
-Nightshift has no telemetry: the running application makes no calls to BlueSec. The
-MITRE ATT&CK data and all fonts are bundled.
+Nightshift has no telemetry: the running application makes no calls to BlueSec. All
+fonts are bundled. The MITRE ATT&CK data is bundled too (the newest release at the time
+of the Nightshift release) and, unless turned off, kept up to date from MITRE's official
+repository.
 
 ## Which alerts are analyzed
 

@@ -24,6 +24,7 @@ Install Docker from https://docs.docker.com/engine/install/ if needed.
 | Outbound | 443/TCP | Your LLM provider and threat-intelligence services, if you use cloud ones (see DATA-FLOWS.md) |
 | Outbound | Your SIEM / SOAR | Wazuh API (55000) for health checks; your case-management system |
 | Outbound | 443/TCP to the image registry | Small package only: downloading the images when installing and upgrading |
+| Outbound | 443/TCP to raw.githubusercontent.com | Optional: new MITRE ATT&CK releases (checked daily; without access, the bundled version is used) |
 
 Nothing else is exposed: the database, cache, identity server and API are only
 reachable inside the server.

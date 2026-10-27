@@ -31,7 +31,17 @@ apply the change with `nsc up -d`. What is configured where:
 | Internal passwords and the encryption key | LLM provider, models and prompts |
 | Keycloak admin console on/off | Threat-intelligence API keys |
 | Branding | AI-scan thresholds, auto-escalation |
-| | User accounts |
+| MITRE ATT&CK updates on/off (`MITRE_AUTO_UPDATE`) | User accounts |
+
+### MITRE ATT&CK updates
+
+The ATT&CK matrix (Statistics) always uses the newest MITRE ATT&CK Enterprise release
+available. Each Nightshift release bundles the newest one at the time; after that,
+Nightshift checks MITRE's official repository once a day and switches to a new release
+(new tactics, techniques and sub-techniques) without a restart. The matrix shows the
+version in use and when it was last checked; administrators can also click **Check for
+updates**. On servers without internet access the bundled version is used; set
+`MITRE_AUTO_UPDATE=false` in `nightshift.env` to turn the daily check off.
 
 API keys entered in the web interface are stored encrypted with
 `NIGHTSHIFT_SECRET_KEY`. **Never lose or change that key**: without it, stored API keys

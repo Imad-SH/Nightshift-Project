@@ -26,7 +26,7 @@ INFRA_KEYS = frozenset({
     "postgres_server", "postgres_user", "postgres_password", "postgres_db",
     "redis_host", "redis_port", "redis_db", "redis_password",
     "keycloak_server_url", "keycloak_admin_user", "keycloak_admin_password",
-    "mitre_data_file",
+    "mitre_data_file", "mitre_update_dir", "mitre_auto_update",
 })
 
 

@@ -95,6 +95,7 @@ services:
       SOCKETIO_CORS_ALLOWED_ORIGINS: ${NIGHTSHIFT_PUBLIC_URL}
       VENDOR_NAME: ${VENDOR_NAME:-BlueSec}
       PRODUCT_NAME: ${PRODUCT_NAME:-Nightshift}
+      MITRE_AUTO_UPDATE: ${MITRE_AUTO_UPDATE:-true}
     volumes:
       - downloads:/app/downloads
     depends_on:

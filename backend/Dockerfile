@@ -13,17 +13,19 @@ FROM base AS deps
 COPY requirements.txt .
 RUN pip install --prefix=/install -r requirements.txt
 
-# MITRE ATT&CK Enterprise bundle, pinned and baked in so the matrix works on offline installs
+# MITRE ATT&CK Enterprise bundle, baked in so the matrix works on offline installs.
+# release.sh passes the newest published version; the backend then keeps it up to date.
 FROM base AS mitre
-ARG MITRE_ATTACK_VERSION=ATT%26CK-v20.0
-ADD https://raw.githubusercontent.com/mitre/cti/${MITRE_ATTACK_VERSION}/enterprise-attack/enterprise-attack.json /mitre/enterprise-attack.json
+ARG MITRE_ATTACK_VERSION=20.0
+ADD https://raw.githubusercontent.com/mitre-attack/attack-stix-data/master/enterprise-attack/enterprise-attack-${MITRE_ATTACK_VERSION}.json /mitre/enterprise-attack.json
+RUN printf '{"version": "%s"}\n' "$MITRE_ATTACK_VERSION" > /mitre/enterprise-attack.meta.json
 
 FROM base
 COPY --from=deps /install /usr/local
 RUN useradd --system --uid 10001 --home-dir /app --shell /usr/sbin/nologin nightshift
 COPY --chown=nightshift:nightshift . .
-COPY --from=mitre --chown=nightshift:nightshift /mitre/enterprise-attack.json data/mitre/enterprise-attack.json
-RUN mkdir -p downloads && chown nightshift:nightshift downloads
+COPY --from=mitre --chown=nightshift:nightshift /mitre/ data/mitre/
+RUN mkdir -p downloads data/mitre-updates && chown nightshift:nightshift downloads data/mitre-updates
 USER nightshift
 
 EXPOSE 8000

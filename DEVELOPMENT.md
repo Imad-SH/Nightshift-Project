@@ -86,6 +86,10 @@ SIEM alerts then arrive on `POST /api/ingest/<connector id>` with the source's t
                                      # small package (~20 KB): images pushed to the registry
 ```
 
+Each release bundles the newest MITRE ATT&CK Enterprise version published at the time
+(looked up in MITRE's `attack-stix-data` index; installations then keep it up to date
+themselves, see `app/services/mitre_service.py`).
+
 The kit (`release/nightshift-<version>.tar.gz`, with its `.sha256`) is what clients
 install. Before shipping a release, install it on a clean Linux server and run an
 upgrade from the previous version. Then tag the commit it was built from

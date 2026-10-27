@@ -93,6 +93,9 @@ async def lifespan(app: FastAPI):
 
     # Start Health Monitor
     integrations.start_monitor()
+    # Keep MITRE ATT&CK up to date with MITRE's releases (daily check)
+    from app.services import mitre_service
+    mitre_service.start_updater()
     
     yield
     # Shutdown

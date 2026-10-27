@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 
 import { useSocAuth } from '../contexts/AuthContext';
 import { cn } from './DashboardLayout';
-import { Loader2, ChevronRight, ChevronDown } from 'lucide-react';
+import { Loader2, ChevronRight, ChevronDown, RefreshCw } from 'lucide-react';
 import { TimeFilterControl } from './TimeFilterControl';
 import { apiBase } from '../config';
 
@@ -24,7 +24,7 @@ export const MitreMatrix = ({
     relativeTime: any,
     setRelativeTime: (v: any) => void
 }) => {
-    const { token } = useSocAuth();
+    const { token, isSocAdmin } = useSocAuth();
     const [matrix, setMatrix] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [hoveredTech, setHoveredTech] = useState<{ tech: any, rect: DOMRect, clientX: number, clientY: number, isSub: boolean } | null>(null);
@@ -58,26 +58,67 @@ export const MitreMatrix = ({
         });
     };
 
-    useEffect(() => {
-        const fetchMatrix = async () => {
-            if (!token) return;
-            try {
-                const baseUrl = apiBase();
-                const resp = await fetch(`${baseUrl}/api/mitre/matrix`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-                if (resp.ok) {
-                    const data = await resp.json();
-                    setMatrix(data);
-                }
-            } catch (e) {
-                console.error("Failed to fetch MITRE matrix", e);
-            } finally {
-                setLoading(false);
+    // ATT&CK version in use and the last update check (the backend follows MITRE's releases)
+    const [attack, setAttack] = useState<any>(null);
+    const [checking, setChecking] = useState(false);
+
+    const fetchMatrix = async () => {
+        if (!token) return;
+        try {
+            const baseUrl = apiBase();
+            const resp = await fetch(`${baseUrl}/api/mitre/matrix`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (resp.ok) {
+                const data = await resp.json();
+                setMatrix(data);
             }
-        };
+            const st = await fetch(`${baseUrl}/api/mitre/status`, { headers: { 'Authorization': `Bearer ${token}` } });
+            if (st.ok) setAttack(await st.json());
+        } catch (e) {
+            console.error("Failed to fetch MITRE matrix", e);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
         fetchMatrix();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [token]);
+
+    const checkForUpdates = async () => {
+        if (!token) return;
+        setChecking(true);
+        try {
+            const resp = await fetch(`${apiBase()}/api/mitre/update`, {
+                method: 'POST', headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (resp.ok) {
+                const next = await resp.json();
+                const changed = next.version !== attack?.version;
+                setAttack(next);
+                if (changed) await fetchMatrix();
+            }
+        } catch (e) {
+            console.error("MITRE update check failed", e);
+        } finally {
+            setChecking(false);
+        }
+    };
+
+    const attackState = !attack?.version ? null
+        : attack.error ? { dot: 'bg-amber-400', label: 'Last update check failed' }
+        : attack.up_to_date ? { dot: 'bg-emerald-400', label: 'Up to date' }
+        : attack.latest_version ? { dot: 'bg-amber-400', label: `v${attack.latest_version} available` }
+        : !attack.auto_update ? { dot: 'bg-slate-400', label: 'Automatic updates off' }
+        : { dot: 'bg-cyan-400', label: 'Checked daily' };
+    const attackTitle = attack?.version
+        ? [`MITRE ATT&CK Enterprise v${attack.version}`,
+           attack.released ? `released ${String(attack.released).slice(0, 10)}` : '',
+           attack.checked_at ? `last checked ${new Date(attack.checked_at).toLocaleString()}` : 'not checked yet',
+           attack.error ? `error: ${attack.error}` : ''].filter(Boolean).join(' · ')
+        : '';
 
     // Calculate technique frequencies + per-rule breakdown from alerts
     const frequencies = useMemo(() => {
@@ -237,7 +278,27 @@ export const MitreMatrix = ({
                     <h2 className="text-2xl font-mono font-black text-white uppercase tracking-[0.3em] flex items-center gap-3 drop-shadow-[0_0_15px_rgba(34,211,238,0.5)]">
                         MITRE ATT&CK® Matrix
                     </h2>
-                    <p className="text-[10px] text-cyan-400/70 font-mono mt-2 tracking-widest uppercase font-bold">Live Dynamic Mapping</p>
+                    <div className="flex items-center gap-3 mt-2 flex-wrap">
+                        <p className="text-[10px] text-cyan-400/70 font-mono tracking-widest uppercase font-bold">Live Dynamic Mapping</p>
+                        {attack?.version && attackState && (
+                            <span title={attackTitle}
+                                className="inline-flex items-center gap-2 px-2.5 py-1 rounded-lg border border-cyan-500/20 bg-slate-950/40 text-[9px] font-mono uppercase tracking-[0.15em] text-cyan-200/80">
+                                <span className={cn("h-1.5 w-1.5 rounded-full", attackState.dot)} />
+                                ATT&CK v{attack.version}
+                                <span className="text-cyan-500/40">|</span>
+                                {attack.techniques} techniques · {attack.subtechniques} sub-techniques
+                                <span className="text-cyan-500/40">|</span>
+                                <span className="text-cyan-300/60">{attackState.label}</span>
+                            </span>
+                        )}
+                        {isSocAdmin && attack?.version && (
+                            <button onClick={checkForUpdates} disabled={checking}
+                                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-cyan-500/30 text-[9px] font-mono font-bold uppercase tracking-[0.15em] text-cyan-300/80 hover:text-cyan-200 hover:border-cyan-400/60 hover:bg-cyan-500/10 transition-colors disabled:opacity-60">
+                                <RefreshCw size={11} className={cn(checking && "animate-spin")} />
+                                {checking ? 'Checking...' : 'Check for updates'}
+                            </button>
+                        )}
+                    </div>
                 </div>
                 
                 <div className="flex items-center gap-6">

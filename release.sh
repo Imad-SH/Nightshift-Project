@@ -40,7 +40,19 @@ LABELS=(--label "org.opencontainers.image.version=$VERSION" --label "org.opencon
         --label "org.opencontainers.image.vendor=BlueSec")
 
 echo "== Building images for $VERSION ($REVISION)"
-docker build "${LABELS[@]}" -t "nightshift-backend:$VERSION" backend/
+# Bundle the newest MITRE ATT&CK release (the Dockerfile's default when MITRE is unreachable)
+MITRE_ARGS=()
+MITRE_DATA="https://raw.githubusercontent.com/mitre-attack/attack-stix-data/master"
+mitre_latest="$(curl -fsSL --max-time 30 "$MITRE_DATA/index.json" 2>/dev/null \
+  | tr -d '\n' | grep -o '"name": *"Enterprise ATT&CK".*' | grep -o '"version": *"[0-9][0-9.]*"' \
+  | grep -o '[0-9][0-9.]*' | sort -t. -k1,1n -k2,2n | tail -n1 || true)"
+if [ -n "$mitre_latest" ] && curl -fsI --max-time 30 "$MITRE_DATA/enterprise-attack/enterprise-attack-$mitre_latest.json" >/dev/null 2>&1; then
+  MITRE_ARGS=(--build-arg "MITRE_ATTACK_VERSION=$mitre_latest")
+  echo "== MITRE ATT&CK $mitre_latest (newest published)"
+else
+  echo "== MITRE ATT&CK: index unreachable, bundling the Dockerfile's default version"
+fi
+docker build "${LABELS[@]}" "${MITRE_ARGS[@]}" -t "nightshift-backend:$VERSION" backend/
 docker build "${LABELS[@]}" -t "nightshift-web:$VERSION" .
 docker build "${LABELS[@]}" --build-context theme=backend/keycloak-theme -t "nightshift-keycloak:$VERSION" deploy/keycloak
 for image in $THIRD_PARTY; do docker image inspect "$image" >/dev/null 2>&1 || docker pull "$image"; done

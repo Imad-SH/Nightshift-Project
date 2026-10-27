@@ -31,6 +31,11 @@ class Settings(BaseSettings):
     # MITRE ATT&CK Enterprise STIX bundle. Relative paths resolve against the backend root.
     # Shipped inside the image so the matrix works offline; downloaded on first use otherwise.
     mitre_data_file: str = "data/mitre/enterprise-attack.json"
+    # Check MITRE's published ATT&CK versions daily and switch to a newer one when released
+    # (MITRE_AUTO_UPDATE=false keeps the bundled version, e.g. on servers without internet).
+    mitre_auto_update: bool = True
+    # Where a downloaded newer version is kept
+    mitre_update_dir: str = "data/mitre-updates"
     
     # CORS Settings
     frontend_url: str = "http://localhost:5173"
