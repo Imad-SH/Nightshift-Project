@@ -1,4 +1,7 @@
-"""Generic webhook: send escalations as JSON to any SOAR or automation tool (Shuffle, Tines, Splunk SOAR, XSOAR, ...)."""
+"""Generic webhook: send escalations as Nightshift's own JSON event to a webhook URL.
+
+The receiver maps the fields itself (e.g. a Shuffle or Tines workflow). Platforms whose case API
+expects its own request format cannot take this event directly."""
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
@@ -34,8 +37,8 @@ def _indicators(node_results: Dict[str, Any]) -> List[Dict[str, str]]:
 class WebhookSoarConnector(SoarConnector):
     id = "webhook"
     name = "Generic Webhook"
-    description = ("Sends each escalation as a JSON event to any SOAR or automation platform that accepts "
-                   "webhooks: Shuffle, Tines, Splunk SOAR, Cortex XSOAR and more.")
+    description = ("Sends each escalation as a JSON event to a webhook URL. The receiving platform turns it "
+                   "into a case, for example with a Shuffle or Tines workflow.")
     logo = None
     # Testing delivers an event to the receiver, so only on demand
     background_health_check = False

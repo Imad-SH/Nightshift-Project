@@ -1,4 +1,4 @@
-"""Generic webhook: any SIEM or tool that can POST an alert as JSON (Splunk, Elastic, Sentinel, QRadar, ...)."""
+"""Generic webhook: any SIEM or tool that can POST an alert as JSON (Splunk, Elastic, Sentinel, Graylog, ...)."""
 import hashlib
 import json
 import uuid
@@ -103,8 +103,8 @@ def _timestamp(value: Any) -> datetime:
 class GenericWebhookConnector(SiemConnector):
     id = "webhook"
     name = "Generic Webhook"
-    description = ("Any SIEM or tool that can send an alert as JSON over HTTPS: Splunk, Elastic Security, "
-                   "Microsoft Sentinel, IBM QRadar, Graylog and more.")
+    description = ("Any SIEM or tool that can send an alert as JSON in an HTTP request, natively or from a "
+                   "playbook: Splunk, Elastic Security, Microsoft Sentinel, Graylog.")
     logo = None
     fields = [
         ConnectorField("webhook_source_name", "Source name", placeholder="Splunk",

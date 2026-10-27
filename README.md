@@ -37,12 +37,12 @@ around the clock, so analysts spend their time on real incidents.
 
 ```mermaid
 flowchart LR
-    SIEM["Your SIEM<br/>Wazuh, Splunk, Elastic,<br/>Sentinel, QRadar..."] -->|alerts in real time| A1
+    SIEM["Your SIEM<br/>Wazuh, Splunk, Elastic,<br/>Sentinel, Graylog"] -->|alerts in real time| A1
     subgraph NS["Nightshift"]
         direction LR
         A1["① Extract<br/>indicators"] --> A2["② Investigate<br/>threat intelligence<br/>+ internal context"] --> A3["③ Verdict<br/>evidence, MITRE,<br/>mitigation"]
     end
-    A3 -->|real threats| SOAR["Case management<br/>TheHive, Flowintel,<br/>any SOAR"]
+    A3 -->|real threats| SOAR["Case management<br/>TheHive, Flowintel,<br/>Shuffle, Tines"]
     A3 -->|live dashboard| SOC["Your analysts"]
 ```
 
@@ -76,8 +76,8 @@ role management, a sign-in activity log, and automatic escalation rules.
 
 | | |
 |---|---|
-| **SIEM** | Wazuh (native connector), plus Splunk, Elastic Security, Microsoft Sentinel, IBM QRadar, Graylog and any tool that can send a webhook |
-| **Case management** | TheHive, Flowintel, plus Shuffle, Tines, Splunk SOAR, Cortex XSOAR and any webhook-based platform |
+| **SIEM** | Wazuh (native connector), plus any SIEM that can send its alerts as JSON in an HTTP request, natively or from a playbook: Splunk, Elastic Security, Microsoft Sentinel, Graylog |
+| **Case management** | TheHive and Flowintel (native connectors), plus automation platforms that receive a webhook, such as Shuffle or Tines |
 | **AI models** | Nebius AI, OpenAI, Anthropic, Google Gemini, any OpenAI-compatible service, or a local model (Ollama, vLLM) |
 | **Threat intelligence** | VirusTotal, AbuseIPDB, URLScan, AlienVault OTX, Hybrid Analysis, GreyNoise, Shodan, ThreatFox, MxToolbox, EmailRep, NVD, and your own sources |
 
