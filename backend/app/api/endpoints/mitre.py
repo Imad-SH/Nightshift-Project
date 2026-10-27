@@ -23,6 +23,16 @@ async def get_matrix():
         raise HTTPException(status_code=500, detail="Failed to fetch MITRE data")
 
 
+@router.get("/tactics")
+async def get_tactics():
+    """The tactics of the ATT&CK version in use, in MITRE's order (for charts)."""
+    try:
+        await mitre_service.ensure_loaded()
+    except Exception as e:
+        logger.error(f"Failed to load MITRE data: {e}")
+    return mitre_service.tactics()
+
+
 @router.get("/status")
 async def get_status():
     """ATT&CK version in use, its size, and the result of the last update check."""

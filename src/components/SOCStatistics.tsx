@@ -34,8 +34,25 @@ const MITRE_TACTICS = [
 
 const MITREBarChart = ({ timeframe, startDate, endDate, monthlyNavigator }: any) => {
     const { token } = useSocAuth();
-    const [data, setData] = useState<{ tactic: string; count: number }[]>([]);
+    const [stats, setStats] = useState<{ tactic: string; count: number }[]>([]);
     const [loading, setLoading] = useState(true);
+    // Tactics of the ATT&CK version the backend uses (kept up to date with MITRE); the list
+    // above is only the fallback when it cannot be loaded
+    const [tactics, setTactics] = useState<string[]>(MITRE_TACTICS);
+
+    useEffect(() => {
+        if (!token) return;
+        fetch(`${apiBase()}/api/mitre/tactics`, { headers: { 'Authorization': `Bearer ${token}` } })
+            .then(r => (r.ok ? r.json() : []))
+            .then((list: { name: string }[]) => { if (Array.isArray(list) && list.length) setTactics(list.map(t => t.name)); })
+            .catch(() => {});
+    }, [token]);
+
+    // One bar per tactic, in MITRE's order; tactic names outside it still show when they have alerts
+    const data = useMemo(() => {
+        const extra = stats.filter(s => s.count > 0 && !tactics.includes(s.tactic)).map(s => s.tactic);
+        return [...tactics, ...extra].map(t => ({ tactic: t, count: stats.find(s => s.tactic === t)?.count || 0 }));
+    }, [stats, tactics]);
 
     useEffect(() => {
         const fetchStats = async () => {
@@ -62,14 +79,8 @@ const MITREBarChart = ({ timeframe, startDate, endDate, monthlyNavigator }: any)
                 const resp = await fetch(url, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
-                const stats = await resp.json();
-                
-                // Map to the standard MITRE_TACTICS list to ensure all bars are present
-                const mapped = MITRE_TACTICS.map(t => ({
-                    tactic: t,
-                    count: stats.find((s: any) => s.tactic === t)?.count || 0
-                }));
-                setData(mapped);
+                const result = await resp.json();
+                setStats(Array.isArray(result) ? result : []);
             } catch (err) {
                 console.error("Error fetching MITRE stats:", err);
             } finally {
@@ -84,7 +95,7 @@ const MITREBarChart = ({ timeframe, startDate, endDate, monthlyNavigator }: any)
     const maxCount = Math.max(...data.map(d => d.count), 1);
 
     return (
-        <div className="w-full flex items-stretch gap-1 mt-4 h-[270px] xl:h-[310px]">
+        <div className="w-full flex items-stretch gap-1 mt-4 pl-6 h-[270px] xl:h-[310px]">
             {data.map((item, i) => {
                 const height = item.count > 0 ? (item.count / maxCount) * 100 : 0;
                 return (
@@ -650,7 +661,7 @@ export const SOCStatistics: React.FC = () => {
                                                 <div className="absolute top-full left-0 mt-3 w-64 opacity-0 group-hover/tooltip:opacity-100 -translate-y-2 group-hover/tooltip:translate-y-0 pointer-events-none transition-all duration-300 z-50">
                                                     <div className="bg-slate-900 backdrop-blur-xl border border-cyan-500/50 rounded-xl shadow-[0_20px_40px_rgba(0,0,0,0.8),0_0_20px_rgba(34,211,238,0.2)] p-3.5 text-[9.5px] font-mono text-cyan-50 leading-relaxed text-left relative">
                                                         <div className="absolute -top-1.5 left-[9px] w-3 h-3 bg-slate-900 border-t border-l border-cyan-500/50 rotate-45 rounded-[1px]" />
-                                                        <div className="relative z-10">Maps detected alerts to the MITRE ATT&CK® framework — a globally recognized knowledge base of adversary tactics and techniques. Each bar represents a tactical phase (e.g. Initial Access, Defense Evasion) and shows how many alerts were classified under it over the selected period.</div>
+                                                        <div className="relative z-10">Maps detected alerts to the MITRE ATT&CK® framework — a globally recognized knowledge base of adversary tactics and techniques. Each bar represents a tactical phase of the ATT&CK version in use (e.g. Initial Access, Credential Access) and shows how many alerts were classified under it over the selected period.</div>
                                                     </div>
                                                 </div>
                                             </div>

@@ -518,18 +518,25 @@ class AlertService:
             
         result = await db.execute(query)
         rows = result.scalars().all()
-        
+
+        # Tactics follow the ATT&CK version in use: alerts are placed by their technique IDs
+        from app.services import mitre_service
+        try:
+            await mitre_service.ensure_loaded()
+        except Exception as e:
+            print(f"⚠️ [MITRE] ATT&CK data unavailable, using the alerts' own tactic names: {e}")
+
+        def as_list(value):
+            if isinstance(value, list):
+                return value
+            return [value] if value else []
+
         tactics_map = {}
         for raw in rows:
-            t_list = raw.get('rule', {}).get('mitre', {}).get('tactic', [])
-            if not isinstance(t_list, list):
-                t_list = [t_list] if t_list else []
-            
-            for t in t_list:
-                # Capitalize for display consistency
-                t_formatted = t.replace('-', ' ').title()
-                tactics_map[t_formatted] = tactics_map.get(t_formatted, 0) + 1
-        
+            mitre = ((raw or {}).get('rule') or {}).get('mitre') or {}
+            for t in mitre_service.tactics_of_alert(as_list(mitre.get('id')), as_list(mitre.get('tactic'))):
+                tactics_map[t] = tactics_map.get(t, 0) + 1
+
         return [{"tactic": k, "count": v} for k, v in tactics_map.items()]
 
     @staticmethod

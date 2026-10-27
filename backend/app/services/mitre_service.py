@@ -228,6 +228,62 @@ async def get_mitre_matrix() -> List[Dict[str, Any]]:
     return _cache["matrix"]
 
 
+# ---- tactics of alerts -------------------------------------------------------------------
+
+# Tactic names from older ATT&CK releases that SIEMs still send, mapped to the tactic ID
+# that now carries them. ATT&CK v20 renamed Defense Evasion (TA0005) to Stealth when it split
+# off Defense Impairment (TA0112).
+LEGACY_TACTIC_IDS = {"defense evasion": "TA0005"}
+
+
+def _index() -> Dict[str, Any]:
+    """Lookups built from the loaded matrix (rebuilt when the matrix changes)."""
+    matrix = _cache["matrix"] or []
+    if _cache.get("index_of") is not matrix:
+        names = {t["shortname"]: t["name"] for t in matrix}
+        technique_tactics: Dict[str, List[str]] = {}
+        for tactic in matrix:
+            for technique in tactic["techniques"]:
+                for item in [technique] + technique["subtechniques"]:
+                    technique_tactics.setdefault(item["t_code"], [names[s] for s in item["tactics"] if s in names])
+        _cache["index"] = {
+            "tactics": [{"id": t["id"], "name": t["name"], "shortname": t["shortname"]} for t in matrix],
+            "technique_tactics": technique_tactics,
+            "by_name": {t["name"].lower(): t["name"] for t in matrix},
+            "by_id": {t["id"]: t["name"] for t in matrix},
+        }
+        _cache["index_of"] = matrix
+    return _cache["index"]
+
+
+def tactics() -> List[Dict[str, str]]:
+    """The tactics of the loaded ATT&CK version, in MITRE's order."""
+    return _index()["tactics"]
+
+
+def tactics_of_alert(technique_ids: List[Any], tactic_names: List[Any]) -> List[str]:
+    """
+    The current ATT&CK tactics an alert belongs to. Its technique IDs decide when the loaded
+    ATT&CK knows them (technique IDs are stable, while tactics get renamed and split); otherwise
+    the tactic names it carries are used, older names mapped to their successor.
+    """
+    index = _index()
+    found: List[str] = []
+    for technique_id in technique_ids:
+        for name in index["technique_tactics"].get(str(technique_id).strip().upper(), []):
+            if name not in found:
+                found.append(name)
+    if found:
+        return found
+    for raw in tactic_names:
+        key = str(raw).replace("-", " ").strip().lower()
+        name = index["by_name"].get(key) or index["by_id"].get(LEGACY_TACTIC_IDS.get(key, "")) \
+            or str(raw).replace("-", " ").title()
+        if name not in found:
+            found.append(name)
+    return found
+
+
 # ---- updates ---------------------------------------------------------------------------
 
 def latest_enterprise(index: Dict[str, Any]) -> Dict[str, str]:

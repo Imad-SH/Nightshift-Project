@@ -3,7 +3,8 @@ import { createPortal } from 'react-dom';
 
 import { useSocAuth } from '../contexts/AuthContext';
 import { cn } from './DashboardLayout';
-import { Loader2, ChevronRight, ChevronDown, RefreshCw } from 'lucide-react';
+import { Loader2, ChevronRight, ChevronDown, RefreshCw, CheckCircle2, Sparkles, AlertTriangle } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { TimeFilterControl } from './TimeFilterControl';
 import { apiBase } from '../config';
 
@@ -87,21 +88,41 @@ export const MitreMatrix = ({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [token]);
 
+    // Outcome of the last "Check for updates", shown briefly next to the button
+    // The button keeps its normal width while it shows a result, so nothing around it moves
+    const [buttonWidth, setButtonWidth] = useState<number | undefined>(undefined);
+    const [checkResult, setCheckResult] = useState<{ kind: 'current' | 'updated' | 'failed'; text: string; detail?: string } | null>(null);
+    const resultTimer = useRef<number | undefined>(undefined);
+    const showResult = (result: { kind: 'current' | 'updated' | 'failed'; text: string; detail?: string }) => {
+        setCheckResult(result);
+        window.clearTimeout(resultTimer.current);
+        resultTimer.current = window.setTimeout(() => setCheckResult(null), 6000);
+    };
+    useEffect(() => () => window.clearTimeout(resultTimer.current), []);
+
     const checkForUpdates = async () => {
         if (!token) return;
         setChecking(true);
+        setCheckResult(null);
+        const before = attack?.version;
         try {
             const resp = await fetch(`${apiBase()}/api/mitre/update`, {
                 method: 'POST', headers: { 'Authorization': `Bearer ${token}` }
             });
-            if (resp.ok) {
-                const next = await resp.json();
-                const changed = next.version !== attack?.version;
-                setAttack(next);
-                if (changed) await fetchMatrix();
+            if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+            const next = await resp.json();
+            setAttack(next);
+            if (next.version && next.version !== before) {
+                await fetchMatrix();
+                showResult({ kind: 'updated', text: `Updated to v${next.version}` });
+            } else if (next.error) {
+                showResult({ kind: 'failed', text: 'Check failed', detail: `${next.error} (keeping v${next.version})` });
+            } else {
+                showResult({ kind: 'current', text: 'Up to date' });
             }
-        } catch (e) {
+        } catch (e: any) {
             console.error("MITRE update check failed", e);
+            showResult({ kind: 'failed', text: 'Check failed', detail: e?.message });
         } finally {
             setChecking(false);
         }
@@ -292,11 +313,44 @@ export const MitreMatrix = ({
                             </span>
                         )}
                         {isSocAdmin && attack?.version && (
-                            <button onClick={checkForUpdates} disabled={checking}
-                                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-cyan-500/30 text-[9px] font-mono font-bold uppercase tracking-[0.15em] text-cyan-300/80 hover:text-cyan-200 hover:border-cyan-400/60 hover:bg-cyan-500/10 transition-colors disabled:opacity-60">
-                                <RefreshCw size={11} className={cn(checking && "animate-spin")} />
-                                {checking ? 'Checking...' : 'Check for updates'}
-                            </button>
+                            /* The button itself shows the outcome for a few seconds, then returns */
+                            <motion.button onClick={checkForUpdates} disabled={checking}
+                                ref={(el: HTMLButtonElement | null) => { if (el && buttonWidth === undefined && !checking && !checkResult) setButtonWidth(el.offsetWidth); }}
+                                style={{ width: buttonWidth }}
+                                title={checkResult?.detail}
+                                transition={{ type: 'spring', stiffness: 420, damping: 30 }}
+                                className={cn(
+                                    "inline-flex items-center justify-center gap-1.5 px-2.5 py-1 rounded-lg border text-[9px] font-mono font-bold uppercase tracking-[0.15em] whitespace-nowrap transition-colors duration-500 overflow-hidden",
+                                    !checkResult && "border-cyan-500/30 text-cyan-300/80 hover:text-cyan-200 hover:border-cyan-400/60 hover:bg-cyan-500/10 disabled:opacity-60",
+                                    checkResult?.kind === 'failed' && "border-amber-400/50 bg-amber-500/10 text-amber-200",
+                                    checkResult && checkResult.kind !== 'failed' && "border-emerald-400/50 bg-emerald-500/10 text-emerald-200 shadow-[0_0_14px_rgba(52,211,153,0.25)]"
+                                )}>
+                                <AnimatePresence mode="wait" initial={false}>
+                                    <motion.span key={checkResult ? `result-${checkResult.text}` : checking ? 'checking' : 'idle'}
+                                        role={checkResult ? 'status' : undefined}
+                                        initial={{ opacity: 0, y: 7 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -7 }}
+                                        transition={{ duration: 0.22, ease: [0.32, 0.72, 0, 1] }}
+                                        className="inline-flex items-center gap-1.5">
+                                        {checkResult ? (
+                                            <>
+                                                <span className="relative flex h-3 w-3 items-center justify-center">
+                                                    <span className={cn("absolute -inset-0.5 rounded-full animate-ping",
+                                                        checkResult.kind === 'failed' ? "bg-amber-400/30" : "bg-emerald-400/30")} />
+                                                    {checkResult.kind === 'failed' ? <AlertTriangle size={11} className="relative" />
+                                                        : checkResult.kind === 'updated' ? <Sparkles size={11} className="relative" />
+                                                        : <CheckCircle2 size={11} className="relative" />}
+                                                </span>
+                                                {checkResult.text}
+                                            </>
+                                        ) : (
+                                            <>
+                                                <RefreshCw size={11} className={cn(checking && "animate-spin")} />
+                                                {checking ? 'Checking...' : 'Check for updates'}
+                                            </>
+                                        )}
+                                    </motion.span>
+                                </AnimatePresence>
+                            </motion.button>
                         )}
                     </div>
                 </div>

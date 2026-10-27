@@ -156,3 +156,18 @@ def test_an_incomplete_download_is_rejected(mitre, monkeypatch):
     status = run(ms.check_for_update())
     assert status["version"] == "19.2" and "does not look like" in status["error"]
     assert not (mitre["tmp"] / "updates" / "enterprise-attack.json").exists()
+
+
+def test_alerts_are_placed_under_the_current_tactics(monkeypatch):
+    data = bundle("20.0")
+    # ATT&CK v20 renamed Defense Evasion (TA0005) to Stealth
+    data["objects"].append({"type": "x-mitre-tactic", "id": "x-mitre-tactic--stealth", "x_mitre_shortname": "stealth",
+                            "name": "Stealth", "external_references": [{"source_name": "mitre-attack", "external_id": "TA0005"}]})
+    monkeypatch.setattr(ms, "_cache", {"matrix": ms.build_matrix(data), "info": {}})
+    # A known technique decides, whatever tactic name the SIEM sent
+    assert ms.tactics_of_alert(["T1059.001"], ["Defense Evasion"]) == ["Execution"]
+    assert ms.tactics_of_alert(["T1078"], []) == ["Initial Access", "Execution"]
+    # Unknown technique: the tactic name is used, the old name mapped to its successor
+    assert ms.tactics_of_alert(["T9999"], ["Defense Evasion"]) == ["Stealth"]
+    assert ms.tactics_of_alert([], ["credential-access"]) == ["Credential Access"]
+    assert [t["name"] for t in ms.tactics()] == ["Reconnaissance", "Execution", "Initial Access", "Stealth"]
