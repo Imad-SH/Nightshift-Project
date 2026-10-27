@@ -104,9 +104,11 @@ if [ "$code" = 404 ]; then
   echo "GitHub Pages turned on"
 fi
 
-echo "Waiting for $PAGE_URL to show $VERSION (GitHub Pages takes a minute or two)..."
+echo "Waiting for $PAGE_URL to serve the new page (GitHub Pages takes a minute or two)..."
+# Compare the whole page: an older page of the same version would match a simpler check
+want="$(sha256sum "$ROOT/release/index.html" | cut -d" " -f1)"
 for _ in $(seq 1 60); do
-  curl -s "$PAGE_URL" | grep -q "Nightshift $VERSION" && { echo; echo "Published: $PAGE_URL"; exit 0; }
+  [ "$(curl -s -H "Cache-Control: no-cache" "$PAGE_URL" | sha256sum | cut -d" " -f1)" = "$want" ] && { echo; echo "Published: $PAGE_URL"; exit 0; }
   sleep 5
 done
 die "The page is not online yet. Check https://github.com/$REPO/settings/pages"
