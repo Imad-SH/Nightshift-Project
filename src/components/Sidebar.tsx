@@ -166,7 +166,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, setIsCollapsed, a
                             <img
                                 src={BRAND.productLogo}
                                 alt={BRAND.fullName}
-                                className="absolute top-1/2 -translate-y-1/2 left-[-16.5px] h-[61px] w-auto max-w-none"
+                                // Brighter so the blue end of "shift" stands out on the dark teal bar
+                                className="absolute top-1/2 -translate-y-1/2 left-[-16.5px] h-[61px] w-auto max-w-none brightness-150 saturate-[1.2]"
                             />
                         </div>
                     )}
