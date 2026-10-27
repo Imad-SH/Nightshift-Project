@@ -6,7 +6,7 @@ import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import {
     Check, ChevronRight, Copy, Eye, EyeOff, KeyRound, Loader2, Plug, RefreshCw, Save, Send,
-    ShieldAlert, Webhook, X, Zap, Radio, Briefcase, ArrowRight, Sparkles,
+    ShieldAlert, Webhook, X, Zap, ZapOff, Ban, Radio, Briefcase, ArrowRight,
 } from 'lucide-react';
 import { useSocAuth } from '../contexts/AuthContext';
 import { useSocket } from '../hooks/useSocket';
@@ -123,17 +123,22 @@ const StatusPill = ({ status }: { status: ConnectorStatus }) => {
     );
 };
 
-const ConnectorLogo = ({ connector, size = 'md' }: { connector: ConnectorView; size?: 'md' | 'lg' }) => {
-    const box = size === 'lg' ? 'w-14 h-14' : 'w-11 h-11';
+/** The connector's own logo (webhook icon for the generic connectors), sized to its box. */
+const LogoMark = ({ connector, iconSize = 20 }: { connector: ConnectorView; iconSize?: number }) => {
     const isFlowintel = connector.id === 'flowintel';
     const logo = connector.logo || (isFlowintel ? '/assets/flowintel_logo.png' : null);
+    return logo ? (
+        <img src={logo} alt={connector.name} className={cn('w-[80%] h-[80%] object-contain', isFlowintel && 'brightness-[2.5] contrast-[1.2]')} />
+    ) : (
+        <Webhook size={iconSize} className="text-cyan-300" />
+    );
+};
+
+const ConnectorLogo = ({ connector, size = 'md' }: { connector: ConnectorView; size?: 'md' | 'lg' }) => {
+    const box = size === 'lg' ? 'w-14 h-14' : 'w-11 h-11';
     return (
         <div className={cn(box, 'flex-shrink-0 rounded-xl flex items-center justify-center border border-cyan-500/30 bg-cyan-500/5 overflow-hidden')}>
-            {logo ? (
-                <img src={logo} alt={connector.name} className={cn('w-[80%] h-[80%] object-contain', isFlowintel && 'brightness-[2.5] contrast-[1.2]')} />
-            ) : (
-                <Webhook size={size === 'lg' ? 26 : 20} className="text-cyan-300" />
-            )}
+            <LogoMark connector={connector} iconSize={size === 'lg' ? 26 : 20} />
         </div>
     );
 };
@@ -516,20 +521,26 @@ const AutoEscalationPanel = ({ value, activeSoar, target, onSave }: { value: Aut
     };
     const disabled = activeSoar === 'none';
     const on = value.auto_escalation_enabled && !disabled;
+    // Off while a case-management system is ready: shown in red, alerts stop at the analysts
+    const off = !on && !disabled;
     const WORD = 'text-[10px] font-mono font-black uppercase tracking-[0.22em] text-cyan-400/60';
     return (
-        <section className={cn(
-            'relative rounded-3xl border-2 p-6 overflow-hidden transition-colors duration-500',
+        <section id="auto-escalation" className={cn(
+            'relative rounded-3xl border-2 p-6 overflow-hidden transition-colors duration-500 scroll-mt-6',
             on ? 'border-cyan-400/40 bg-gradient-to-r from-cyan-950/60 via-slate-900/95 to-slate-900/95 shadow-[0_0_40px_rgba(34,211,238,0.08)]'
+               : off ? 'border-rose-500/30 bg-gradient-to-r from-rose-950/40 via-slate-900/95 to-slate-900/95 shadow-[0_0_40px_rgba(244,63,94,0.06)]'
                : 'border-cyan-500/20 bg-gradient-to-r from-slate-900/95 via-slate-900/90 to-slate-900/95',
             disabled && 'opacity-60'
         )}>
             {on && <div className="absolute -top-24 -left-24 w-64 h-64 rounded-full bg-cyan-400/10 blur-3xl pointer-events-none" />}
+            {off && <div className="absolute -top-24 -left-24 w-64 h-64 rounded-full bg-rose-500/10 blur-3xl pointer-events-none" />}
             <div className="relative flex items-center justify-between gap-6 flex-wrap">
                 <div className="flex items-center gap-4">
                     <div className={cn('w-12 h-12 rounded-2xl flex items-center justify-center border transition-all duration-500',
-                        on ? 'border-cyan-300/60 bg-cyan-400/15 text-cyan-200 shadow-[0_0_24px_rgba(34,211,238,0.35)]' : 'border-slate-600 bg-slate-800/50 text-slate-500')}>
-                        <Zap size={20} className={cn(on && 'drop-shadow-[0_0_6px_rgba(165,243,252,0.8)]')} />
+                        on ? 'border-cyan-300/60 bg-cyan-400/15 text-cyan-200 shadow-[0_0_24px_rgba(34,211,238,0.35)]'
+                           : off ? 'border-rose-400/50 bg-rose-500/10 text-rose-300 shadow-[0_0_20px_rgba(244,63,94,0.2)]'
+                           : 'border-slate-600 bg-slate-800/50 text-slate-500')}>
+                        {off ? <ZapOff size={20} /> : <Zap size={20} className={cn(on && 'drop-shadow-[0_0_6px_rgba(165,243,252,0.8)]')} />}
                     </div>
                     <div>
                         <div className="text-lg font-black text-white tracking-[0.15em] uppercase">Auto-escalation</div>
@@ -541,7 +552,7 @@ const AutoEscalationPanel = ({ value, activeSoar, target, onSave }: { value: Aut
                     </div>
                 </div>
                 <div className="flex items-center gap-3">
-                    <span className={cn('text-[10px] font-mono font-black uppercase tracking-[0.25em]', on ? 'text-cyan-300' : 'text-slate-500')}>{on ? 'On' : 'Off'}</span>
+                    <span className={cn('text-[10px] font-mono font-black uppercase tracking-[0.25em]', on ? 'text-cyan-300' : off ? 'text-rose-300' : 'text-slate-500')}>{on ? 'On' : 'Off'}</span>
                     <button type="button" role="switch" aria-checked={value.auto_escalation_enabled} disabled={disabled} aria-label="Auto-escalation"
                         onClick={() => onSave({ auto_escalation_enabled: !value.auto_escalation_enabled })}
                         className={cn('relative w-14 h-7 rounded-full border transition-all flex-shrink-0', value.auto_escalation_enabled ? 'bg-cyan-500/40 border-cyan-400/60' : 'bg-slate-800 border-slate-600')}>
@@ -597,13 +608,16 @@ const AutoEscalationPanel = ({ value, activeSoar, target, onSave }: { value: Aut
 
 // ---- pipeline overview ----------------------------------------------------------------------
 
-const PipelineNode = ({ icon: Icon, title, value, detail, ok, center }: { icon: any; title: string; value: string; detail: string; ok: boolean; center?: boolean }) => (
+// Nightshift's hat mark, white version for the dark interface
+const HAT_MARK = '/assets/Hat%20Part%20Light.png';
+
+const PipelineNode = ({ visual, title, value, detail, ok, center }: { visual: React.ReactNode; title: string; value: string; detail: string; ok: boolean; center?: boolean }) => (
     <div className={cn('relative rounded-2xl border px-4 py-4 flex items-center gap-3 min-w-0 transition-colors duration-500',
         center ? 'border-cyan-400/50 bg-cyan-500/10 shadow-[0_0_32px_rgba(34,211,238,0.14)]'
             : ok ? 'border-emerald-500/30 bg-emerald-500/[0.04]' : 'border-slate-600/40 bg-slate-800/30')}>
-        <div className={cn('w-11 h-11 rounded-xl flex items-center justify-center border flex-shrink-0',
-            center ? 'border-cyan-300/60 bg-cyan-400/15 text-cyan-100' : ok ? 'border-emerald-400/40 bg-emerald-500/10 text-emerald-200' : 'border-slate-600 text-slate-500')}>
-            <Icon size={19} />
+        <div className={cn('relative w-11 h-11 rounded-xl flex items-center justify-center border flex-shrink-0',
+            center ? 'border-cyan-300/60 bg-slate-950/80 text-cyan-100 shadow-[inset_0_0_14px_rgba(34,211,238,0.3),0_0_16px_rgba(34,211,238,0.2)]' : ok ? 'border-emerald-400/40 bg-slate-950/50 text-emerald-200' : 'border-slate-600 text-slate-500')}>
+            {visual}
         </div>
         <div className="min-w-0">
             <div className={LABEL}>{title}</div>
@@ -636,11 +650,54 @@ const FlowLink = ({ live, label }: { live: boolean; label?: string }) => {
     );
 };
 
-const PipelineOverview = ({ siem, target, autoEscalation }: { siem: ConnectorView[]; target?: ConnectorView; autoEscalation: AutoEscalation }) => {
+/** The escalation link while auto-escalation is off: alerts run into a barrier and stop there. */
+const BlockedLink = ({ label, onClick }: { label: string; onClick: () => void }) => {
+    const reduce = useReducedMotion();
+    const horizontal = typeof window !== 'undefined' && window.innerWidth >= 768;
+    const segment = horizontal ? { width: 'calc(50% - 13px)' } : { height: 'calc(50% - 13px)' };
+    return (
+        <button type="button" onClick={onClick} title="Auto-escalation is off: analysts escalate alerts themselves. Click to set it up."
+            className="group flex md:flex-col items-center justify-center gap-1.5 py-1 md:py-0 rounded-lg focus:outline-none focus-visible:ring-1 focus-visible:ring-rose-400/60">
+            <div className={cn('relative', horizontal ? 'h-6 w-20 lg:w-24' : 'w-6 h-16')}>
+                <div style={segment} className={cn('absolute bg-rose-400/40', horizontal ? 'left-0 top-1/2 h-px' : 'top-0 left-1/2 w-px')}>
+                    {!reduce && [0, 0.8].map((delay) => (
+                        <motion.span key={delay}
+                            className={cn('absolute w-1.5 h-1.5 rounded-full bg-rose-300 shadow-[0_0_8px_rgba(253,164,175,0.9)]', horizontal ? 'top-[-2.5px]' : 'left-[-2.5px]')}
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: [0, 1, 1, 0], scale: [1, 1, 1, 0.2], ...(horizontal ? { left: ['0%', '15%', '85%', '100%'] } : { top: ['0%', '15%', '85%', '100%'] }) }}
+                            transition={{ duration: 1.6, delay, repeat: Infinity, ease: 'linear', times: [0, 0.15, 0.85, 1] }} />
+                    ))}
+                </div>
+                <div style={segment} className={cn('absolute border-dashed border-rose-500/25', horizontal ? 'right-0 top-1/2 border-t' : 'bottom-0 left-1/2 border-l')} />
+                <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
+                    {/* the barrier flashes each time an alert hits it */}
+                    <motion.div
+                        className="w-[22px] h-[22px] rounded-full border border-rose-400/70 bg-rose-950/90 text-rose-300 flex items-center justify-center shadow-[0_0_12px_rgba(244,63,94,0.4)] group-hover:border-rose-300 group-hover:text-rose-200 transition-colors"
+                        animate={reduce ? undefined : { scale: [1, 1.2, 1], boxShadow: ['0 0 10px rgba(244,63,94,0.35)', '0 0 22px rgba(244,63,94,0.85)', '0 0 10px rgba(244,63,94,0.35)'] }}
+                        transition={{ duration: 0.8, delay: 1.5, repeat: Infinity, times: [0, 0.15, 1] }}>
+                        <Ban size={12} strokeWidth={2.5} />
+                    </motion.div>
+                </div>
+            </div>
+            <span className="text-[8.5px] font-mono font-black uppercase tracking-[0.2em] whitespace-nowrap text-rose-300/80 group-hover:text-rose-200 transition-colors">{label}</span>
+        </button>
+    );
+};
+
+const PipelineOverview = ({ siem, target, autoEscalation, onShowAutoEscalation }: { siem: ConnectorView[]; target?: ConnectorView; autoEscalation: AutoEscalation; onShowAutoEscalation: () => void }) => {
+    const reduce = useReducedMotion();
     const live = siem.filter((c) => ['connected', 'receiving', 'ready'].includes(c.status.state));
     const lastAlert = siem.map((c) => c.last_alert_at).filter(Boolean).sort().pop();
     const targetOk = !!target && ['connected', 'configured'].includes(target.status.state);
     const auto = autoEscalation.auto_escalation_enabled && !!target;
+    const sourceVisual = live.length ? (
+        <>
+            <LogoMark connector={live[0]} iconSize={19} />
+            {live.length > 1 && (
+                <span className="absolute -bottom-1.5 -right-1.5 px-1 rounded-md border border-emerald-400/40 bg-slate-950 text-[8px] font-mono font-black text-emerald-200">+{live.length - 1}</span>
+            )}
+        </>
+    ) : <Radio size={19} />;
     return (
         <section className="relative rounded-3xl border border-cyan-500/20 bg-gradient-to-br from-slate-900/90 via-cyan-950/25 to-slate-900/90 p-6 overflow-hidden">
             <div className="absolute -top-20 right-10 w-72 h-40 rounded-full bg-cyan-500/10 blur-3xl pointer-events-none" />
@@ -651,13 +708,17 @@ const PipelineOverview = ({ siem, target, autoEscalation }: { siem: ConnectorVie
                 </div>
             </div>
             <div className="relative grid grid-cols-1 md:grid-cols-[minmax(0,1fr)_auto_minmax(0,1.15fr)_auto_minmax(0,1fr)] items-center gap-2 md:gap-3">
-                <PipelineNode icon={Radio} title="Alert sources" ok={live.length > 0}
+                <PipelineNode visual={sourceVisual} title="Alert sources" ok={live.length > 0}
                     value={live.length ? live.map((c) => c.name).join(' + ') : 'None connected'}
                     detail={lastAlert ? `Last alert ${formatDistanceToNow(new Date(lastAlert), { addSuffix: true })}` : live.length ? 'Waiting for the first alert' : 'Connect a SIEM below'} />
                 <FlowLink live={live.length > 0} label="Alerts" />
-                <PipelineNode icon={Sparkles} title="AI triage" center value="3 AI agents" detail="Extract · Investigate · Decide" ok />
-                <FlowLink live={auto && targetOk} label={!target ? 'No escalation' : auto ? 'Auto-escalation' : 'Manual escalation'} />
-                <PipelineNode icon={Briefcase} title="Case management" ok={targetOk}
+                <PipelineNode title="AI triage" center value="3 AI agents" detail="Extract · Investigate · Decide" ok
+                    visual={<motion.img src={HAT_MARK} alt="Nightshift" className="w-[84%] h-[84%] object-contain drop-shadow-[0_0_6px_rgba(165,243,252,0.35)]"
+                        animate={reduce ? undefined : { y: [0, -1.5, 0] }} transition={{ duration: 3.2, repeat: Infinity, ease: 'easeInOut' }} />} />
+                {target && !autoEscalation.auto_escalation_enabled
+                    ? <BlockedLink label="Auto-escalation off" onClick={onShowAutoEscalation} />
+                    : <FlowLink live={auto && targetOk} label={!target ? 'No escalation' : 'Auto-escalation'} />}
+                <PipelineNode visual={target ? <LogoMark connector={target} iconSize={19} /> : <Briefcase size={19} />} title="Case management" ok={targetOk}
                     value={target ? target.name : 'None selected'}
                     detail={target ? (STATE_STYLE[target.status.state] || STATE_STYLE.unknown).label : 'Choose one below'} />
             </div>
@@ -742,7 +803,8 @@ export const IntegrationSettings: React.FC<{ onSubTabChange?: (tab: string | nul
                     <div className="flex items-center justify-center py-24 text-cyan-500/60"><Loader2 className="animate-spin" /></div>
                 ) : (
                     <>
-                        <PipelineOverview siem={siem} target={soar.find((c) => c.id === activeSoar)} autoEscalation={data.auto_escalation} />
+                        <PipelineOverview siem={siem} target={soar.find((c) => c.id === activeSoar)} autoEscalation={data.auto_escalation}
+                            onShowAutoEscalation={() => document.getElementById('auto-escalation')?.scrollIntoView({ behavior: 'smooth', block: 'center' })} />
 
                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                             {/* SIEM */}
