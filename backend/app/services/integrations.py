@@ -357,6 +357,17 @@ async def _monitor() -> None:
         await asyncio.sleep(HEALTH_INTERVAL_SECONDS)
 
 
+async def on_database_ready() -> None:
+    """The database became reachable after startup: load what the monitor could not, then
+    refresh every status now (the settings were just loaded)."""
+    try:
+        async with AsyncSessionLocal() as db:
+            await load_last_alert_times(db)
+    except Exception as e:
+        logger.warning(f"[Integrations] Could not load last alert times: {e}")
+    await check_all()
+
+
 def start_monitor() -> None:
     global _monitor_task
     if _monitor_task is None or _monitor_task.done():

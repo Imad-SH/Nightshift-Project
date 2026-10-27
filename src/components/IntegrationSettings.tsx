@@ -339,14 +339,15 @@ const ConnectorPanel = ({ connector, activeSoar, request, onChanged, onClose, on
 
     return (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[9998] flex items-start justify-center bg-slate-950/80 backdrop-blur-sm p-6 overflow-y-auto"
+            className="fixed inset-0 z-[9998] flex items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4 sm:p-6"
             onClick={onClose}>
+            {/* The panel fits the window: its header stays put and its body has its own scroll bar */}
             <motion.div initial={{ scale: 0.96, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.96, y: 20 }}
-                className="w-full max-w-3xl my-auto bg-gradient-to-br from-slate-900/98 via-cyan-950/40 to-slate-900/98 border-2 border-cyan-500/40 rounded-[28px] shadow-[0_40px_100px_-20px_rgba(0,0,0,1)]"
+                className="w-full max-w-3xl max-h-[calc(100vh-2rem)] sm:max-h-[calc(100vh-3rem)] flex flex-col overflow-hidden bg-gradient-to-br from-slate-900/98 via-cyan-950/40 to-slate-900/98 border-2 border-cyan-500/40 rounded-[28px] shadow-[0_40px_100px_-20px_rgba(0,0,0,1)]"
                 onClick={(e) => e.stopPropagation()}>
 
                 {/* header */}
-                <div className="flex items-start gap-4 px-7 pt-6 pb-5 border-b border-cyan-500/15">
+                <div className="flex-shrink-0 flex items-start gap-4 px-7 pt-6 pb-5 border-b border-cyan-500/15">
                     <ConnectorLogo connector={connector} size="lg" />
                     <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-3 flex-wrap">
@@ -358,7 +359,7 @@ const ConnectorPanel = ({ connector, activeSoar, request, onChanged, onClose, on
                     <button onClick={onClose} className="text-slate-500 hover:text-white transition-colors"><X size={20} /></button>
                 </div>
 
-                <div className="px-7 py-6 space-y-7">
+                <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain custom-scrollbar px-7 py-6 space-y-7">
                     {/* settings form */}
                     {connector.fields.length > 0 && (
                         <section className="space-y-4">

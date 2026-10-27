@@ -3,7 +3,7 @@ import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSocAuth } from '../contexts/AuthContext';
-import { User, Info, Webhook } from 'lucide-react';
+import { User, Info, Webhook, Briefcase } from 'lucide-react';
 import { BRAND } from '../brand';
 import { soarInfo } from '../soar';
 import type { AppTab } from '../types';
@@ -49,6 +49,8 @@ export const TopHeader: React.FC<TopHeaderProps> = ({ wazuhStatus, thehiveStatus
     const activeSoarName = soar.name.toUpperCase();
     const isActiveSoarOnline = activeSoarOnline ?? (effectiveSoar === 'thehive' ? isTheHiveOnline : isFlowintelOnline);
     const activeSoarLogo = soar.logo;
+    // No case-management system chosen: a neutral state, not a failure
+    const noSoar = effectiveSoar === 'none';
     const activeSoarDesc = effectiveSoar === 'none'
         ? "No case-management system is selected. Choose one under Integrations to enable escalation."
         : effectiveSoar === 'webhook'
@@ -294,23 +296,33 @@ export const TopHeader: React.FC<TopHeaderProps> = ({ wazuhStatus, thehiveStatus
                                                 <div className="flex items-center gap-3">
                                                     <div className={cn(
                                                         "flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center border overflow-hidden",
-                                                        isActiveSoarOnline 
+                                                        noSoar
+                                                            ? "bg-slate-500/10 border-slate-500/30"
+                                                            : isActiveSoarOnline
                                                             ? (effectiveSoar === 'thehive' ? "bg-amber-500/10 border-amber-500/30 shadow-[0_0_10px_rgba(245,158,11,0.2)]" : "bg-violet-500/10 border-violet-500/30 shadow-[0_0_10px_rgba(139,92,246,0.2)]")
                                                             : "bg-rose-500/10 border-rose-500/30"
                                                     )}>
-                                                        <img
-                                                            src={activeSoarLogo}
-                                                            alt={activeSoarName}
-                                                            className={cn("object-contain", effectiveSoar === 'thehive' ? "w-[85%] h-[85%]" : "w-[90%] h-[90%] brightness-[2.5] contrast-[1.2]")}
-                                                        />
+                                                        {activeSoarLogo ? (
+                                                            <img
+                                                                src={activeSoarLogo}
+                                                                alt={activeSoarName}
+                                                                className={cn("object-contain", effectiveSoar === 'thehive' ? "w-[85%] h-[85%]" : "w-[90%] h-[90%] brightness-[2.5] contrast-[1.2]")}
+                                                            />
+                                                        ) : noSoar ? (
+                                                            <Briefcase size={15} className="text-slate-400" />
+                                                        ) : (
+                                                            <Webhook size={16} className={isActiveSoarOnline ? "text-cyan-300" : "text-rose-400"} />
+                                                        )}
                                                     </div>
                                                     <span className={cn(
                                                         "text-xs font-mono font-bold uppercase tracking-wider leading-tight",
-                                                        isActiveSoarOnline 
+                                                        noSoar
+                                                            ? "text-slate-400"
+                                                            : isActiveSoarOnline
                                                             ? (effectiveSoar === 'thehive' ? "text-amber-100 drop-shadow-[0_0_5px_rgba(245,158,11,0.5)]" : "text-violet-100 drop-shadow-[0_0_5px_rgba(139,92,246,0.5)]")
                                                             : "text-rose-500 drop-shadow-[0_0_5px_rgba(244,63,94,0.5)]"
                                                     )}>
-                                                        {activeSoarName} {isActiveSoarOnline ? "CONNECTED" : "DISCONNECTED"}
+                                                        {noSoar ? "NO CASE MANAGEMENT" : `${activeSoarName} ${isActiveSoarOnline ? "CONNECTED" : "DISCONNECTED"}`}
                                                     </span>
                                                 </div>
 
