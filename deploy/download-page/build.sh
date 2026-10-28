@@ -29,7 +29,7 @@ sed -e "s|{{VERSION}}|$VERSION|g" -e "s|{{SHA256}}|$SHA|g" -e "s|{{SIZE}}|$SIZE|
     -e "s|{{DATE}}|$DATE|g" -e "s|{{PACKAGE}}|$PACKAGE|g" -e "s|{{DOWNLOAD_BASE}}|$DOWNLOAD_BASE|g" \
     "$ROOT/deploy/download-page/index.html" > "$ROOT/release/index.html"
 cp "$ROOT/deploy/download-page/nightshift-favicon.png" "$ROOT/release/favicon.png"
-for f in bluesec-logo.svg nightshift-logo.png nightshift-logo-white.png nightshift-mark.png; do cp "$ROOT/deploy/download-page/$f" "$ROOT/release/$f"; done
+for f in bluesec-logo.svg nightshift-logo.png nightshift-logo-white.png nightshift-mark.png nightshift-mark-white.png; do cp "$ROOT/deploy/download-page/$f" "$ROOT/release/$f"; done
 cp "$ROOT/.github/assets/dashboard.png" "$ROOT/release/preview.png"
 if [ -n "$DOWNLOAD_BASE" ]; then
   echo "Download page: release/index.html ($PACKAGE package, $SIZE), downloads from $DOWNLOAD_BASE"
