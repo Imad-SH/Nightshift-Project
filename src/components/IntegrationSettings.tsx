@@ -113,13 +113,81 @@ async function copyText(text: string): Promise<boolean> {
     }
 }
 
+const TOOLTIP_WIDTH = 300;
+
 const StatusPill = ({ status }: { status: ConnectorStatus }) => {
     const style = STATE_STYLE[status.state] || STATE_STYLE.unknown;
+    const reduceMotion = useReducedMotion();
+    const [anchor, setAnchor] = useState<DOMRect | null>(null);
+    const isError = status.state === 'error';
+    // "Cannot reach the Wazuh API: All connection attempts failed" -> what failed, then the technical cause
+    const sep = status.message.indexOf(': ');
+    const headline = sep > 0 ? status.message.slice(0, sep) : status.message;
+    const cause = sep > 0 ? status.message.slice(sep + 2) : '';
+    // No tooltip when the message only repeats the label ("Not set up", "Checking...")
+    const informative = !!status.message && status.message.replace(/[.\s]+$/, '').toLowerCase() !== style.label.toLowerCase();
+
+    // The tooltip is fixed on screen: close it rather than let it drift away from the pill
+    useEffect(() => {
+        if (!anchor) return;
+        const close = () => setAnchor(null);
+        window.addEventListener('scroll', close, true);
+        window.addEventListener('resize', close);
+        return () => {
+            window.removeEventListener('scroll', close, true);
+            window.removeEventListener('resize', close);
+        };
+    }, [anchor]);
+
+    const center = anchor ? anchor.left + anchor.width / 2 : 0;
+    const left = Math.min(Math.max(center - TOOLTIP_WIDTH / 2, 16), window.innerWidth - TOOLTIP_WIDTH - 16);
+
     return (
-        <div title={status.message} className={cn('flex items-center gap-2 px-3 py-1 rounded-full border text-[9px] font-mono font-black uppercase tracking-[0.2em] whitespace-nowrap', style.cls)}>
-            <div className={cn('w-1.5 h-1.5 rounded-full', style.dot)} />
-            {style.label}
-        </div>
+        <>
+            <div onMouseEnter={(e) => informative && setAnchor(e.currentTarget.getBoundingClientRect())} onMouseLeave={() => setAnchor(null)}
+                className={cn('flex items-center gap-2 px-3 py-1 rounded-full border text-[9px] font-mono font-black uppercase tracking-[0.2em] whitespace-nowrap', informative && 'cursor-help', style.cls)}>
+                <div className={cn('w-1.5 h-1.5 rounded-full', style.dot)} />
+                {style.label}
+            </div>
+            {createPortal(
+                <AnimatePresence>
+                    {anchor && (
+                        <motion.div role="tooltip"
+                            initial={{ opacity: 0, y: reduceMotion ? 0 : 6 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: reduceMotion ? 0 : 6 }}
+                            transition={{ duration: 0.15, ease: 'easeOut' }}
+                            style={{ position: 'fixed', left, bottom: window.innerHeight - anchor.top + 12, width: TOOLTIP_WIDTH, zIndex: 999999, pointerEvents: 'none' }}>
+                            <div className={cn('relative rounded-xl border bg-slate-900/95 backdrop-blur-xl px-4 py-3 shadow-[0_20px_50px_rgba(0,0,0,0.6)]',
+                                isError ? 'border-red-500/40 shadow-[0_20px_50px_rgba(0,0,0,0.6),0_0_30px_rgba(239,68,68,0.12)]' : 'border-cyan-500/30')}>
+                                <div className={cn('absolute inset-x-4 top-0 h-px bg-gradient-to-r from-transparent to-transparent', isError ? 'via-red-400/70' : 'via-cyan-400/50')} />
+                                <div className="flex items-center justify-between gap-3 mb-2">
+                                    <span className={cn('flex items-center gap-1.5 text-[9px] font-mono font-black uppercase tracking-[0.2em]', style.cls, 'bg-transparent border-0')}>
+                                        <span className={cn('w-1.5 h-1.5 rounded-full', style.dot)} />
+                                        {isError ? 'Connection error' : style.label}
+                                    </span>
+                                    {status.checked_at && (
+                                        <span className="text-[9px] font-mono text-slate-500 whitespace-nowrap">
+                                            checked {formatDistanceToNow(new Date(status.checked_at), { addSuffix: true })}
+                                        </span>
+                                    )}
+                                </div>
+                                <p className="text-[12px] font-semibold text-slate-100 leading-snug">{headline}</p>
+                                {cause && (
+                                    <p className={cn('mt-2 px-2.5 py-1.5 rounded-lg border font-mono text-[10px] leading-relaxed break-words',
+                                        isError ? 'bg-red-950/40 border-red-500/20 text-red-300/90' : 'bg-cyan-950/40 border-cyan-500/20 text-cyan-300/80')}>
+                                        {cause}
+                                    </p>
+                                )}
+                                <div className={cn('absolute -bottom-[7px] w-3 h-3 rotate-45 border-r border-b bg-slate-900', isError ? 'border-red-500/40' : 'border-cyan-500/30')}
+                                    style={{ left: Math.min(Math.max(center - left - 6, 12), TOOLTIP_WIDTH - 24) }} />
+                            </div>
+                        </motion.div>
+                    )}
+                </AnimatePresence>,
+                document.body,
+            )}
+        </>
     );
 };
 
