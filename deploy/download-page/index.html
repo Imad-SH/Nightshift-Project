@@ -91,35 +91,88 @@
   .link:hover svg { transform: translate(3px, -3px); }
   .btn:focus-visible, .link:focus-visible, .menu a:focus-visible, .tab:focus-visible, .copy:focus-visible, .brand:focus-visible { outline: 2px solid var(--teal); outline-offset: 3px; }
 
-  /* Hero */
-  .hero { position: relative; padding: 72px 0 0; }
-  .hero::before {
-    content: ""; position: absolute; inset: -92px 0 0; z-index: -1; pointer-events: none;
-    background-image: linear-gradient(to right, var(--line-soft) 1px, transparent 1px), linear-gradient(to bottom, var(--line-soft) 1px, transparent 1px);
-    background-size: 124px 124px; background-position: -1px -1px;
-    -webkit-mask-image: linear-gradient(to bottom, #000 40%, transparent 96%); mask-image: linear-gradient(to bottom, #000 40%, transparent 96%);
+  /* Hero: a night panel in the product's own look, with the installer's real steps */
+  .hero { position: relative; padding: 24px 0 0; }
+  .night {
+    position: relative; isolation: isolate; overflow: hidden; border-radius: 28px;
+    padding: clamp(40px, 6vw, 80px) clamp(24px, 5.5vw, 72px) clamp(44px, 6.5vw, 88px);
+    background: linear-gradient(160deg, #15225f 0%, var(--deeper) 55%, #080f33 100%);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 50px 90px -50px rgba(11, 20, 64, 0.8);
   }
-  .hero .grid { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr); gap: 40px; align-items: center; min-height: 600px; }
-  .hero h1 { font-size: clamp(3.4rem, 8.4vw, 7.2rem); line-height: 0.93; letter-spacing: -0.055em; margin-top: 34px; }
-  .hero h1 span { display: block; }
-  .hero h1 .b { font-weight: 700; }
-  .hero h1 .l { font-weight: 300; color: var(--blue); }
-  .hero h1 .l2 { font-weight: 300; }
-  .hero .intro { font-size: 19px; max-width: 54ch; margin-top: 32px; }
-  .hero .intro strong { color: var(--navy); font-weight: 600; }
-  .ctas { display: flex; flex-wrap: wrap; align-items: center; gap: 30px; margin-top: 40px; }
-  .places { margin-top: 30px; font-size: 11.5px; font-weight: 600; letter-spacing: 0.22em; text-transform: uppercase; color: var(--navy); opacity: 0.85; }
+  /* Sky: a teal glow where the moon rises, a deeper blue haze below, and a scatter of stars */
+  .night::before {
+    content: ""; position: absolute; inset: 0; z-index: -2; pointer-events: none;
+    background:
+      radial-gradient(560px 400px at 84% 16%, rgba(112, 195, 184, 0.17), transparent 70%),
+      radial-gradient(680px 480px at 0% 100%, rgba(71, 94, 168, 0.34), transparent 70%);
+  }
+  .night::after {
+    content: ""; position: absolute; inset: 0; z-index: -2; pointer-events: none; opacity: 0.6;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='280' height='280'%3E%3Cg fill='white'%3E%3Ccircle cx='22' cy='31' r='1' opacity='.7'/%3E%3Ccircle cx='97' cy='12' r='.7' opacity='.5'/%3E%3Ccircle cx='164' cy='58' r='1.1' opacity='.8'/%3E%3Ccircle cx='238' cy='27' r='.6' opacity='.4'/%3E%3Ccircle cx='61' cy='112' r='.8' opacity='.45'/%3E%3Ccircle cx='205' cy='131' r='.7' opacity='.6'/%3E%3Ccircle cx='131' cy='176' r='1' opacity='.5'/%3E%3Ccircle cx='18' cy='204' r='.6' opacity='.35'/%3E%3Ccircle cx='259' cy='212' r='1' opacity='.65'/%3E%3Ccircle cx='88' cy='251' r='.7' opacity='.4'/%3E%3Ccircle cx='181' cy='247' r='.6' opacity='.5'/%3E%3C/g%3E%3C/svg%3E");
+    background-size: 280px 280px;
+    -webkit-mask-image: linear-gradient(to bottom, #000 30%, transparent 90%); mask-image: linear-gradient(to bottom, #000 30%, transparent 90%);
+  }
+  /* A crescent echoing the logo's moon: a disc with an offset disc cut out of it */
+  .moon {
+    position: absolute; z-index: -1; right: -70px; top: -120px; width: 460px; height: 460px; border-radius: 50%; pointer-events: none; opacity: 0.55;
+    background: linear-gradient(145deg, rgba(112, 195, 184, 0.7), rgba(71, 94, 168, 0.35) 72%);
+    -webkit-mask-image: radial-gradient(circle 196px at 62% 37%, transparent 99%, #000 100%); mask-image: radial-gradient(circle 196px at 62% 37%, transparent 99%, #000 100%);
+  }
+  .night .grid { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr); gap: clamp(40px, 5vw, 76px); align-items: center; }
 
-  .orbit { position: relative; aspect-ratio: 1; width: 100%; max-width: 540px; justify-self: end; }
-  .orbit svg { width: 100%; height: 100%; overflow: visible; }
-  .orbit .spin { transform-origin: 280px 280px; animation: spin 90s linear infinite; }
-  .orbit .spin.rev { animation-duration: 140s; animation-direction: reverse; }
-  .orbit .pulse { transform-box: fill-box; transform-origin: center; animation: pulse 3.6s var(--ease) infinite; }
-  .orbit .center { position: absolute; inset: 0; display: grid; place-items: center; text-align: center; pointer-events: none; }
-  .orbit .center img { width: 31%; height: auto; filter: drop-shadow(0 18px 28px rgba(35, 57, 135, 0.16)); }
-  .orbit .coord { position: absolute; right: 0; bottom: -6px; font: 500 10.5px var(--mono); letter-spacing: 0.18em; color: var(--text); opacity: 0.8; }
-  @keyframes spin { to { transform: rotate(360deg); } }
-  @keyframes pulse { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.5); opacity: 0.35; } }
+  .tag { display: inline-flex; align-items: center; gap: 10px; padding: 8px 13px; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.12); background: rgba(255, 255, 255, 0.04); font: 500 12px/1 var(--mono); letter-spacing: 0.04em; color: #c9d2f2; }
+  .tag .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--teal); box-shadow: 0 0 0 4px rgba(112, 195, 184, 0.16); }
+  .tag .sep { width: 1px; height: 12px; background: rgba(255, 255, 255, 0.18); }
+  .night h1 { margin-top: 28px; color: #fff; font-weight: 600; font-size: clamp(2.5rem, 5.4vw, 4.9rem); line-height: 1.02; letter-spacing: -0.045em; text-wrap: balance; }
+  .night h1 em { font-style: normal; color: var(--teal); background: linear-gradient(100deg, var(--teal), #b4e6df); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+  .lede { margin-top: 26px; max-width: 50ch; font-size: 18px; line-height: 1.7; color: #b9c3e3; text-wrap: pretty; }
+  .lede strong { color: #fff; font-weight: 600; }
+
+  .hero-ctas { display: flex; flex-wrap: wrap; align-items: center; gap: 14px 30px; margin-top: 38px; }
+  .hbtn {
+    display: inline-flex; align-items: center; gap: 14px; padding: 14px 16px 14px 24px; border-radius: 12px; text-decoration: none;
+    background: #fff; color: var(--deeper); font-weight: 600; font-size: 15px; letter-spacing: -0.005em;
+    box-shadow: inset 0 -1px 0 rgba(17, 29, 84, 0.12), 0 18px 40px -20px rgba(112, 195, 184, 0.6);
+    transition: transform 400ms var(--ease), box-shadow 500ms var(--ease);
+  }
+  .hbtn .ico { display: grid; place-items: center; width: 30px; height: 30px; border-radius: 8px; background: var(--mint); color: var(--navy); transition: transform 500ms var(--ease); }
+  .hbtn:hover { transform: translateY(-2px); box-shadow: inset 0 -1px 0 rgba(17, 29, 84, 0.12), 0 26px 50px -20px rgba(112, 195, 184, 0.75); }
+  .hbtn:hover .ico { transform: translateY(2px); }
+  .hbtn:active { transform: translateY(0) scale(0.985); }
+  .hlink { display: inline-flex; align-items: center; gap: 8px; padding: 6px 0; color: #e3e9ff; font-weight: 500; font-size: 15px; text-decoration: none; }
+  .hlink svg { color: var(--teal); transition: transform 500ms var(--ease); }
+  .hlink:hover svg { transform: translateX(4px); }
+  .hbtn:focus-visible, .hlink:focus-visible { outline: 2px solid var(--teal); outline-offset: 3px; }
+
+  .facts { list-style: none; margin: 40px 0 0; padding: 22px 0 0; border-top: 1px solid rgba(255, 255, 255, 0.08); max-width: 560px; display: flex; flex-wrap: wrap; gap: 10px 28px; font-size: 13.5px; color: #8f9bc8; }
+  .facts li { display: inline-flex; align-items: center; gap: 9px; }
+  .facts svg { flex: none; color: var(--teal); }
+
+  /* The installer, as it runs: the seven steps of install.sh, then the addresses it prints */
+  .console {
+    position: relative; margin: 0; min-width: 0; border-radius: 16px; border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(8, 15, 51, 0.7); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.07), 0 40px 80px -30px rgba(3, 7, 30, 0.7);
+    font: 400 13px/1.8 var(--mono); color: #e3e9ff;
+  }
+  .console .bar { display: flex; align-items: center; gap: 10px; padding: 12px 18px; border-bottom: 1px solid rgba(255, 255, 255, 0.07); font-size: 11.5px; letter-spacing: 0.04em; color: #6f7cb0; }
+  .console .bar svg { color: var(--teal); }
+  .console .bar .name { color: #c9d2f2; }
+  .console .bar .path { margin-left: auto; }
+  .console .body { padding: 18px 20px 22px; }
+  .console .cmd { color: #fff; overflow-wrap: anywhere; }
+  .console .cmd .p { color: var(--teal); user-select: none; }
+  .console ol { list-style: none; margin: 12px 0 0; padding: 0; }
+  .console li { display: grid; grid-template-columns: 38px minmax(0, 1fr) auto; gap: 6px; align-items: center; color: #b9c3e3; }
+  .console li .n { color: #6f7cb0; }
+  .console li svg { color: var(--teal); }
+  .console .done { margin-top: 14px; padding-top: 14px; border-top: 1px dashed rgba(255, 255, 255, 0.12); }
+  .console .done .title { color: var(--teal); font-weight: 500; }
+  .console .done .row { display: grid; grid-template-columns: 112px minmax(0, 1fr); gap: 6px; overflow-wrap: anywhere; }
+  .console .done .row span { color: #6f7cb0; }
+  .js .console:not(.in) .ln { opacity: 0; }
+  .js .console.in .ln { animation: line-in 520ms var(--ease) both; animation-delay: calc(450ms + var(--i) * 220ms); }
+  @keyframes line-in { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: none; } }
 
   /* Release bar: the facts of this package */
   .release { margin-top: 64px; display: grid; grid-template-columns: 1.5fr repeat(3, 0.62fr) 2fr; border: 1px solid var(--line); background: #fff; position: relative; }
@@ -275,7 +328,7 @@
   @media (prefers-reduced-motion: reduce) {
     html { scroll-behavior: auto; }
     .js .reveal { opacity: 1; transform: none; filter: none; transition: none; }
-    .orbit .spin, .orbit .pulse { animation: none; }
+    .js .console:not(.in) .ln, .js .console.in .ln { animation: none; opacity: 1; }
   }
 
   @media (max-width: 1080px) {
@@ -288,8 +341,8 @@
     .menu { display: none; }
     .top .wrap { justify-content: space-between; }
     .hero .grid, .head, .install .cols, .upgrade .cols, .closing .box, footer .cols { grid-template-columns: 1fr; }
-    .hero .grid { min-height: 0; gap: 56px; }
-    .orbit { justify-self: center; max-width: 420px; }
+    .night .grid { grid-template-columns: 1fr; gap: 48px; }
+    .moon { width: 360px; height: 360px; right: -150px; top: -140px; -webkit-mask-image: radial-gradient(circle 153px at 62% 37%, transparent 99%, #000 100%); mask-image: radial-gradient(circle 153px at 62% 37%, transparent 99%, #000 100%); }
     .rail { position: static; }
     .rail ol { display: none; }
     .cells { grid-template-columns: 1fr 1fr; }
@@ -304,7 +357,14 @@
     .brand .ns-logo { height: 36px; }
     .brand .sep, .brand .by, .brand .bs-logo { display: none; }
     .top .btn.small .lbl { display: none; }
-    .hero { padding-top: 40px; }
+    .hero { padding-top: 12px; }
+    .night { border-radius: 20px; padding: 36px 20px 40px; }
+    .moon { top: -190px; opacity: 0.35; }
+    .lede { font-size: 16.5px; }
+    .console { font-size: 12px; }
+    .console .body { padding: 16px 14px 18px; }
+    .console li { grid-template-columns: 32px minmax(0, 1fr) auto; }
+    .console .done .row { grid-template-columns: 1fr; gap: 0; margin-top: 6px; }
     .cells, .docs, .checks { grid-template-columns: 1fr; }
     .release { grid-template-columns: 1fr; }
     .release > div { border-right: 0; }
@@ -340,43 +400,50 @@
 <main id="top">
   <div class="hero">
     <div class="wrap">
-      <div class="grid">
-        <div>
-          <span class="eyebrow reveal">Nightshift {{VERSION}} &middot; Linux server</span>
-          <h1 class="reveal d1"><span class="b">Install.</span><span class="l">Connect.</span><span class="l2">Triage.</span></h1>
-          <p class="intro reveal d2"><strong>Nightshift, the AI analyst that never clocks out,</strong> runs on your own Linux server next to your SIEM. One package, one command, and your analysts only need a browser.</p>
-          <div class="ctas reveal d3">
-            <a class="btn" id="download" href="{{DOWNLOAD_BASE}}nightshift-{{VERSION}}.tar.gz" download>Download Nightshift {{VERSION}}
-              <span class="ico" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v12"/><path d="m6 11 6 6 6-6"/><path d="M5 21h14"/></svg></span>
-            </a>
-            <a class="link" href="#install">Installation steps
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7"/><path d="M8 7h9v9"/></svg>
-            </a>
+      <div class="night">
+        <div class="moon" aria-hidden="true"></div>
+        <div class="grid">
+          <div>
+            <p class="tag reveal"><span class="dot" aria-hidden="true"></span>Nightshift {{VERSION}}<span class="sep" aria-hidden="true"></span>Linux server</p>
+            <h1 class="reveal d1">Install. Connect. <em>Triage.</em></h1>
+            <p class="lede reveal d2"><strong>Nightshift, the AI analyst that never clocks out,</strong> runs on your own Linux server next to your SIEM. One package, one command, and your analysts only need a browser.</p>
+            <div class="hero-ctas reveal d3">
+              <a class="hbtn" id="download" href="{{DOWNLOAD_BASE}}nightshift-{{VERSION}}.tar.gz" download>Download Nightshift {{VERSION}}
+                <span class="ico" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v12"/><path d="m6 11 6 6 6-6"/><path d="M5 21h14"/></svg></span>
+              </a>
+              <a class="hlink" href="#install">Installation steps
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg>
+              </a>
+            </div>
+            <ul class="facts reveal d4">
+              <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="7" rx="1.5"/><rect x="3" y="13" width="18" height="7" rx="1.5"/><path d="M7 7.5h.01M7 16.5h.01"/></svg>Ubuntu, Debian, RHEL, Rocky, Alma</li>
+              <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6" y="6" width="12" height="12" rx="1.5"/><path d="M9 2v4M15 2v4M9 18v4M15 18v4M2 9h4M2 15h4M18 9h4M18 15h4"/></svg>4 cores, 8 GB memory, 40 GB disk minimum</li>
+            </ul>
           </div>
-          <div class="places reveal d4">Ubuntu &middot; Debian &middot; RHEL &middot; Rocky &middot; Alma</div>
-        </div>
 
-        <div class="orbit reveal d2" aria-hidden="true">
-          <svg viewBox="0 0 560 560">
-            <defs>
-              <linearGradient id="ring" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#70c3b8"/><stop offset="1" stop-color="#475ea8"/></linearGradient>
-            </defs>
-            <line x1="20" y1="150" x2="540" y2="410" stroke="#dbe2f5"/>
-            <line x1="60" y1="470" x2="500" y2="90" stroke="#dbe2f5"/>
-            <circle cx="280" cy="280" r="258" fill="none" stroke="#dbe2f5"/>
-            <circle cx="280" cy="280" r="190" fill="none" stroke="#cbd4ed"/>
-            <circle cx="280" cy="280" r="112" fill="#fff" stroke="url(#ring)" stroke-width="1.4"/>
-            <g class="spin">
-              <circle cx="280" cy="22" r="14" fill="#eef8f6"/><circle cx="280" cy="22" r="5.5" fill="#70c3b8" class="pulse"/>
-              <circle cx="503" cy="409" r="11" fill="#eef8f6"/><circle cx="503" cy="409" r="4.5" fill="#70c3b8"/>
-            </g>
-            <g class="spin rev">
-              <circle cx="90" cy="280" r="12" fill="#eef8f6"/><circle cx="90" cy="280" r="5" fill="#475ea8" class="pulse"/>
-              <circle cx="414" cy="146" r="9" fill="#eef8f6"/><circle cx="414" cy="146" r="3.8" fill="#70c3b8"/>
-            </g>
-          </svg>
-          <div class="center"><img src="nightshift-mark.png" alt="" width="512" height="512"></div>
-          <div class="coord">DETECT &middot; INVESTIGATE &middot; DECIDE</div>
+          <figure class="console reveal d2" aria-label="What the installer does">
+            <div class="bar">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 7 5 5-5 5"/><path d="M12 19h7"/></svg>
+              <span class="name">install.sh</span><span class="path">nightshift-{{VERSION}}</span>
+            </div>
+            <div class="body">
+              <div class="cmd ln" style="--i: 0"><span class="p">$ </span>sudo ./install.sh --url https://soc.example.local</div>
+              <ol>
+                <li class="ln" style="--i: 1"><span class="n">1/7</span><span>Checking this server</span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-label="done"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></li>
+                <li class="ln" style="--i: 2"><span class="n">2/7</span><span>Installing files</span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-label="done"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></li>
+                <li class="ln" style="--i: 3"><span class="n">3/7</span><span>Images</span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-label="done"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></li>
+                <li class="ln" style="--i: 4"><span class="n">4/7</span><span>Configuration</span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-label="done"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></li>
+                <li class="ln" style="--i: 5"><span class="n">5/7</span><span>TLS certificate</span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-label="done"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></li>
+                <li class="ln" style="--i: 6"><span class="n">6/7</span><span>Starting Nightshift</span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-label="done"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></li>
+                <li class="ln" style="--i: 7"><span class="n">7/7</span><span>First administrator and alert intake</span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-label="done"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></li>
+              </ol>
+              <div class="done ln" style="--i: 9">
+                <div class="title">Nightshift {{VERSION}} is running</div>
+                <div class="row"><span>Open:</span>https://soc.example.local</div>
+                <div class="row"><span>Wazuh intake:</span>https://soc.example.local<wbr>/api/ingest/wazuh</div>
+              </div>
+            </div>
+          </figure>
         </div>
       </div>
 
