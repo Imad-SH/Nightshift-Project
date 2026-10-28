@@ -61,10 +61,13 @@ export const generateBlueSecReport = async (alertData: BlueSecReportData, custom
         };
 
         const drawHeader = (pdf: jsPDF) => {
-            // Logo at top left
+            // Logo at top left, scaled to fit a 52 x 15 mm box without distortion
             try {
                 const logoSrc = customLogo || BRAND.logo;
-                pdf.addImage(logoSrc, 'PNG', 22, 10, 40, 16);
+                const { width, height } = pdf.getImageProperties(logoSrc);
+                const scale = Math.min(52 / width, 15 / height);
+                const logoHeight = height * scale;
+                pdf.addImage(logoSrc, 'PNG', 22, 18 - logoHeight / 2, width * scale, logoHeight);
             } catch (e) {
                 pdf.setFont('helvetica', 'bold');
                 pdf.setFontSize(22);
