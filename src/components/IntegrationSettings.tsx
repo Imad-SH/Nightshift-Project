@@ -81,7 +81,7 @@ const STATE_STYLE: Record<string, { label: string; cls: string; dot: string }> =
     unknown: { label: 'Checking', cls: 'bg-slate-500/10 border-slate-500/30 text-slate-400', dot: 'bg-slate-400 animate-pulse' },
 };
 
-const VERDICTS = ['Malicious', 'Suspicious', 'Blocked', 'False Positive'];
+const VERDICTS = ['Malicious', 'Suspicious', 'Already Blocked', 'False Positive'];
 const SEVERITY_FLOORS = [
     { value: 4, label: 'Low and above (4+)' },
     { value: 7, label: 'Medium and above (7+)' },
@@ -572,7 +572,7 @@ const ConnectorPanel = ({ connector, activeSoar, request, onChanged, onClose, on
 const VERDICT_STYLE: Record<string, { on: string; off: string }> = {
     'Malicious': { on: 'bg-rose-500/20 border-rose-400/60 text-rose-100 shadow-[0_0_14px_rgba(244,63,94,0.2)]', off: 'border-rose-500/20 text-rose-300/40 hover:border-rose-400/50 hover:text-rose-200/80' },
     'Suspicious': { on: 'bg-amber-500/20 border-amber-400/60 text-amber-100 shadow-[0_0_14px_rgba(245,158,11,0.2)]', off: 'border-amber-500/20 text-amber-300/40 hover:border-amber-400/50 hover:text-amber-200/80' },
-    'Blocked': { on: 'bg-sky-500/20 border-sky-400/60 text-sky-100 shadow-[0_0_14px_rgba(14,165,233,0.2)]', off: 'border-sky-500/20 text-sky-300/40 hover:border-sky-400/50 hover:text-sky-200/80' },
+    'Already Blocked': { on: 'bg-sky-500/20 border-sky-400/60 text-sky-100 shadow-[0_0_14px_rgba(14,165,233,0.2)]', off: 'border-sky-500/20 text-sky-300/40 hover:border-sky-400/50 hover:text-sky-200/80' },
     'False Positive': { on: 'bg-slate-500/25 border-slate-300/50 text-slate-100', off: 'border-slate-600/50 text-slate-500 hover:border-slate-400 hover:text-slate-300' },
 };
 const SEVERITY_SHORT: Record<number, string> = { 4: 'Low+', 7: 'Medium+', 10: 'High+', 13: 'Critical' };

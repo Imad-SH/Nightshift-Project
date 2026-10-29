@@ -554,10 +554,11 @@ class AlertService:
                 AlertModel.verdict.in_(['clean', 'safe', 'false positive', 'Clean', 'Safe', 'False Positive'])
             , 1))).label('fp_count'),
             func.count(case((
-                func.lower(AlertModel.verdict).in_(['malicious', 'suspicious', 'blocked', 'false positive', 'clean', 'safe'])
+                func.lower(AlertModel.verdict).in_(['malicious', 'suspicious', 'already blocked', 'blocked', 'false positive', 'clean', 'safe'])
             , 1))).label('analyzed_count'),
             # Real threats a security control already stopped: analyzed, but not false positives
-            func.count(case((func.lower(AlertModel.verdict) == 'blocked', 1))).label('blocked_count')
+            # ("Blocked" was the first name of this verdict)
+            func.count(case((func.lower(AlertModel.verdict).in_(['already blocked', 'blocked']), 1))).label('blocked_count')
         )
         
         if start_time:

@@ -188,14 +188,14 @@ const AlertItem = React.memo(({
                         const isActive = ['running', 'extracting', 'investigating', 'judging'].includes(status);
 
                         if (hasRealVerdict) {
-                            const verdictPill = vNormal === 'malicious' ? 'text-rose-300 bg-rose-500/15 border-rose-400/40' : vNormal === 'suspicious' ? 'text-amber-300 bg-amber-500/15 border-amber-400/40' : vNormal === 'blocked' ? 'text-sky-300 bg-sky-500/15 border-sky-400/40' : 'text-emerald-300 bg-emerald-500/15 border-emerald-400/40';
+                            const verdictPill = vNormal === 'malicious' ? 'text-rose-300 bg-rose-500/15 border-rose-400/40' : vNormal === 'suspicious' ? 'text-amber-300 bg-amber-500/15 border-amber-400/40' : (vNormal === 'already blocked' || vNormal === 'blocked') ? 'text-sky-300 bg-sky-500/15 border-sky-400/40' : 'text-emerald-300 bg-emerald-500/15 border-emerald-400/40';
                             return (
                                 <div className="flex flex-col items-end gap-1 text-right shrink-0">
                                     <span className="flex-none text-[8.5px] font-semibold uppercase tracking-[0.16em] text-slate-400">
                                         AI verdict
                                     </span>
-                                    <span className={cn("flex-none text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md border truncate max-w-[120px]", verdictPill)}>
-                                        {vNormal === 'clean' ? 'CLEAN' : vNormal.toUpperCase()}
+                                    <span className={cn("flex-none text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md border truncate max-w-[150px]", verdictPill)}>
+                                        {vNormal === 'clean' ? 'CLEAN' : vNormal === 'blocked' ? 'ALREADY BLOCKED' : vNormal.toUpperCase()}
                                     </span>
                                 </div>
                             );
@@ -401,7 +401,7 @@ export const LiveAlertStream: React.FC<LiveAlertStreamProps> = ({ onSelectAlert,
             const status = event?.pipeline_status || alert.status || alert.pipeline_status;
             const v = (event?.verdict || alert.verdict || event?.node_results?.agent_judge?.verdict || '').toLowerCase();
             const isActive = ['running', 'extracting', 'investigating', 'judging'].includes(status || '') && (!v || v === 'unknown');
-            const isAnalyzed = ['malicious', 'suspicious', 'blocked', 'false positive'].includes(v);
+            const isAnalyzed = ['malicious', 'suspicious', 'already blocked', 'blocked', 'false positive'].includes(v);
             
             let matchesVerdict = true;
             if (activeFilter.showOnlyAnalyzed && activeFilter.selectedVerdicts.length > 0) {
@@ -411,6 +411,7 @@ export const LiveAlertStream: React.FC<LiveAlertStreamProps> = ({ onSelectAlert,
                     if (sv === 'false positive') return v === 'false positive' || v === 'clean' || v === 'safe';
                     if (sv === 'malicious') return v === 'malicious';
                     if (sv === 'suspicious') return v === 'suspicious';
+                    if (sv === 'already blocked') return v === 'already blocked' || v === 'blocked';
                     return v === sv;
                 });
             } else if (activeFilter.showOnlyAnalyzed) {
@@ -1134,7 +1135,7 @@ export const LiveAlertStream: React.FC<LiveAlertStreamProps> = ({ onSelectAlert,
                                                 {[
                                                     { v: 'Malicious', label: 'malicious', bg: 'bg-red-500/20 border-red-500/60 text-red-100 shadow-[0_0_12px_rgba(239,68,68,0.2)]' },
                                                     { v: 'Suspicious', label: 'suspicious', bg: 'bg-orange-500/20 border-orange-500/60 text-orange-100 shadow-[0_0_12px_rgba(249,115,22,0.2)]' },
-                                                    { v: 'Blocked', label: 'blocked', bg: 'bg-sky-500/20 border-sky-500/60 text-sky-100 shadow-[0_0_12px_rgba(14,165,233,0.2)]' },
+                                                    { v: 'Already Blocked', label: 'already blocked', bg: 'bg-sky-500/20 border-sky-500/60 text-sky-100 shadow-[0_0_12px_rgba(14,165,233,0.2)]' },
                                                     { v: 'False Positive', label: 'false positive', bg: 'bg-emerald-500/20 border-emerald-500/60 text-emerald-100 shadow-[0_0_12px_rgba(16,185,129,0.2)]' },
                                                     { v: 'Failed', label: 'failed', bg: 'bg-amber-500/20 border-amber-500/60 text-amber-100 shadow-[0_0_12px_rgba(245,158,11,0.2)]' },
                                                     { v: 'Pending', label: 'pending', bg: 'bg-cyan-500/20 border-cyan-500/60 text-cyan-100 shadow-[0_0_12px_rgba(6,182,212,0.2)]' }

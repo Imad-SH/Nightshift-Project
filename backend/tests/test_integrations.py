@@ -55,7 +55,7 @@ def test_legacy_wazuh_intake(set_setting, flag, token, expected):
     (True, "thehive", 10, "Malicious", True),
     (True, "thehive", 10, "suspicious", True),
     (True, "thehive", 10, "False Positive", False),   # not in the default verdicts
-    (True, "thehive", 12, "Blocked", False),           # stopped threat: not escalated unless chosen
+    (True, "thehive", 12, "Already Blocked", False),   # stopped threat: not escalated unless chosen
     (True, "thehive", 5, "Malicious", False),          # below the minimum severity
     (True, "none", 10, "Malicious", False),            # escalation turned off
     (False, "thehive", 15, "Malicious", False),        # auto-escalation disabled

@@ -22,7 +22,7 @@ from app.core.config import settings
 
 # --- OUTPUT SCHEMA ---
 class AgentVerdict(BaseModel):
-    verdict: str = Field(description="The final verdict: 'Suspicious', 'Malicious', 'Blocked', or 'False Positive'")
+    verdict: str = Field(description="The final verdict: 'Suspicious', 'Malicious', 'Already Blocked', or 'False Positive'")
     confidence_score: int = Field(description="Confidence score between 0 and 100")
     severity: str = Field(description="Severity level: 'Low', 'Medium', 'High', 'Critical'")
     analysis_reasoning: str = Field(description="Concise executive summary explaining the decision")
@@ -160,9 +160,9 @@ class AgentJudge:
                 6. Prevented Threats: If the Raw Log shows that a security control acted on the threat and stopped it
                    (e.g. delivery action Blocked, message quarantined, connection denied or dropped, file blocked, cleaned
                    or deleted) and nothing in the log shows it got through (delivered to the inbox, clicked, executed,
-                   successful login), the verdict is Blocked with severity Low, even when the threat itself is malicious.
-                   This takes precedence over rule 1: CTI tells whether the threat is malicious, this rule whether it was
-                   stopped. A failed login or an access error alone is not Blocked. For Blocked, list in mitigation_steps
+                   successful login), the verdict is Already Blocked with severity Low, even when the threat itself is
+                   malicious. This takes precedence over rule 1: CTI tells whether the threat is malicious, this rule whether
+                   it was stopped. A failed login or an access error alone is not Already Blocked. For Already Blocked, list in mitigation_steps
                    only follow-ups that are still useful (e.g. block the sender or the source IP), not incident response.
 
                 ### MISSION PARAMETERS (SPECIFIC USER OVERRIDE):
@@ -171,7 +171,7 @@ class AgentJudge:
                 ### OUTPUT FORMAT:
                 Return ONLY a valid JSON object matching this schema. NO PREAMBLE. NO EXPLANATION AFTER.
                 {
-                    "verdict": "Suspicious | Malicious | Blocked | False Positive",
+                    "verdict": "Suspicious | Malicious | Already Blocked | False Positive",
                     "confidence_score": <int 0-100>,
                     "severity": "Low | Medium | High | Critical",
                     "analysis_reasoning": "<Professional technical summary>",
