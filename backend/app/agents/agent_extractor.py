@@ -302,8 +302,14 @@ IMPORTANT:
                 clean_json = self._clean_deepseek_thought(raw_content)
                 extracted_dict = json.loads(clean_json)
                 extracted = UniversalExtraction(**extracted_dict)
-            except:
-                extracted = UniversalExtraction(status="Failed", summary="LLM Output Parsing Failed")
+            except Exception as parse_error:
+                from app.agents.llm_errors import finish_details
+                reason = f"LLM Output Parsing Failed: {parse_error}"
+                details = finish_details(response)
+                if details:
+                    reason += f". {details}"
+                print(f"⚠️ [Agent 1] {reason} ({len(raw_content or '')} chars received) for {alert_id}")
+                extracted = UniversalExtraction(status="Failed", summary=reason)
 
             # Log results to the UI
             if sio:
@@ -362,7 +368,7 @@ IMPORTANT:
             return {
                 "identities": [], "network": [], "system": [], "files": [],
                 "log_source": "Unknown",
-                "summary": f"Extraction failed: {str(e)}. {tb[:200]}...",
+                "summary": f"Extraction failed: {str(e)}",
                 "status": "Failed",
                 "model": "System Fallback"
             }

@@ -6,7 +6,7 @@ import '@xyflow/react/dist/style.css';
 import { useSocket } from '../hooks/useSocket';
 import { cn } from './DashboardLayout';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Info, Loader2, Link as LinkIcon, Undo2, ExternalLink, Server, Database } from 'lucide-react';
+import { Info, Loader2, Link as LinkIcon, Undo2, ExternalLink, Server, Database, AlertTriangle } from 'lucide-react';
 import type { Alert, SocketEvent } from '../types';
 import { AlertDetails } from './AlertDetails';
 import { StandbyState } from './StandbyState';
@@ -69,6 +69,13 @@ const getProviderLogo = (modelName: string) => {
     return '/assets/Nebius AI.jpg';
 };
 
+// The error a failed agent stopped on, as saved with its results (without the pipeline's log prefix)
+const getFailureReason = (results: any): string | null => {
+    const status = String(results?.status || results?.Status || '').toLowerCase();
+    if (!status.includes('failed') || !results?.error) return null;
+    return String(results.error).replace(/^🛑\s*Investigation halted:\s*/, '').trim() || null;
+};
+
 const CyberNode = ({ data }: any) => {
     const isActive = data.isActive;
 
@@ -89,6 +96,7 @@ const CyberNode = ({ data }: any) => {
     // Determine if node is currently working
     const status = data.results?.status || data.results?.Status;
     const isWorking = isActive && (!status || (status !== 'Complete' && status !== 'Failed'));
+    const failureReason = getFailureReason(data.results);
 
     const [nestedTooltip, setNestedTooltip] = useState<{ label: string, items: string[], x: number, y: number } | null>(null);
 
@@ -348,6 +356,15 @@ const CyberNode = ({ data }: any) => {
 
                                     {/* Content (Scrollable) */}
                                     <div className="p-4 space-y-4 text-[11px] font-mono text-cyan-100/90 overflow-y-auto cyber-scrollbar flex-1">
+                                        {!isWorking && failureReason && (
+                                            <div className="rounded-md border border-rose-500/25 bg-rose-500/[0.07] px-3 py-2.5">
+                                                <div className="flex items-center gap-1.5 text-rose-400 uppercase font-bold text-[9px] tracking-wider mb-1">
+                                                    <AlertTriangle size={11} strokeWidth={2.4} />
+                                                    Reason
+                                                </div>
+                                                <div className="font-sans text-[12px] leading-relaxed text-rose-100/90 whitespace-pre-wrap break-words">{failureReason}</div>
+                                            </div>
+                                        )}
                                         {isWorking ? (
                                             <div className="flex items-center gap-2 py-2 text-cyan-300 animate-pulse">
                                                 <Loader2 size={12} className="animate-spin" />
@@ -381,13 +398,16 @@ const CyberNode = ({ data }: any) => {
                                                             )}
                                                         </div>
                                                     </div>
+                                                    {data.results.source && (
                                                     <div>
                                                         <div className="text-cyan-600/80 uppercase font-bold text-[9px] mb-0.5 tracking-wider">LOG SOURCE</div>
                                                         <div className="font-mono text-cyan-200/90 text-[10px] truncate border-l-2 border-purple-500/30 pl-2">
                                                             {data.results.source}
                                                         </div>
                                                     </div>
-                                                    {data.results.summary && (
+                                                    )}
+                                                    {/* The "Analyzing telemetry..." placeholder means nothing once the agent failed */}
+                                                    {data.results.summary && !(failureReason && data.results.summary === 'Analyzing telemetry...') && (
                                                         <div>
                                                             <div className="text-cyan-600/80 uppercase font-bold text-[9px] mb-0.5 tracking-wider">AI SUMMARY</div>
                                                             <div className="font-mono text-cyan-100/90 text-[10px] leading-relaxed border-l-2 border-cyan-500/30 pl-2 italic">

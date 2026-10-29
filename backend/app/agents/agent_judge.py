@@ -198,8 +198,10 @@ class AgentJudge:
                 result = verdict_data.dict()
                 result['model'] = active_model
             except Exception as e:
+                from app.agents.llm_errors import finish_details
                 print(f"[Judge] Parsing Error: {e}. Raw content: {clean_content}")
-                result = self._get_fail_safe_verdict(f"JSON Parsing Failed - manual review needed. Error: {str(e)}")
+                details = finish_details(response)
+                result = self._get_fail_safe_verdict(f"JSON Parsing Failed - manual review needed. Error: {str(e)}" + (f". {details}" if details else ""))
                 result['model'] = active_model
 
             await self._emit_status(alert_id, "Complete", f"[Judge] Verdict: {result.get('verdict')} ({result.get('confidence_score')}%)")
