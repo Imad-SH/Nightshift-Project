@@ -37,17 +37,19 @@ interface LiveAlertStreamProps {
 }
 
 // --- OPTIMIZED SUB-COMPONENT ---
-const AlertItem = React.memo(({ 
-    alert, 
-    isSelected, 
-    onSelect, 
-    getSeverityDetails, 
-    event, 
-    _tick 
-}: { 
-    alert: Alert, 
-    isSelected: boolean, 
+const AlertItem = React.memo(({
+    alert,
+    isSelected,
+    onSelect,
+    onNeededHeight,
+    getSeverityDetails,
+    event,
+    _tick
+}: {
+    alert: Alert,
+    isSelected: boolean,
     onSelect: (id: string) => void,
+    onNeededHeight: (id: string, height: number) => void,
     getSeverityDetails: (level: number) => { 
         bg: string; 
         border: string; 
@@ -75,8 +77,24 @@ const AlertItem = React.memo(({
     // Alerts imported by hand name the user in a tab under the card
     const injectedBy: string | undefined = (alert as any).rawData?._injected_by;
 
+    // The list sizes cards from an estimate of the title's lines; report the height this card really
+    // needs (title and verdict as the browser wraps them) so a long title never overflows its slot
+    const outerRef = React.useRef<HTMLDivElement>(null);
+    const bodyRef = React.useRef<HTMLDivElement>(null);
+    const rowRef = React.useRef<HTMLDivElement>(null);
+    React.useLayoutEffect(() => {
+        const outer = outerRef.current, body = bodyRef.current, row = rowRef.current;
+        if (!outer || !body || !row) return;
+        const measure = () => onNeededHeight(alert.id, outer.clientHeight - body.clientHeight + row.offsetHeight);
+        measure();
+        const observer = new ResizeObserver(measure);
+        observer.observe(row);
+        observer.observe(outer);
+        return () => observer.disconnect();
+    }, [alert.id, onNeededHeight]);
+
     return (
-        <div className="h-full flex flex-col">
+        <div ref={outerRef} className="h-full flex flex-col">
         <motion.div
             initial={{ x: -10, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
@@ -172,8 +190,8 @@ const AlertItem = React.memo(({
             </div>
 
             {/* CENTERED BODY: TITLE & AI STATUS */}
-            <div className="flex-1 flex flex-col justify-center min-h-0">
-                <div className="flex justify-between items-start gap-4">
+            <div ref={bodyRef} className="flex-1 flex flex-col justify-center min-h-0">
+                <div ref={rowRef} className="flex justify-between items-start gap-4">
                     <h3 className="font-semibold text-[14px] text-slate-50 leading-snug transition-colors">
                         {alert.title}
                     </h3>
@@ -426,6 +444,12 @@ export const LiveAlertStream: React.FC<LiveAlertStreamProps> = ({ onSelectAlert,
         });
     }, [alerts, activeFilter, getEventById]);
     
+    // Heights the rendered cards reported needing (see AlertItem), by alert id
+    const [neededHeights, setNeededHeights] = React.useState<Record<string, number>>({});
+    const handleNeededHeight = React.useCallback((id: string, height: number) => {
+        setNeededHeights(prev => (Math.abs((prev[id] ?? 0) - height) < 1 ? prev : { ...prev, [id]: height }));
+    }, []);
+
     // --- DYNAMIC HEIGHT CALCULATION ---
     const { cardHeights, cardOffsets, totalScrollHeight } = React.useMemo(() => {
         const heights: number[] = [];
@@ -437,13 +461,15 @@ export const LiveAlertStream: React.FC<LiveAlertStreamProps> = ({ onSelectAlert,
             // Heuristic height calculation: Adjusted for p-3.5 and tighter spacing
             const charsPerLine = 38; 
             const titleLines = Math.ceil((alert.title?.length || 10) / charsPerLine);
-            const height = 96 + (Math.max(1, titleLines) * 21) + ((alert as any).rawData?._injected_by ? 21 : 0); // + the "Added by" tab
+            const estimate = 96 + (Math.max(1, titleLines) * 21) + ((alert as any).rawData?._injected_by ? 21 : 0); // + the "Added by" tab
+            // Grow, never shrink, to what the rendered card measured
+            const height = Math.max(estimate, Math.ceil(neededHeights[alert.id] ?? 0));
             heights.push(height);
             currentOffset += height + MARGIN;
         });
 
         return { cardHeights: heights, cardOffsets: offsets, totalScrollHeight: currentOffset };
-    }, [filteredAlerts]);
+    }, [filteredAlerts, neededHeights]);
 
     // Scroll state
     const [scrollRatio, setScrollRatio] = React.useState(0);
@@ -1238,6 +1264,7 @@ export const LiveAlertStream: React.FC<LiveAlertStreamProps> = ({ onSelectAlert,
                                         alert={alert}
                                         isSelected={selectedAlertId === alert.id}
                                         onSelect={onSelectAlert}
+                                        onNeededHeight={handleNeededHeight}
                                         getSeverityDetails={getSeverityDetails}
                                         event={events[alert.id] || null}
                                         _tick={_tick}
