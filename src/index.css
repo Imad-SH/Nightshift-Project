@@ -468,10 +468,10 @@ custom-scrollbar::-webkit-scrollbar-thumb:hover {
     position: relative;
     overflow: hidden;
     transition-duration: .4s;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
-    background-color: #ef4444;
-    /* red-500 */
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    /* Neutral at rest: signing out is not an alarm. It turns red only on hover. */
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    background-color: rgba(30, 41, 59, 0.8);
+    border: 1px solid rgba(148, 163, 184, 0.25);
 }
 
 .sign {
@@ -483,12 +483,16 @@ custom-scrollbar::-webkit-scrollbar-thumb:hover {
 }
 
 .sign svg {
-    width: 18px;
-    filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.5));
+    width: 17px;
 }
 
 .sign svg path {
-    fill: white;
+    fill: #cbd5e1;
+    transition: fill .3s;
+}
+
+.Btn:hover .sign svg path {
+    fill: #fecdd3;
 }
 
 .text {
@@ -496,12 +500,10 @@ custom-scrollbar::-webkit-scrollbar-thumb:hover {
     right: 0%;
     width: 0%;
     opacity: 0;
-    color: white;
-    font-size: 11px;
-    font-weight: 800;
-    font-family: 'JetBrains Mono', monospace;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
+    color: #e2e8f0;
+    font-size: 12.5px;
+    font-weight: 600;
+    font-family: 'Geist', 'Segoe UI', system-ui, sans-serif;
     transition-duration: .4s;
     white-space: nowrap;
 }
@@ -512,9 +514,12 @@ custom-scrollbar::-webkit-scrollbar-thumb:hover {
     width: 130px;
     border-radius: 12px;
     transition-duration: .4s;
-    background-color: #dc2626;
-    /* red-600 */
-    box-shadow: 0 0 20px rgba(239, 68, 68, 0.4);
+}
+
+.Btn:hover {
+    background-color: rgba(244, 63, 94, 0.16);
+    border-color: rgba(251, 113, 133, 0.5);
+    box-shadow: none;
 }
 
 .Btn:hover .sign,

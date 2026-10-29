@@ -47,17 +47,17 @@ const DashboardContent = () => {
             <LiveAlertStream onSelectAlert={handleSelectAlert} selectedAlertId={selectedAlertId} />
           </div>
 
-          {/* Zone 2: Right - Graph Visualizer (Top 65%) & XRay Inspector (Bottom 35%) */}
+          {/* Zone 2: Right - Graph Visualizer (most of the height) & XRay Inspector (a compact action bar) */}
           <div className="col-span-7 h-full flex flex-col gap-4 overflow-hidden">
-            {/* Top: Graph Section - FIXED 65% */}
-            <div className="h-[65%] min-h-0">
-              <GraphVisualizer 
-                selectedAlertId={selectedAlertId} 
+            {/* Top: Graph Section - takes the remaining height */}
+            <div className="flex-1 min-h-0">
+              <GraphVisualizer
+                selectedAlertId={selectedAlertId}
               />
             </div>
 
-            {/* Bottom: Inspector Section - FLEX REMAINING */}
-            <div className="flex-1 min-h-0 flex flex-col">
+            {/* Bottom: Inspector Section - sized to the action buttons */}
+            <div className="flex-none h-[164px] flex flex-col">
               <XRayInspector 
                 selectedAlertId={selectedAlertId} 
               />

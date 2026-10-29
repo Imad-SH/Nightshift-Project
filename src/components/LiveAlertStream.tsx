@@ -51,6 +51,7 @@ const AlertItem = React.memo(({
     getSeverityDetails: (level: number) => { 
         bg: string; 
         border: string; 
+        hover: string; 
         selected: string; 
         time: string; 
         dot: string; 
@@ -81,31 +82,32 @@ const AlertItem = React.memo(({
             onClick={() => onSelect(alert.id)}
             data-alert-id={alert.id}
             className={cn(
-                "group relative h-full pt-1.5 pb-3.5 px-3.5 rounded-lg cursor-pointer transition-all duration-300 ease-out",
-                "backdrop-blur-2xl border shadow-lg flex flex-col",
+                "group relative h-full pt-2 pb-3 px-4 rounded-xl cursor-pointer transition-all duration-300 ease-out",
+                "backdrop-blur-2xl border flex flex-col shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_8px_20px_-12px_rgba(0,0,0,0.6)] hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.07),0_14px_30px_-14px_rgba(0,0,0,0.75)]",
                 sev.bg,
                 sev.border,
+                sev.hover,
                 isSelected && cn(sev.selected, "ring-1")
             )}
         >
             {/* === TACTICAL TARGETING BRACKETS === */}
             <span className={cn(
-                "absolute -top-2 -left-2 w-7 h-7 border-l-[3px] border-t-[3px] rounded-tl-2xl opacity-0 transition-all duration-300 translate-x-2 translate-y-2 z-20",
+                "absolute -top-1.5 -left-1.5 w-6 h-6 border-l-2 border-t-2 rounded-tl-xl opacity-0 transition-all duration-300 translate-x-2 translate-y-2 z-20",
                 sev.bracket,
                 isSelected && "opacity-100 translate-x-0 translate-y-0"
             )}></span>
             <span className={cn(
-                "absolute -top-2 -right-2 w-7 h-7 border-r-[3px] border-t-[3px] rounded-tr-2xl opacity-0 transition-all duration-300 -translate-x-2 translate-y-2 z-20",
+                "absolute -top-1.5 -right-1.5 w-6 h-6 border-r-2 border-t-2 rounded-tr-xl opacity-0 transition-all duration-300 -translate-x-2 translate-y-2 z-20",
                 sev.bracket,
                 isSelected && "opacity-100 translate-x-0 translate-y-0"
             )}></span>
             <span className={cn(
-                "absolute -bottom-2 -right-2 w-7 h-7 border-r-[3px] border-b-[3px] rounded-br-2xl opacity-0 transition-all duration-300 -translate-x-2 -translate-y-2 z-20",
+                "absolute -bottom-1.5 -right-1.5 w-6 h-6 border-r-2 border-b-2 rounded-br-xl opacity-0 transition-all duration-300 -translate-x-2 -translate-y-2 z-20",
                 sev.bracket,
                 isSelected && "opacity-100 translate-x-0 translate-y-0"
             )}></span>
             <span className={cn(
-                "absolute -bottom-2 -left-2 w-7 h-7 border-l-[3px] border-b-[3px] rounded-bl-2xl opacity-0 transition-all duration-300 translate-x-2 -translate-y-2 z-20",
+                "absolute -bottom-1.5 -left-1.5 w-6 h-6 border-l-2 border-b-2 rounded-bl-xl opacity-0 transition-all duration-300 translate-x-2 -translate-y-2 z-20",
                 sev.bracket,
                 isSelected && "opacity-100 translate-x-0 translate-y-0"
             )}></span>
@@ -139,7 +141,7 @@ const AlertItem = React.memo(({
                                 );
                             }
                             return (
-                                <span className={cn("font-mono text-[10px] tracking-wider transition-colors whitespace-nowrap cursor-help", sev.time)}>
+                                <span className={cn("font-mono text-[10.5px] tracking-wide opacity-90 transition-colors whitespace-nowrap cursor-help", sev.time)}>
                                     {diffSec < 60 ? `${diffSec}s ago`
                                         : diffMin < 60 ? `${diffMin} min${diffMin > 1 ? 's' : ''} ago`
                                         : diffHr < 24 ? `${diffHr}h${diffMin % 60 > 0 ? ` ${diffMin % 60}m` : ''} ago`
@@ -158,17 +160,17 @@ const AlertItem = React.memo(({
                         </div>
                     </div>
                 </div>
-                <span className={cn("text-[9px] font-bold px-1.5 py-0.5 rounded border transition-colors flex items-center gap-1", sev.badge)}>
+                <span title={`Severity level ${alert.level}`} className={cn("text-[9.5px] font-mono font-semibold px-2 py-0.5 rounded-md border transition-colors flex items-center gap-1.5", sev.badge)}>
                     <span className="uppercase">{sev.label}</span>
-                    <span className="opacity-50">/</span>
-                    <span>LVL {alert.level}</span>
+                    <span className="opacity-40">·</span>
+                    <span className="opacity-80">LVL {alert.level}</span>
                 </span>
             </div>
 
             {/* CENTERED BODY: TITLE & AI STATUS */}
             <div className="flex-1 flex flex-col justify-center min-h-0">
                 <div className="flex justify-between items-start gap-4">
-                    <h3 className="font-medium text-sm text-white leading-snug transition-colors">
+                    <h3 className="font-semibold text-[14px] text-slate-50 leading-snug transition-colors">
                         {alert.title}
                     </h3>
                     {(() => {
@@ -182,13 +184,13 @@ const AlertItem = React.memo(({
                         const isActive = ['running', 'extracting', 'investigating', 'judging'].includes(status);
 
                         if (hasRealVerdict) {
-                            const verdictColor = vNormal === 'malicious' ? 'text-rose-400' : vNormal === 'suspicious' ? 'text-amber-400' : 'text-emerald-400';
+                            const verdictPill = vNormal === 'malicious' ? 'text-rose-300 bg-rose-500/15 border-rose-400/40' : vNormal === 'suspicious' ? 'text-amber-300 bg-amber-500/15 border-amber-400/40' : 'text-emerald-300 bg-emerald-500/15 border-emerald-400/40';
                             return (
-                                <div className="flex flex-col items-end gap-0.5 -mt-1 scale-95 origin-right text-right">
-                                    <span className="flex-none text-[8px] font-bold uppercase tracking-widest pt-0.5 text-emerald-400/60">
-                                        AI Verdict :
+                                <div className="flex flex-col items-end gap-1 text-right shrink-0">
+                                    <span className="flex-none text-[8.5px] font-semibold uppercase tracking-[0.16em] text-slate-400">
+                                        AI verdict
                                     </span>
-                                    <span className={cn("flex-none text-[10px] font-black uppercase tracking-[0.1em] text-right truncate max-w-[120px]", verdictColor)}>
+                                    <span className={cn("flex-none text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md border truncate max-w-[120px]", verdictPill)}>
                                         {vNormal === 'clean' ? 'CLEAN' : vNormal.toUpperCase()}
                                     </span>
                                 </div>
@@ -197,11 +199,11 @@ const AlertItem = React.memo(({
 
                         if (isProcessFailed) {
                             return (
-                                <div className="flex flex-col items-end gap-0.5 -mt-1 scale-95 origin-right text-right">
-                                    <span className="flex-none text-[8px] font-bold uppercase tracking-widest pt-0.5 text-amber-400/60">
-                                        Analysis :
+                                <div className="flex flex-col items-end gap-1 text-right shrink-0">
+                                    <span className="flex-none text-[8.5px] font-semibold uppercase tracking-[0.16em] text-slate-400">
+                                        Analysis
                                     </span>
-                                    <span className="flex-none text-[10px] font-black uppercase tracking-[0.1em] text-right truncate max-w-[120px] text-amber-400">
+                                    <span className="flex-none text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md border truncate max-w-[120px] text-amber-300 bg-amber-500/15 border-amber-400/40">
                                         FAILED
                                     </span>
                                 </div>
@@ -210,9 +212,9 @@ const AlertItem = React.memo(({
 
                         if (isActive) {
                             return (
-                                <div className="flex items-center gap-1.5 pt-0.5">
-                                    <Loader2 size={10} className="animate-spin text-cyan-400" />
-                                    <span className="flex-none text-[9px] font-bold text-cyan-400 uppercase tracking-tighter">Analyzing</span>
+                                <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-md border border-cyan-400/30 bg-cyan-500/10 shrink-0">
+                                    <Loader2 size={10} className="animate-spin text-cyan-300" />
+                                    <span className="flex-none text-[9.5px] font-bold text-cyan-300 uppercase tracking-wider">Analyzing</span>
                                 </div>
                             );
                         }
@@ -222,7 +224,7 @@ const AlertItem = React.memo(({
             </div>
 
             {/* FOOTER DATA */}
-            <div className="flex items-center justify-between mt-2 pt-2 border-t border-white/10 transition-colors flex-none">
+            <div className="flex items-center justify-between mt-2 pt-2 border-t border-white/[0.07] transition-colors flex-none">
                 <div className={cn("flex items-center gap-2 text-[10px] transition-colors", sev.time)}>
                     <span className={cn("w-1.5 h-1.5 rounded-full transition-colors shrink-0", sev.dot)}></span>
                     <div className="relative group/agent">
@@ -241,8 +243,8 @@ const AlertItem = React.memo(({
                         onClick={handleCopy}
                         whileHover={{ scale: 1.05 }}
                         className={cn(
-                            "font-mono font-bold text-[10px] uppercase tracking-tighter transition-all duration-300",
-                            "cursor-pointer hover:bg-cyan-500/20 px-2 py-0.5 rounded border border-transparent hover:border-cyan-500/40",
+                            "font-mono font-medium text-[10px] tracking-tight transition-all duration-300",
+                            "cursor-pointer bg-white/[0.03] hover:bg-cyan-500/15 px-2 py-0.5 rounded-md border border-white/10 hover:border-cyan-400/40",
                             "group-hover/id:shadow-[0_0_15px_rgba(111,139,230,0.3)]",
                             isCopied ? "bg-emerald-500/20 text-emerald-400 border-emerald-500/40" : sev.time
                         )}
@@ -255,7 +257,7 @@ const AlertItem = React.memo(({
                             "absolute -top-6 left-1/2 -translate-x-1/2 text-[8px] px-1.5 py-0.5 rounded opacity-0 group-hover/id:opacity-100 transition-all whitespace-nowrap z-50 font-black tracking-widest",
                             isCopied ? "bg-emerald-500 text-white" : "bg-black/80 text-cyan-400"
                         )}>
-                            {isCopied ? 'COPIED !' : 'COPY'}
+                            {isCopied ? 'COPIED' : 'COPY'}
                         </div>
                     </motion.div>
                 </div>
@@ -475,8 +477,9 @@ export const LiveAlertStream: React.FC<LiveAlertStreamProps> = ({ onSelectAlert,
         if (level >= 13) return {
             label: 'CRITICAL',
             badge: 'bg-purple-500/10 border-purple-500/50 text-purple-400',
-            bg: 'bg-purple-500/10',
-            border: 'border-purple-400/40',
+            bg: 'bg-gradient-to-br from-purple-500/[0.13] via-purple-500/[0.05] to-slate-900/40',
+            border: 'border-purple-400/30',
+            hover: 'hover:border-purple-400/60',
             time: 'text-purple-400',
             dot: 'bg-purple-400',
             selected: 'border-purple-400/60 ring-purple-500/20 bg-purple-500/[0.08] shadow-[inset_0_0_30px_rgba(168,85,247,0.06)] border-l-2 border-l-purple-400',
@@ -485,8 +488,9 @@ export const LiveAlertStream: React.FC<LiveAlertStreamProps> = ({ onSelectAlert,
         if (level >= 10) return {
             label: 'HIGH',
             badge: 'bg-rose-500/10 border-rose-500/50 text-rose-400',
-            bg: 'bg-rose-500/10',
-            border: 'border-rose-400/40',
+            bg: 'bg-gradient-to-br from-rose-500/[0.13] via-rose-500/[0.05] to-slate-900/40',
+            border: 'border-rose-400/30',
+            hover: 'hover:border-rose-400/60',
             time: 'text-rose-400',
             dot: 'bg-rose-400',
             selected: 'border-rose-400/60 ring-rose-500/20 bg-rose-500/[0.08] shadow-[inset_0_0_30px_rgba(244,63,94,0.06)] border-l-2 border-l-rose-400',
@@ -495,8 +499,9 @@ export const LiveAlertStream: React.FC<LiveAlertStreamProps> = ({ onSelectAlert,
         if (level >= 7) return {
             label: 'MEDIUM',
             badge: 'bg-orange-500/10 border-orange-500/50 text-orange-400',
-            bg: 'bg-orange-500/10',
-            border: 'border-orange-400/40',
+            bg: 'bg-gradient-to-br from-orange-500/[0.13] via-orange-500/[0.05] to-slate-900/40',
+            border: 'border-orange-400/30',
+            hover: 'hover:border-orange-400/60',
             time: 'text-orange-400',
             dot: 'bg-orange-400',
             selected: 'border-orange-400/60 ring-orange-500/20 bg-orange-500/[0.08] shadow-[inset_0_0_30px_rgba(249,115,22,0.06)] border-l-2 border-l-orange-400',
@@ -505,8 +510,9 @@ export const LiveAlertStream: React.FC<LiveAlertStreamProps> = ({ onSelectAlert,
         if (level >= 4) return {
             label: 'LOW',
             badge: 'bg-yellow-500/10 border-yellow-500/50 text-yellow-400',
-            bg: 'bg-yellow-500/10',
-            border: 'border-yellow-400/40',
+            bg: 'bg-gradient-to-br from-yellow-500/[0.13] via-yellow-500/[0.05] to-slate-900/40',
+            border: 'border-yellow-400/30',
+            hover: 'hover:border-yellow-400/60',
             time: 'text-yellow-400',
             dot: 'bg-yellow-400',
             selected: 'border-yellow-400/60 ring-yellow-500/20 bg-yellow-500/[0.08] shadow-[inset_0_0_30px_rgba(234,179,8,0.06)] border-l-2 border-l-yellow-400',
@@ -515,8 +521,9 @@ export const LiveAlertStream: React.FC<LiveAlertStreamProps> = ({ onSelectAlert,
         return {
             label: 'INFO',
             badge: 'bg-cyan-500/10 border-cyan-500/50 text-cyan-400',
-            bg: 'bg-cyan-500/10',
-            border: 'border-cyan-400/40',
+            bg: 'bg-gradient-to-br from-cyan-500/[0.13] via-cyan-500/[0.05] to-slate-900/40',
+            border: 'border-cyan-400/30',
+            hover: 'hover:border-cyan-400/60',
             time: 'text-cyan-400',
             dot: 'bg-cyan-400',
             selected: 'border-cyan-400/60 ring-cyan-500/20 bg-cyan-500/[0.08] shadow-[inset_0_0_30px_rgba(111,139,230,0.06)] border-l-2 border-l-cyan-400',
@@ -699,9 +706,9 @@ export const LiveAlertStream: React.FC<LiveAlertStreamProps> = ({ onSelectAlert,
 
                 <div className="flex items-center gap-4 relative z-10">
                     <div className="relative flex h-3 w-3 items-center justify-center">
-                        <div className="relative inline-flex h-1.5 w-1.5 bg-cyan-300 transform rotate-45 shadow-[0_0_10px_rgba(138,162,238,1)]"></div>
+                        <div className="relative inline-flex h-1.5 w-1.5 bg-cyan-400 transform rotate-45"></div>
                     </div>
-                    <h2 className="text-[13px] font-black text-transparent bg-clip-text bg-gradient-to-r from-white via-cyan-100 to-cyan-300 uppercase tracking-[0.25em] font-mono filter drop-shadow-[0_0_8px_rgba(138,162,238,0.5)]">
+                    <h2 className="text-[13px] font-semibold text-slate-100 uppercase tracking-[0.14em]">
                         LIVE ALERTS
                     </h2>
                 </div>
@@ -727,8 +734,8 @@ export const LiveAlertStream: React.FC<LiveAlertStreamProps> = ({ onSelectAlert,
                             </button>
                         )}
                     </div>
-                    <div className="text-[11px] font-mono text-cyan-300 font-bold tracking-[0.1em] pl-3 pr-2 py-1 bg-cyan-950/30 rounded border border-cyan-500/20 backdrop-blur-md flex items-center gap-1.5 ml-2 mr-[-4px]">
-                        <span>{filteredAlerts.length} EVENTS</span>
+                    <div className="text-[11.5px] font-mono text-cyan-200 font-medium pl-3 pr-2 py-1 bg-cyan-950/30 rounded border border-cyan-500/20 backdrop-blur-md flex items-center gap-1.5 ml-2 mr-[-4px]">
+                        <span>{filteredAlerts.length.toLocaleString('en-US')} events</span>
                         <div className="tactical-tooltip-trigger">
                             <div className="tactical-tooltip-icon !text-cyan-300 !border-cyan-500 !shadow-[0_0_10px_rgba(111,139,230,0.3)] scale-[0.60]">
                                 <svg viewBox="0 0 320 512" className="w-3 h-3 fill-current">

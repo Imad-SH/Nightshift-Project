@@ -39,7 +39,7 @@ export const XRayInspector: React.FC<XRayInspectorProps> = ({ selectedAlertId })
                 {/* Scanline Pattern */}
                 <div className="absolute inset-0 opacity-[0.03] bg-[linear-gradient(0deg,transparent_24%,#8aa2ee_25%,#8aa2ee_26%,transparent_27%,transparent_74%,#8aa2ee_75%,#8aa2ee_76%,transparent_77%,transparent)] bg-[length:4px_4px]"></div>
                 {/* Side Bracket / Light Bar */}
-                <div className="absolute top-0 left-0 w-1 h-full bg-cyan-500 shadow-[0_0_12px_rgba(138,162,238,0.8)]"></div>
+                <div className="absolute top-0 left-0 w-[3px] h-full bg-cyan-500/70"></div>
 
                 {/* Decorative corner cutouts / UI noise */}
                 <div className="absolute right-0 top-0 w-16 h-full bg-gradient-to-l from-cyan-500/5 to-transparent pointer-events-none"></div>
@@ -48,12 +48,12 @@ export const XRayInspector: React.FC<XRayInspectorProps> = ({ selectedAlertId })
                 <div className="flex items-center gap-4 relative z-10">
                     {/* Cyber Core Indicator (Static) */}
                     <div className="relative flex h-3 w-3 items-center justify-center">
-                        <div className="relative inline-flex h-1.5 w-1.5 bg-cyan-300 transform rotate-45 shadow-[0_0_10px_rgba(138,162,238,1)]"></div>
+                        <div className="relative inline-flex h-1.5 w-1.5 bg-cyan-400 transform rotate-45"></div>
                     </div>
 
                     {/* Text */}
                     <div className="flex flex-col justify-center">
-                        <h2 className="text-[13px] font-black text-transparent bg-clip-text bg-gradient-to-r from-white via-cyan-100 to-cyan-300 uppercase tracking-[0.25em] font-mono filter drop-shadow-[0_0_8px_rgba(138,162,238,0.5)]">
+                        <h2 className="text-[13px] font-semibold text-slate-100 uppercase tracking-[0.14em]">
                             ACTIONS
                         </h2>
                     </div>
@@ -78,18 +78,12 @@ export const XRayInspector: React.FC<XRayInspectorProps> = ({ selectedAlertId })
                                 <motion.div
                                     key="completed"
                                     initial={{ opacity: 0, scale: 0.9 }}
-                                    animate={{
-                                        opacity: [0.7, 1, 0.7],
-                                        scale: [1, 1.02, 1]
-                                    }}
-                                    transition={{
-                                        duration: 2,
-                                        repeat: Infinity,
-                                        ease: "easeInOut"
-                                    }}
-                                    className="text-emerald-400 font-black text-[11px] tracking-[0.3em] flex items-center gap-2 drop-shadow-[0_0_8px_rgba(16,185,129,0.5)] font-mono"
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    transition={{ duration: 0.3 }}
+                                    className="text-emerald-400 font-sans font-medium text-[12px] flex items-center gap-2"
                                 >
-                                    <span>SCAN COMPLETE !</span>
+                                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                                    <span>Scan complete</span>
                                 </motion.div>
                             )}
                         </>

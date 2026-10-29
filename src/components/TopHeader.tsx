@@ -71,7 +71,7 @@ export const TopHeader: React.FC<TopHeaderProps> = ({ wazuhStatus, thehiveStatus
 
     // Dynamic greeting based on time of day
     const hour = new Date().getHours();
-    const greeting = hour < 12 ? 'MORNING' : hour < 18 ? 'AFTERNOON' : 'EVENING';
+    const greeting = hour < 12 ? 'morning' : hour < 18 ? 'afternoon' : 'evening';
     const userName = user?.name || user?.preferred_username || 'OPERATOR';
 
 
@@ -123,10 +123,10 @@ export const TopHeader: React.FC<TopHeaderProps> = ({ wazuhStatus, thehiveStatus
                 <div className="flex items-center gap-4">
                     
                     <div className="hidden md:flex flex-col items-end">
-                        <span className="text-[9.5px] font-mono font-bold text-cyan-400 tracking-[0.2em] drop-shadow-[0_0_5px_rgba(138,162,238,0.2)]">
-                            GOOD {greeting},
+                        <span className="text-[11px] font-medium text-cyan-400/80">
+                            Good {greeting},
                         </span>
-                        <span className="text-[11.5px] font-mono font-bold text-cyan-100 tracking-widest uppercase drop-shadow-[0_0_8px_rgba(138,162,238,0.4)]">
+                        <span className="text-[13px] font-semibold text-cyan-50 leading-tight">
                             {userName}
                         </span>
                     </div>
@@ -208,12 +208,12 @@ export const TopHeader: React.FC<TopHeaderProps> = ({ wazuhStatus, thehiveStatus
 
                         {/* Glowing Text */}
                         <span className={cn(
-                            "text-[12.5px] font-mono font-bold tracking-widest transition-colors duration-300 leading-none",
+                            "text-[12.5px] font-semibold transition-colors duration-300 leading-none",
                             isCoreOnline
                                 ? "text-cyan-300 group-hover:text-cyan-100 drop-shadow-[0_0_5px_rgba(138,162,238,0.5)]"
                                 : "text-rose-300 group-hover:text-rose-100 drop-shadow-[0_0_5px_rgba(244,63,94,0.5)]"
                         )}>
-                            SYSTEM_{isCoreOnline ? 'ONLINE' : 'OFFLINE'}
+                            {isCoreOnline ? 'System online' : 'System offline'}
                         </span>
 
                         {/* TACTICAL TOOLTIP */}

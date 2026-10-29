@@ -56,7 +56,7 @@ interface CyberCardProps {
     icon: LucideIcon;
     title: string;
     subtitle: string;
-    color: 'cyan' | 'amber' | 'red' | 'slate' | 'violet';
+    color: 'cyan' | 'amber' | 'red' | 'slate' | 'violet' | 'teal';
     onClick?: () => void;
     hasPlaceholder?: boolean;
     imageSrc?: string;
@@ -67,84 +67,103 @@ interface CyberCardProps {
 }
 
 function CyberCard({ icon: Icon, title, subtitle, color, onClick, hasPlaceholder, imageSrc, centralIcon: CentralIcon, hideCornerIcon, isScanning, noAnimation }: CyberCardProps) {
-    const colorMap: Record<CyberCardProps['color'], string> = {
-        cyan: 'border-cyan-500/50 text-cyan-400 hover:border-cyan-300 hover:text-cyan-200 hover:shadow-[0_0_20px_rgba(138,162,238,0.3)] bg-cyan-950/20',
-        amber: 'border-amber-500/50 text-amber-400 hover:border-amber-300 hover:text-amber-200 hover:shadow-[0_0_20px_rgba(251,191,36,0.3)] bg-amber-950/20',
-        red: 'border-rose-500/50 text-rose-400 hover:border-rose-300 hover:text-rose-200 hover:shadow-[0_0_25px_rgba(244,63,94,0.4)] bg-rose-950/20',
-        slate: 'border-slate-500/50 text-slate-400 hover:border-slate-300 hover:text-white hover:shadow-[0_0_15px_rgba(148,163,184,0.1)] bg-slate-900/40',
-        violet: 'border-violet-500/50 text-violet-400 hover:border-violet-300 hover:text-violet-200 hover:shadow-[0_0_20px_rgba(139,92,246,0.3)] bg-violet-950/20'
+    // One accent per action: a tinted gradient surface, a gradient icon tile, and a glow on hover
+    const colorMap: Record<CyberCardProps['color'], { card: string; tile: string; glow: string; chip: string }> = {
+        cyan: {
+            card: 'border-cyan-500/30 from-cyan-500/[0.14] via-slate-900/50 to-slate-900/70 hover:border-cyan-400/70 hover:shadow-[0_14px_34px_-14px_rgba(111,139,230,0.65)]',
+            tile: 'text-cyan-100 from-cyan-400/35 to-cyan-700/20 border-cyan-400/40 shadow-[0_6px_16px_-6px_rgba(111,139,230,0.6)]',
+            glow: 'bg-cyan-400/25', chip: 'group-hover:text-cyan-200 group-hover:border-cyan-400/50',
+        },
+        amber: {
+            card: 'border-amber-500/25 from-amber-500/[0.12] via-slate-900/50 to-slate-900/70 hover:border-amber-400/60 hover:shadow-[0_14px_34px_-14px_rgba(245,158,11,0.5)]',
+            tile: 'text-amber-200 from-amber-400/30 to-amber-700/15 border-amber-400/40 shadow-[0_6px_16px_-6px_rgba(245,158,11,0.5)]',
+            glow: 'bg-amber-400/20', chip: 'group-hover:text-amber-200 group-hover:border-amber-400/50',
+        },
+        red: {
+            card: 'border-rose-500/30 from-rose-500/[0.14] via-slate-900/50 to-slate-900/70 hover:border-rose-400/70 hover:shadow-[0_14px_34px_-14px_rgba(244,63,94,0.55)]',
+            tile: 'text-rose-100 from-rose-400/35 to-rose-700/20 border-rose-400/40 shadow-[0_6px_16px_-6px_rgba(244,63,94,0.55)]',
+            glow: 'bg-rose-400/20', chip: 'group-hover:text-rose-200 group-hover:border-rose-400/50',
+        },
+        slate: {
+            card: 'border-slate-500/30 from-slate-400/[0.09] via-slate-900/50 to-slate-900/70 hover:border-slate-400/60 hover:shadow-[0_14px_34px_-14px_rgba(148,163,184,0.4)]',
+            tile: 'text-slate-100 from-slate-300/25 to-slate-600/15 border-slate-400/35 shadow-[0_6px_16px_-6px_rgba(148,163,184,0.4)]',
+            glow: 'bg-slate-300/15', chip: 'group-hover:text-slate-100 group-hover:border-slate-400/50',
+        },
+        // The teal of the Nightshift logo (#70c3b8)
+        teal: {
+            card: 'border-[#70c3b8]/30 from-[#70c3b8]/[0.13] via-slate-900/50 to-slate-900/70 hover:border-[#70c3b8]/70 hover:shadow-[0_14px_34px_-14px_rgba(112,195,184,0.55)]',
+            tile: 'text-[#d4f0ec] from-[#70c3b8]/35 to-[#2f7f75]/20 border-[#70c3b8]/40 shadow-[0_6px_16px_-6px_rgba(112,195,184,0.55)]',
+            glow: 'bg-[#70c3b8]/20', chip: 'group-hover:text-[#bfe7e1] group-hover:border-[#70c3b8]/50',
+        },
+        violet: {
+            card: 'border-violet-500/25 from-violet-500/[0.12] via-slate-900/50 to-slate-900/70 hover:border-violet-400/60 hover:shadow-[0_14px_34px_-14px_rgba(139,92,246,0.5)]',
+            tile: 'text-violet-100 from-violet-400/30 to-violet-700/15 border-violet-400/40 shadow-[0_6px_16px_-6px_rgba(139,92,246,0.5)]',
+            glow: 'bg-violet-400/20', chip: 'group-hover:text-violet-200 group-hover:border-violet-400/50',
+        },
     };
+    const tone = colorMap[color];
 
     return (
         <motion.button
             onClick={onClick}
-            whileHover={noAnimation ? {} : { scale: 1.02, y: -2 }}
+            whileHover={noAnimation ? {} : { y: -2 }}
             whileTap={noAnimation ? {} : { scale: 0.98 }}
             className={cn(
-                "relative group overflow-hidden flex flex-col items-center justify-center p-2.5 sm:p-3 rounded-xl border min-h-[85px] w-full shadow-lg",
-                !noAnimation && "transition-all duration-300 ease-out",
-                colorMap[color]
+                "relative group overflow-hidden flex items-center gap-4 px-4 py-3 rounded-xl border w-full h-full min-h-[72px] text-left font-sans bg-gradient-to-br",
+                "shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400/60",
+                !noAnimation && "transition-[border-color,box-shadow] duration-300",
+                tone.card
             )}
         >
-            <div className={cn("absolute inset-0 opacity-10 bg-current", !noAnimation && "group-hover:opacity-20 transition-opacity")} />
-            {hasPlaceholder && !hideCornerIcon && (
-                <div className={cn("absolute top-2 right-2 p-1.5 z-20", isScanning ? "opacity-100" : "opacity-40", !noAnimation && "group-hover:opacity-100 transition-opacity duration-300")}>
-                    {isScanning ? (
-                        <Loader2 size={18} className="animate-spin text-current" />
+            {/* Soft light that rises on hover */}
+            <div className={cn("pointer-events-none absolute -right-8 -top-12 w-36 h-36 rounded-full blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500", tone.glow)} />
+            {/* Fine highlight along the top edge */}
+            <div className="pointer-events-none absolute inset-x-4 top-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+
+            <div className={cn("relative shrink-0 w-11 h-11 rounded-xl border bg-gradient-to-br flex items-center justify-center transition-transform duration-300 group-hover:scale-105", tone.tile)}>
+                {hasPlaceholder && imageSrc ? (
+                    isScanning ? (
+                        <Loader2 size={18} className="animate-spin" />
                     ) : (
-                        <Icon size={18} strokeWidth={2} className={cn(!noAnimation && "transition-colors duration-300")} />
-                    )}
+                        <div
+                            className="w-5 h-5 bg-current"
+                            style={{
+                                WebkitMaskImage: `url("${imageSrc}")`,
+                                maskImage: `url("${imageSrc}")`,
+                                WebkitMaskSize: 'contain',
+                                maskSize: 'contain',
+                                WebkitMaskRepeat: 'no-repeat',
+                                maskRepeat: 'no-repeat',
+                                WebkitMaskPosition: 'center',
+                                maskPosition: 'center',
+                            }}
+                        />
+                    )
+                ) : hasPlaceholder ? (
+                    <>
+                        {isScanning && (
+                            <div className="absolute inset-1 border-2 border-current border-t-transparent rounded-full animate-spin opacity-80" />
+                        )}
+                        {CentralIcon ? <CentralIcon size={isScanning ? 14 : 18} /> : <Bot size={18} />}
+                    </>
+                ) : (
+                    <Icon size={18} strokeWidth={2} />
+                )}
+            </div>
+            <div className="relative min-w-0">
+                <h3 className="text-[14px] font-semibold text-white leading-tight">
+                    {title}
+                </h3>
+                <p className="text-[12px] text-slate-400 mt-1 truncate group-hover:text-slate-300 transition-colors">
+                    {subtitle}
+                </p>
+            </div>
+            {/* The action's own icon (open in the case system, download); none on the scan button */}
+            {hasPlaceholder && !hideCornerIcon && !isScanning && (
+                <div className={cn("relative ml-auto shrink-0 w-8 h-8 rounded-full border border-white/10 bg-white/[0.03] flex items-center justify-center text-slate-500 transition-all duration-300", tone.chip)}>
+                    <Icon size={14} strokeWidth={2.2} className="transition-transform duration-300 group-hover:translate-x-0.5" />
                 </div>
             )}
-            <div className="relative z-10 flex flex-col items-center gap-2 text-center">
-                {hasPlaceholder ? (
-                    <div className={cn("w-10 h-10 flex items-center justify-center p-1 relative", !noAnimation && "transition-all duration-300")}>
-                        {imageSrc ? (
-                            <div
-                                className={cn("w-full h-full bg-current", !noAnimation && "transition-transform duration-300 group-hover:scale-110", isScanning && "scale-75 opacity-50")}
-                                style={{
-                                    WebkitMaskImage: `url("${imageSrc}")`,
-                                    maskImage: `url("${imageSrc}")`,
-                                    WebkitMaskSize: 'contain',
-                                    maskSize: 'contain',
-                                    WebkitMaskRepeat: 'no-repeat',
-                                    maskRepeat: 'no-repeat',
-                                    WebkitMaskPosition: 'center',
-                                    maskPosition: 'center',
-                                    filter: `drop-shadow(0 0 10px ${color === 'amber' ? 'rgba(251,191,36,0.8)' :
-                                        color === 'red' ? 'rgba(244,63,94,0.8)' :
-                                            color === 'cyan' ? 'rgba(138,162,238,0.8)' :
-                                                'rgba(148,163,184,0.4)'
-                                        })`
-                                }}
-                            />
-                        ) : (
-                            <div className="opacity-100 filter drop-shadow-[0_0_12px_currentColor] relative flex items-center justify-center">
-                                {isScanning && (
-                                    <div className="absolute inset-[-8px] border-2 border-current border-t-transparent rounded-full animate-spin opacity-80" />
-                                )}
-                                {CentralIcon ? (
-                                    <CentralIcon size={isScanning ? 24 : 32} className={cn("transition-all duration-300", isScanning && "scale-90 animate-pulse text-rose-400")} />
-                                ) : (
-                                    <Bot size={28} />
-                                )}
-                            </div>
-                        )}
-                    </div>
-                ) : (
-                    <div className={cn("p-2 rounded-lg bg-black/40 border border-white/10 transition-all", !noAnimation && "group-hover:scale-110 group-hover:border-current/50 duration-300")}>
-                        <Icon size={22} strokeWidth={2} className="transition-colors duration-300" />
-                    </div>
-                )}
-                <div className="space-y-1">
-                    <h3 className="text-[11px] sm:text-[13px] font-bold uppercase tracking-widest drop-shadow-md">
-                        {title}
-                    </h3>
-                    <p className={cn("text-[9px] sm:text-[10px] font-mono opacity-80 uppercase tracking-tight", !noAnimation && "group-hover:opacity-100 transition-opacity")}>
-                        {subtitle}
-                    </p>
-                </div>
-            </div>
         </motion.button>
     );
 }
@@ -841,8 +860,8 @@ export const ActionConsole: React.FC<ActionConsoleProps> = ({ alert, isScanning 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-3 h-full">
                     <CyberCard
                         icon={isStopping ? RotateCcw : (activeIsScanning ? Square : RotateCcw)}
-                        title={isStopping ? "STOPPING..." : (activeIsScanning ? "STOP AI SCAN" : (hasCompletedOnce ? "RE-SCAN ALERT" : "SCAN ALERT"))}
-                        subtitle={isStopping ? "TERMINATING TASK" : (activeIsScanning ? "ACTIVE INVESTIGATION" : (hasCompletedOnce ? "RE-RUN INVESTIGATION" : "START INVESTIGATION"))}
+                        title={isStopping ? "Stopping..." : (activeIsScanning ? "Stop AI scan" : (hasCompletedOnce ? "Re-scan alert" : "Scan alert"))}
+                        subtitle={isStopping ? "Ending the task" : (activeIsScanning ? "Investigation running" : (hasCompletedOnce ? "Run the investigation again" : "Start the investigation"))}
                         color={isStopping ? "slate" : (activeIsScanning ? "red" : "cyan")}
                         hasPlaceholder
                         centralIcon={isStopping ? RotateCcw : (activeIsScanning ? Square : RotateCcw)}
@@ -852,8 +871,8 @@ export const ActionConsole: React.FC<ActionConsoleProps> = ({ alert, isScanning 
                     />
                     <CyberCard
                         icon={soarId ? Bot : ExternalLink}
-                        title={soarId ? "CASE CREATED" : "CREATE CASE"}
-                        subtitle={isEscalating ? "PROCESSING..." : (soarId ? "(Case Created)" : soar.escalateLabel.toUpperCase())}
+                        title={soarId ? "Case created" : "Create case"}
+                        subtitle={isEscalating ? "Processing..." : (soarId ? "Already escalated" : soar.escalateLabel)}
                         color={soarId ? "slate" : soar.color}
                         hasPlaceholder
                         imageSrc={soar.logo}
@@ -862,9 +881,9 @@ export const ActionConsole: React.FC<ActionConsoleProps> = ({ alert, isScanning 
                     />
                     <CyberCard
                         icon={Download}
-                        title="EXPORT PDF REPORT"
-                        subtitle="GENERATE DOCUMENTATION"
-                        color="red"
+                        title="Export PDF report"
+                        subtitle="Download the investigation"
+                        color="teal"
                         hasPlaceholder
                         imageSrc="/assets/PDF Icon.png"
                         onClick={handleExportReport}
@@ -876,8 +895,8 @@ export const ActionConsole: React.FC<ActionConsoleProps> = ({ alert, isScanning 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3 h-full">
                     <CyberCard
                         icon={isStopping ? RotateCcw : (activeIsScanning ? Square : Bot)}
-                        title={isStopping ? "STOPPING..." : (activeIsScanning ? "STOP AI SCAN" : "Scan with AI")}
-                        subtitle={isStopping ? "TERMINATING TASK" : (activeIsScanning ? "ACTIVE INVESTIGATION" : "INITIATE INVESTIGATION")}
+                        title={isStopping ? "Stopping..." : (activeIsScanning ? "Stop AI scan" : "Scan with AI")}
+                        subtitle={isStopping ? "Ending the task" : (activeIsScanning ? "Investigation running" : "Start the investigation")}
                         color={isStopping ? "slate" : (activeIsScanning ? "red" : "cyan")}
                         hasPlaceholder
                         centralIcon={isStopping ? RotateCcw : (activeIsScanning ? Square : Play)}
@@ -887,8 +906,8 @@ export const ActionConsole: React.FC<ActionConsoleProps> = ({ alert, isScanning 
                     />
                     <CyberCard
                         icon={soarId ? Bot : ExternalLink}
-                        title={soarId ? "CASE CREATED" : "CREATE CASE"}
-                        subtitle={isEscalating ? "PROCESSING..." : (soarId ? `SUCCESS (ID: ${soarId})` : soar.escalateLabel.toUpperCase())}
+                        title={soarId ? "Case created" : "Create case"}
+                        subtitle={isEscalating ? "Processing..." : (soarId ? `Case ${soarId}` : soar.escalateLabel)}
                         color={soarId ? "slate" : soar.color}
                         hasPlaceholder
                         imageSrc={soar.logo}

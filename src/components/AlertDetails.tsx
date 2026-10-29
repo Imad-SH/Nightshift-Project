@@ -153,7 +153,8 @@ export const AlertDetails = ({ alert }: { alert: any }) => {
         ? dataBlock[integrationName]
         : dataBlock;
     const sourcePairs: { label: string; value: string }[] = [];
-    if (integrationName) sourcePairs.push({ label: 'Integration', value: integrationName });
+    // Without a named integration the fallback is the log file, already shown as Log Source
+    if (integrationName && integrationName !== rawData.location) sourcePairs.push({ label: 'Integration', value: integrationName });
     if (managerName)     sourcePairs.push({ label: 'Collector Node', value: managerName });
     const srcip  = integrationData.SenderIp || dataBlock.srcip  || integrationData.srcip  || null;
     const dstip  = dataBlock.dstip  || integrationData.dstip  || null;
