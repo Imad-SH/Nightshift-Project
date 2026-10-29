@@ -64,9 +64,11 @@ interface CyberCardProps {
     hideCornerIcon?: boolean;
     isScanning?: boolean;
     noAnimation?: boolean;
+    /** Icon tile colour when the icon has a colour of its own (the red PDF icon), instead of the card's accent */
+    iconTile?: string;
 }
 
-function CyberCard({ icon: Icon, title, subtitle, color, onClick, hasPlaceholder, imageSrc, centralIcon: CentralIcon, hideCornerIcon, isScanning, noAnimation }: CyberCardProps) {
+function CyberCard({ icon: Icon, title, subtitle, color, onClick, hasPlaceholder, imageSrc, centralIcon: CentralIcon, hideCornerIcon, isScanning, noAnimation, iconTile }: CyberCardProps) {
     // One accent per action: a tinted gradient surface, a gradient icon tile, and a glow on hover
     const colorMap: Record<CyberCardProps['color'], { card: string; tile: string; glow: string; chip: string }> = {
         cyan: {
@@ -120,7 +122,7 @@ function CyberCard({ icon: Icon, title, subtitle, color, onClick, hasPlaceholder
             {/* Fine highlight along the top edge */}
             <div className="pointer-events-none absolute inset-x-4 top-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
 
-            <div className={cn("relative shrink-0 w-11 h-11 rounded-xl border bg-gradient-to-br flex items-center justify-center transition-transform duration-300 group-hover:scale-105", tone.tile)}>
+            <div className={cn("relative shrink-0 w-11 h-11 rounded-xl border bg-gradient-to-br flex items-center justify-center transition-transform duration-300 group-hover:scale-105", iconTile || tone.tile)}>
                 {hasPlaceholder && imageSrc ? (
                     isScanning ? (
                         <Loader2 size={18} className="animate-spin" />
@@ -859,12 +861,12 @@ export const ActionConsole: React.FC<ActionConsoleProps> = ({ alert, isScanning 
                 /* === SCENARIO B: COMMANDER MODE (Level ≥ 7) OR COMPLETED SCAN === */
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-3 h-full">
                     <CyberCard
-                        icon={isStopping ? RotateCcw : (activeIsScanning ? Square : RotateCcw)}
+                        icon={isStopping ? RotateCcw : (activeIsScanning ? Square : (hasCompletedOnce ? RotateCcw : Play))}
                         title={isStopping ? "Stopping..." : (activeIsScanning ? "Stop AI scan" : (hasCompletedOnce ? "Re-scan alert" : "Scan alert"))}
                         subtitle={isStopping ? "Ending the task" : (activeIsScanning ? "Investigation running" : (hasCompletedOnce ? "Run the investigation again" : "Start the investigation"))}
                         color={isStopping ? "slate" : (activeIsScanning ? "red" : "cyan")}
                         hasPlaceholder
-                        centralIcon={isStopping ? RotateCcw : (activeIsScanning ? Square : RotateCcw)}
+                        centralIcon={isStopping ? RotateCcw : (activeIsScanning ? Square : (hasCompletedOnce ? RotateCcw : Play))}
                         onClick={isStopping ? undefined : handleInitiateScan}
                         hideCornerIcon
                         isScanning={activeIsScanning}
@@ -884,6 +886,7 @@ export const ActionConsole: React.FC<ActionConsoleProps> = ({ alert, isScanning 
                         title="Export PDF report"
                         subtitle="Download the investigation"
                         color="teal"
+                        iconTile="text-[#f0443a] from-white/[0.10] to-white/[0.03] border-rose-400/35 shadow-[0_6px_16px_-6px_rgba(240,68,58,0.45)]"
                         hasPlaceholder
                         imageSrc="/assets/PDF Icon.png"
                         onClick={handleExportReport}
