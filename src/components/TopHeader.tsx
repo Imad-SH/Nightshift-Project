@@ -93,7 +93,7 @@ export const TopHeader: React.FC<TopHeaderProps> = ({ wazuhStatus, thehiveStatus
                 <div className="flex items-center gap-2 text-[12.5px] font-mono tracking-wider">
                     <span 
                         onClick={() => onNavigate?.('MONITORING')}
-                        className="text-cyan-400/60 font-black cursor-pointer hover:text-cyan-300 transition-colors drop-shadow-[0_0_8px_rgba(116,163,238,0.2)] uppercase"
+                        className="text-cyan-400/60 font-black cursor-pointer hover:text-cyan-300 transition-colors drop-shadow-[0_0_8px_rgba(131,162,212,0.2)] uppercase"
                     >
                         {BRAND.product}
                     </span>
@@ -112,7 +112,7 @@ export const TopHeader: React.FC<TopHeaderProps> = ({ wazuhStatus, thehiveStatus
                     {subTab && (
                         <>
                             <span className="text-cyan-500/40 font-black scale-y-125 px-1 opacity-50">&gt;</span>
-                            <span className="text-cyan-100 font-black drop-shadow-[0_0_8px_rgba(116,163,238,0.5)] uppercase">
+                            <span className="text-cyan-100 font-black drop-shadow-[0_0_8px_rgba(131,162,212,0.5)] uppercase">
                                 {subTab}
                             </span>
                         </>
@@ -142,7 +142,7 @@ export const TopHeader: React.FC<TopHeaderProps> = ({ wazuhStatus, thehiveStatus
                             className={cn(
                                 "flex items-center gap-2.5 px-4 py-2 rounded-md border transition-all duration-300",
                                 isUserMenuOpen 
-                                    ? "bg-cyan-500/20 border-cyan-400 shadow-[0_0_15px_rgba(116,163,238,0.3)]" 
+                                    ? "bg-cyan-500/20 border-cyan-400 shadow-[0_0_15px_rgba(131,162,212,0.3)]" 
                                     : "bg-cyan-950/40 border-cyan-500/30 hover:border-cyan-400/60"
                             )}
                         >
@@ -188,7 +188,7 @@ export const TopHeader: React.FC<TopHeaderProps> = ({ wazuhStatus, thehiveStatus
                         className={cn(
                             "relative flex items-center gap-3.5 px-5 py-2 rounded-md backdrop-blur-md transition-all duration-300 cursor-pointer group border",
                             isCoreOnline
-                                ? "bg-cyan-950/40 border-cyan-500/30 shadow-[0_0_15px_rgba(116,163,238,0.1)] hover:bg-cyan-950/60 hover:border-cyan-400/50"
+                                ? "bg-cyan-950/40 border-cyan-500/30 shadow-[0_0_15px_rgba(131,162,212,0.1)] hover:bg-cyan-950/60 hover:border-cyan-400/50"
                                 : "bg-rose-950/40 border-rose-500/30 shadow-[0_0_15px_rgba(244,63,94,0.1)] hover:bg-rose-950/60 hover:border-rose-400/50"
                         )}
                         onMouseEnter={() => setIsHovered(true)}
@@ -201,7 +201,7 @@ export const TopHeader: React.FC<TopHeaderProps> = ({ wazuhStatus, thehiveStatus
                                 isCoreOnline ? "bg-cyan-400" : "bg-rose-400"
                             )}></span>
                             <span className={cn(
-                                "relative inline-flex rounded-full h-2 w-2 shadow-[0_0_8px_rgba(116,163,238,0.8)]",
+                                "relative inline-flex rounded-full h-2 w-2 shadow-[0_0_8px_rgba(131,162,212,0.8)]",
                                 isCoreOnline ? "bg-cyan-500" : "bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.8)]"
                             )}></span>
                         </div>
@@ -210,7 +210,7 @@ export const TopHeader: React.FC<TopHeaderProps> = ({ wazuhStatus, thehiveStatus
                         <span className={cn(
                             "text-[12.5px] font-semibold transition-colors duration-300 leading-none",
                             isCoreOnline
-                                ? "text-cyan-300 group-hover:text-cyan-100 drop-shadow-[0_0_5px_rgba(116,163,238,0.5)]"
+                                ? "text-cyan-300 group-hover:text-cyan-100 drop-shadow-[0_0_5px_rgba(131,162,212,0.5)]"
                                 : "text-rose-300 group-hover:text-rose-100 drop-shadow-[0_0_5px_rgba(244,63,94,0.5)]"
                         )}>
                             {isCoreOnline ? 'System online' : 'System offline'}
@@ -250,7 +250,7 @@ export const TopHeader: React.FC<TopHeaderProps> = ({ wazuhStatus, thehiveStatus
                                                 <div className="flex items-center gap-3">
                                                     <div className={cn(
                                                         "flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center border overflow-hidden transition-all duration-300",
-                                                        isSiemOnline ? "bg-cyan-500/10 border-cyan-500/30 shadow-[0_0_10px_rgba(116,163,238,0.2)]" : "bg-rose-500/10 border-rose-500/30"
+                                                        isSiemOnline ? "bg-cyan-500/10 border-cyan-500/30 shadow-[0_0_10px_rgba(131,162,212,0.2)]" : "bg-rose-500/10 border-rose-500/30"
                                                     )}>
                                                         {isWazuhSiem ? (
                                                             <img
@@ -264,7 +264,7 @@ export const TopHeader: React.FC<TopHeaderProps> = ({ wazuhStatus, thehiveStatus
                                                     </div>
                                                     <span className={cn(
                                                         "text-xs font-mono font-bold uppercase tracking-wider leading-tight",
-                                                        isSiemOnline ? "text-cyan-100 drop-shadow-[0_0_5px_rgba(116,163,238,0.5)]" : "text-rose-500 drop-shadow-[0_0_5px_rgba(244,63,94,0.5)]"
+                                                        isSiemOnline ? "text-cyan-100 drop-shadow-[0_0_5px_rgba(131,162,212,0.5)]" : "text-rose-500 drop-shadow-[0_0_5px_rgba(244,63,94,0.5)]"
                                                     )}>
                                                         {siemLabel} {isSiemOnline ? "CONNECTED" : "DISCONNECTED"}
                                                     </span>

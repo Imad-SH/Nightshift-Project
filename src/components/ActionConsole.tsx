@@ -70,8 +70,8 @@ function CyberCard({ icon: Icon, title, subtitle, color, onClick, hasPlaceholder
     // One accent per action: a tinted gradient surface, a gradient icon tile, and a glow on hover
     const colorMap: Record<CyberCardProps['color'], { card: string; tile: string; glow: string; chip: string }> = {
         cyan: {
-            card: 'border-cyan-500/30 from-cyan-500/[0.14] via-slate-900/50 to-slate-900/70 hover:border-cyan-400/70 hover:shadow-[0_14px_34px_-14px_rgba(90,141,230,0.65)]',
-            tile: 'text-cyan-100 from-cyan-400/35 to-cyan-700/20 border-cyan-400/40 shadow-[0_6px_16px_-6px_rgba(90,141,230,0.6)]',
+            card: 'border-cyan-500/30 from-cyan-500/[0.14] via-slate-900/50 to-slate-900/70 hover:border-cyan-400/70 hover:shadow-[0_14px_34px_-14px_rgba(103,137,198,0.65)]',
+            tile: 'text-cyan-100 from-cyan-400/35 to-cyan-700/20 border-cyan-400/40 shadow-[0_6px_16px_-6px_rgba(103,137,198,0.6)]',
             glow: 'bg-cyan-400/25', chip: 'group-hover:text-cyan-200 group-hover:border-cyan-400/50',
         },
         amber: {
@@ -749,7 +749,7 @@ export const ActionConsole: React.FC<ActionConsoleProps> = ({ alert, isScanning 
                                         {/* AI Analysis — always cyan */}
                                         <button
                                             onClick={() => { setShowPreEscalateModal(false); handleInitiateScan(); }}
-                                            className="relative p-4 rounded-xl border text-left transition-all duration-200 bg-cyan-500/5 border-cyan-500/25 hover:bg-cyan-500/15 hover:border-cyan-400/60 hover:shadow-[0_0_20px_rgba(116,163,238,0.15)] group"
+                                            className="relative p-4 rounded-xl border text-left transition-all duration-200 bg-cyan-500/5 border-cyan-500/25 hover:bg-cyan-500/15 hover:border-cyan-400/60 hover:shadow-[0_0_20px_rgba(131,162,212,0.15)] group"
                                         >
                                             <div className="w-9 h-9 rounded-lg flex items-center justify-center mb-3 bg-cyan-500/10 border border-cyan-500/30 group-hover:bg-cyan-500/20 transition-colors">
                                                 <Play size={16} className="text-cyan-400 fill-cyan-400" />

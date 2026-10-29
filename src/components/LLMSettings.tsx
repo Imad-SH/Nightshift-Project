@@ -337,7 +337,7 @@ export const LLMSettings = ({ onSubTabChange }: { onSubTabChange?: (tab: string 
 
                                             {/* HEADER SECTION */}
                                             <div className="pt-12 pb-6 flex flex-col items-center text-center pointer-events-none z-10">
-                                                <h3 className="text-lg font-mono font-black uppercase tracking-[0.4em] text-white bg-clip-text drop-shadow-[0_0_15px_rgba(116,163,238,0.4)]">LLM Gateway</h3>
+                                                <h3 className="text-lg font-mono font-black uppercase tracking-[0.4em] text-white bg-clip-text drop-shadow-[0_0_15px_rgba(131,162,212,0.4)]">LLM Gateway</h3>
                                                 <div className="flex items-center gap-4 mt-2">
                                                     <div className="h-[1px] w-8 bg-gradient-to-r from-transparent to-cyan-400/60" />
                                                     <p className="text-[11px] text-slate-300 font-bold uppercase tracking-[0.3em] group-hover/card:text-cyan-400 transition-colors">Choose Environment</p>
@@ -361,8 +361,8 @@ export const LLMSettings = ({ onSubTabChange }: { onSubTabChange?: (tab: string 
                                                                     setIsConfigOpen(true); 
                                                                 }}
                                                                 className={cn(
-                                                                    "p-2.5 bg-slate-900/60 backdrop-blur-md border border-white/10 rounded-xl cursor-pointer hover:border-cyan-400/50 hover:shadow-[0_0_15px_rgba(116,163,238,0.2)] transition-all",
-                                                                    arch === 'API' ? "text-cyan-400 border-cyan-400/50 shadow-[0_0_15px_rgba(116,163,238,0.3)]" : "text-white/20"
+                                                                    "p-2.5 bg-slate-900/60 backdrop-blur-md border border-white/10 rounded-xl cursor-pointer hover:border-cyan-400/50 hover:shadow-[0_0_15px_rgba(131,162,212,0.2)] transition-all",
+                                                                    arch === 'API' ? "text-cyan-400 border-cyan-400/50 shadow-[0_0_15px_rgba(131,162,212,0.3)]" : "text-white/20"
                                                                 )}
                                                             >
                                                                 <Settings size={16} className={cn(arch === 'API' && "animate-spin-slow")} />
@@ -370,7 +370,7 @@ export const LLMSettings = ({ onSubTabChange }: { onSubTabChange?: (tab: string 
                                                             
                                                             <div className={cn(
                                                                 "w-14 h-14 flex items-center justify-center rounded-2xl transition-all duration-500",
-                                                                arch === 'API' ? "bg-cyan-400 text-slate-900 shadow-[0_0_25px_rgba(116,163,238,0.5)]" : "bg-white/10 text-white/20 opacity-50 shadow-none border border-white/5"
+                                                                arch === 'API' ? "bg-cyan-400 text-slate-900 shadow-[0_0_25px_rgba(131,162,212,0.5)]" : "bg-white/10 text-white/20 opacity-50 shadow-none border border-white/5"
                                                             )}>
                                                                 <Cloud size={28} />
                                                             </div>
@@ -420,7 +420,7 @@ export const LLMSettings = ({ onSubTabChange }: { onSubTabChange?: (tab: string 
                                                         <div className="flex items-center gap-3">
                                                             <div className={cn(
                                                                 "w-14 h-14 flex items-center justify-center rounded-2xl transition-all duration-500 border border-white/5",
-                                                                arch === 'LOCAL' ? "bg-cyan-400 text-slate-900 shadow-[0_0_25px_rgba(116,163,238,0.5)]" : "bg-white/10 text-white/20 opacity-50"
+                                                                arch === 'LOCAL' ? "bg-cyan-400 text-slate-900 shadow-[0_0_25px_rgba(131,162,212,0.5)]" : "bg-white/10 text-white/20 opacity-50"
                                                             )}>
                                                                 <Wifi size={28} />
                                                             </div>
@@ -434,8 +434,8 @@ export const LLMSettings = ({ onSubTabChange }: { onSubTabChange?: (tab: string 
                                                                     setIsConfigOpen(true); 
                                                                 }}
                                                                 className={cn(
-                                                                    "p-2.5 bg-slate-900/60 backdrop-blur-md border border-white/10 rounded-xl cursor-pointer hover:border-cyan-400/50 hover:shadow-[0_0_15px_rgba(116,163,238,0.2)] transition-all",
-                                                                    arch === 'LOCAL' ? "text-cyan-400 border-cyan-400/50 shadow-[0_0_15px_rgba(116,163,238,0.3)]" : "text-white/20"
+                                                                    "p-2.5 bg-slate-900/60 backdrop-blur-md border border-white/10 rounded-xl cursor-pointer hover:border-cyan-400/50 hover:shadow-[0_0_15px_rgba(131,162,212,0.2)] transition-all",
+                                                                    arch === 'LOCAL' ? "text-cyan-400 border-cyan-400/50 shadow-[0_0_15px_rgba(131,162,212,0.3)]" : "text-white/20"
                                                                 )}
                                                             >
                                                                 <Settings size={16} className={cn(arch === 'LOCAL' && "animate-spin-slow")} />
@@ -463,7 +463,7 @@ export const LLMSettings = ({ onSubTabChange }: { onSubTabChange?: (tab: string 
                                             </div>
 
                                             <div className="pt-12 pb-6 flex flex-col items-center text-center pointer-events-none z-10">
-                                                <h3 className="text-lg font-mono font-black uppercase tracking-[0.4em] text-white drop-shadow-[0_0_15px_rgba(116,163,238,0.4)]">AI Analysis Strategy</h3>
+                                                <h3 className="text-lg font-mono font-black uppercase tracking-[0.4em] text-white drop-shadow-[0_0_15px_rgba(131,162,212,0.4)]">AI Analysis Strategy</h3>
                                                 <div className="flex items-center gap-4 mt-2">
                                                     <div className="h-[1px] w-8 bg-gradient-to-r from-transparent to-cyan-400/60" />
                                                     <p className="text-[11px] text-slate-300 font-bold uppercase tracking-[0.3em] group-hover/card:text-cyan-400 transition-colors">Select a range</p>
@@ -476,7 +476,7 @@ export const LLMSettings = ({ onSubTabChange }: { onSubTabChange?: (tab: string 
                                                     {/* Custom Dual Cyber Slider */}
                                                     <div className="relative w-full h-2 bg-slate-900 border border-cyan-500/30 rounded-full">
                                                         <div 
-                                                            className="absolute w-full h-full bg-gradient-to-r from-emerald-400 via-amber-400 to-rose-500 rounded-full shadow-[0_0_10px_rgba(116,163,238,0.5)]"
+                                                            className="absolute w-full h-full bg-gradient-to-r from-emerald-400 via-amber-400 to-rose-500 rounded-full shadow-[0_0_10px_rgba(131,162,212,0.5)]"
                                                             style={{ 
                                                                 clipPath: `inset(0% ${100 - ((maxThreshold - 1) / 14) * 100}% 0% ${((minThreshold - 1) / 14) * 100}% round 9999px)`
                                                             }}
@@ -521,7 +521,7 @@ export const LLMSettings = ({ onSubTabChange }: { onSubTabChange?: (tab: string 
 
                                                 <div className="mt-12 flex items-center justify-center gap-3 w-full">
                                                     <div className="tactical-tooltip-trigger flex-shrink-0">
-                                                        <div className="tactical-tooltip-icon text-cyan-400 border-cyan-400 shadow-[0_0_10px_rgba(116,163,238,0.4)]">
+                                                        <div className="tactical-tooltip-icon text-cyan-400 border-cyan-400 shadow-[0_0_10px_rgba(131,162,212,0.4)]">
                                                             <svg viewBox="0 0 320 512" className="w-3.5 h-3.5 fill-current">
                                                                 <path d="M80 160c0-35.3 28.7-64 64-64h32c35.3 0 64 28.7 64 64v3.6c0 21.8-11.1 42.1-29.4 53.8l-42.2 27.1c-25.2 16.2-40.4 44.1-40.4 74V320c0 17.7 14.3 32 32 32s32-14.3 32-32v-1.4c0-8.2 4.2-15.8 11-20.2l42.2-27.1c36.6-23.6 58.8-64.1 58.8-107.7V160c0-70.7-57.3-128-128-128H144C73.3 32 16 89.3 16 160c0 17.7 14.3 32 32 32s32-14.3 32-32zm80 320a40 40 0 1 0 0-80 40 40 0 1 0 0 80z"></path>
                                                             </svg>
@@ -593,7 +593,7 @@ export const LLMSettings = ({ onSubTabChange }: { onSubTabChange?: (tab: string 
                             <div className="flex-1 overflow-y-auto custom-scrollbar px-10 py-6 space-y-8 relative z-10 isolate" style={{ transform: 'translateZ(0)' }}>
                                 {arch === 'API' && (
                                     <section className="space-y-4">
-                                        <h3 className="text-xs font-mono font-black text-white uppercase tracking-[0.3em] drop-shadow-[0_0_10px_rgba(116,163,238,0.8)]">1. LLM Providers</h3>
+                                        <h3 className="text-xs font-mono font-black text-white uppercase tracking-[0.3em] drop-shadow-[0_0_10px_rgba(131,162,212,0.8)]">1. LLM Providers</h3>
                                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                                             {[
                                                 { id: 'nebius', label: 'Nebius AI', value: configData.nebiusKey, logo: '/assets/Nebius AI.jpg' },
@@ -602,7 +602,7 @@ export const LLMSettings = ({ onSubTabChange }: { onSubTabChange?: (tab: string 
                                                 { id: 'gemini', label: 'Gemini', value: configData.geminiKey, logo: '/assets/Gemini.png' }
                                             ].map((prov) => (
                                                 <div key={prov.id} className={cn(
-                                                    "bg-cyan-500/[0.05] border rounded-2xl p-6 flex flex-col items-center gap-4 group transition-all duration-300 shadow-[0_0_30px_rgba(116,163,238,0.1)] ring-1 ring-cyan-500/10",
+                                                    "bg-cyan-500/[0.05] border rounded-2xl p-6 flex flex-col items-center gap-4 group transition-all duration-300 shadow-[0_0_30px_rgba(131,162,212,0.1)] ring-1 ring-cyan-500/10",
                                                     failedProviders.includes(prov.id) ? "border-red-500/60 bg-red-500/5 animate-[shake_0.4s_ease-in-out_infinite]" : "border-cyan-400/30 hover:border-cyan-400/60"
                                                 )}>
                                                     <div className="h-16 w-full flex items-center justify-center relative">
@@ -610,13 +610,13 @@ export const LLMSettings = ({ onSubTabChange }: { onSubTabChange?: (tab: string 
                                                             "transition-all duration-300",
                                                             prov.id === 'openai' ? "w-20 h-20 brightness-0 invert" : 
                                                             prov.id === 'nebius' ? "w-14 h-14 rounded-2xl overflow-hidden shadow-[0_0_15px_rgba(205,255,50,0.2)]" : "w-14 h-14",
-                                                            verifiedProviders.includes(prov.id) ? "drop-shadow-[0_0_25px_rgba(116,163,238,0.6)] scale-110" : "opacity-100"
+                                                            verifiedProviders.includes(prov.id) ? "drop-shadow-[0_0_25px_rgba(131,162,212,0.6)] scale-110" : "opacity-100"
                                                         )}>
                                                             <img src={prov.logo} alt={prov.label} className={cn("w-full h-full object-contain", prov.id === 'nebius' && "rounded-2xl")} />
                                                         </div>
                                                         
                                                         {verifiedProviders.includes(prov.id) && (
-                                                            <div className="absolute -bottom-[14px] left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-cyan-400 shadow-[0_0_10px_rgba(116,163,238,0.8)] animate-pulse z-10" />
+                                                            <div className="absolute -bottom-[14px] left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-cyan-400 shadow-[0_0_10px_rgba(131,162,212,0.8)] animate-pulse z-10" />
                                                         )}
                                                     </div>
 
@@ -673,7 +673,7 @@ export const LLMSettings = ({ onSubTabChange }: { onSubTabChange?: (tab: string 
                                 )}
 
                                 <section className="space-y-4">
-                                    <h3 className="text-xs font-mono font-black text-white uppercase tracking-[0.3em] drop-shadow-[0_0_10px_rgba(116,163,238,0.8)]">
+                                    <h3 className="text-xs font-mono font-black text-white uppercase tracking-[0.3em] drop-shadow-[0_0_10px_rgba(131,162,212,0.8)]">
                                         2. {arch === 'API' ? 'Cloud Gateway' : 'Local Gateway'}
                                     </h3>
                                     <div className={cn(
@@ -724,7 +724,7 @@ export const LLMSettings = ({ onSubTabChange }: { onSubTabChange?: (tab: string 
                                 </section>
 
                                 <section className="space-y-4">
-                                    <h3 className="text-xs font-mono font-black text-white uppercase tracking-[0.3em] drop-shadow-[0_0_10px_rgba(116,163,238,0.8)]">3. AI Agents Configuration</h3>
+                                    <h3 className="text-xs font-mono font-black text-white uppercase tracking-[0.3em] drop-shadow-[0_0_10px_rgba(131,162,212,0.8)]">3. AI Agents Configuration</h3>
                                     <div className="space-y-8">
                                         {[
                                             { id: 'agent1', label: 'Agent-01', sub: 'IoC Extraction' },
@@ -769,7 +769,7 @@ export const LLMSettings = ({ onSubTabChange }: { onSubTabChange?: (tab: string 
                                                             />
                                                         )}
                                                         {arch === 'LOCAL' && (
-                                                            <div className="w-10 h-10 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400 shadow-[0_0_15px_rgba(116,163,238,0.2)]">
+                                                            <div className="w-10 h-10 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400 shadow-[0_0_15px_rgba(131,162,212,0.2)]">
                                                                 <Wifi size={20} />
                                                             </div>
                                                         )}

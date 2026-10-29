@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef, useCallback } from 'react';
+import { useEffect, useState, useRef, useCallback, useMemo } from 'react';
 import { ReactFlow, Background, Controls, Handle, Position, useNodesState, useEdgesState } from '@xyflow/react';
  
 import { type Node, type Edge, type ReactFlowInstance } from '@xyflow/react';
@@ -10,6 +10,11 @@ import { Info, Loader2, Link as LinkIcon, Undo2, ExternalLink, Server, Database 
 import type { Alert, SocketEvent } from '../types';
 import { AlertDetails } from './AlertDetails';
 import { StandbyState } from './StandbyState';
+
+// Graph line colour. Saved graphs keep the colour of the version that drew them, so older accent
+// colours are shown as the current one (the saved data is left as is).
+const ACCENT_STROKE = '#6789c6';
+const OLD_ACCENT_STROKES = new Set(['#06b6d4', 'rgb(6,182,212)', '#00f2ea', 'rgb(0,242,234)', '#22d3ee', '#6f8be6', '#5a8de6', '#8aa2ee', '#74a3ee']);
 
 import { createPortal } from 'react-dom';
 import { BRAND } from '../brand';
@@ -40,7 +45,7 @@ const getIocTypeStyle = (ioc: string): { label: string; badge: string; rowIdle: 
         return { label: 'PATH',   badge: 'bg-slate-400/15 border-slate-400/30 text-slate-300',   rowIdle: 'bg-slate-700/20 border-slate-500/20 hover:border-slate-400/40',                         rowSelected: 'bg-slate-700/30 border-slate-400/40 shadow-[0_0_16px_rgba(148,163,184,0.08)]', glow: 'bg-slate-400' };
     if (c.includes('.') && !c.includes(' '))
         return { label: 'DOMAIN', badge: 'bg-emerald-500/20 border-emerald-500/50 text-emerald-300', rowIdle: 'bg-emerald-500/[0.06] border-emerald-500/20 hover:border-emerald-500/40 hover:bg-emerald-500/10', rowSelected: 'bg-emerald-500/10 border-emerald-400/60 shadow-[0_0_24px_rgba(16,185,129,0.15)]', glow: 'bg-emerald-400' };
-    return { label: 'IOC', badge: 'bg-cyan-500/20 border-cyan-500/50 text-cyan-300', rowIdle: 'bg-cyan-500/[0.06] border-cyan-500/20 hover:border-cyan-500/40 hover:bg-cyan-500/10', rowSelected: 'bg-cyan-500/10 border-cyan-400/60 shadow-[0_0_24px_rgba(116,163,238,0.15)]', glow: 'bg-cyan-400' };
+    return { label: 'IOC', badge: 'bg-cyan-500/20 border-cyan-500/50 text-cyan-300', rowIdle: 'bg-cyan-500/[0.06] border-cyan-500/20 hover:border-cyan-500/40 hover:bg-cyan-500/10', rowSelected: 'bg-cyan-500/10 border-cyan-400/60 shadow-[0_0_24px_rgba(131,162,212,0.15)]', glow: 'bg-cyan-400' };
 };
 
 const getFileTypeLabel = (filePath: string): string => {
@@ -192,8 +197,8 @@ const CyberNode = ({ data }: any) => {
                     className={cn(
                         "w-52 p-3 rounded-md border bg-slate-900/90 backdrop-blur-md font-mono transition-all duration-300 relative z-10",
                         (isActive || status === 'Complete' || data.results?.status === 'Complete')
-                            ? "border-cyan-400 shadow-[0_0_20px_rgba(116,163,238,0.3)] border-2"
-                            : "border-cyan-500/40 shadow-[0_0_10px_rgba(116,163,238,0.05)]"
+                            ? "border-cyan-400 shadow-[0_0_20px_rgba(131,162,212,0.3)] border-2"
+                            : "border-cyan-500/40 shadow-[0_0_10px_rgba(131,162,212,0.05)]"
                     )}
                 >
                     <Handle type="target" position={Position.Left} id="left" className="!bg-cyan-500/50" />
@@ -207,7 +212,7 @@ const CyberNode = ({ data }: any) => {
                             {isActive && (
                                 <div className="relative flex h-2 w-2">
                                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 bg-cyan-400"></span>
-                                    <span className="relative inline-flex rounded-full h-2 w-2 bg-cyan-500 shadow-[0_0_8px_rgba(116,163,238,0.8)]"></span>
+                                    <span className="relative inline-flex rounded-full h-2 w-2 bg-cyan-500 shadow-[0_0_8px_rgba(131,162,212,0.8)]"></span>
                                 </div>
                             )}
                             <span className={cn("text-[11px] uppercase font-bold tracking-wider font-mono truncate max-w-[120px]", (isActive || status === 'Complete' || data.results?.status === 'Complete') ? "text-white" : "text-cyan-100/70")}>
@@ -302,7 +307,7 @@ const CyberNode = ({ data }: any) => {
                                 }}
                                 onMouseLeave={handleMouseLeave}
                             >
-                                <div className="bg-slate-950/98 border border-cyan-500/40 rounded-lg shadow-[0_0_50px_rgba(0,0,0,0.8),0_0_20px_rgba(90,141,230,0.15)] backdrop-blur-2xl text-left transform -translate-x-full overflow-hidden flex flex-col max-h-[min(650px,85vh)]">
+                                <div className="bg-slate-950/98 border border-cyan-500/40 rounded-lg shadow-[0_0_50px_rgba(0,0,0,0.8),0_0_20px_rgba(103,137,198,0.15)] backdrop-blur-2xl text-left transform -translate-x-full overflow-hidden flex flex-col max-h-[min(650px,85vh)]">
                                     {/* Header (Fixed) */}
                                     <div className="flex items-center justify-between border-b border-cyan-900/50 p-3 bg-cyan-950/20">
                                         <div className="flex flex-col">
@@ -325,7 +330,7 @@ const CyberNode = ({ data }: any) => {
                                                     "h-8 w-8 rounded-lg overflow-hidden transition-all duration-300 border border-white/10 shadow-lg",
                                                     getProviderLogo(data.results?.model || data.model).includes('Nebius') 
                                                         ? "shadow-[0_0_15px_rgba(205,255,50,0.3)] border-lime-500/20" 
-                                                        : "shadow-[0_0_15px_rgba(116,163,238,0.3)] border-cyan-500/20"
+                                                        : "shadow-[0_0_15px_rgba(131,162,212,0.3)] border-cyan-500/20"
                                                 )}>
                                                     <img 
                                                         src={getProviderLogo(data.results?.model || data.model)} 
@@ -882,6 +887,10 @@ export const GraphVisualizer = ({ selectedAlertId }: GraphVisualizerProps) => {
     // Node & Edge State
     const [nodes, setNodes, onNodesChange] = useNodesState<Node<CyberNodeData>>([]);
     const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
+    const displayEdges = useMemo(() => edges.map((edge) => {
+        const stroke = String(edge.style?.stroke || '').replace(/\s/g, '').toLowerCase();
+        return OLD_ACCENT_STROKES.has(stroke) ? { ...edge, style: { ...edge.style, stroke: ACCENT_STROKE } } : edge;
+    }), [edges]);
 
     const stateRef = useRef<GraphState>({ nodes, edges, scanPhase, ctiNodes });
     const prevAlertIdRef = useRef<string | undefined>(undefined);
@@ -1072,7 +1081,7 @@ export const GraphVisualizer = ({ selectedAlertId }: GraphVisualizerProps) => {
             const idx = n.findIndex((item: any) => item.id === 'agent_investigator');
             if (idx === -1) n.push({ id: 'agent_investigator', type: 'cyberNode', position: { x: 400, y: 150 }, data: { label: 'Investigator', role: 'Agent 2', isActive: true, results: res || { status: "Working..." } } });
             else n[idx] = { ...n[idx], data: { ...n[idx].data, results: { ...n[idx].data.results, ...res } } };
-            if (!e.some((item: any) => item.id === 'e1-2')) e.push({ id: 'e1-2', source: 'agent_screener', sourceHandle: 'right', target: 'agent_investigator', targetHandle: 'left', animated: true, style: { stroke: '#5a8de6' } });
+            if (!e.some((item: any) => item.id === 'e1-2')) e.push({ id: 'e1-2', source: 'agent_screener', sourceHandle: 'right', target: 'agent_investigator', targetHandle: 'left', animated: true, style: { stroke: '#6789c6' } });
 
             const tools = log.match(/(AbuseIPDB|VirusTotal|URLScan|GreyNoise|Shodan|OTX|ThreatFox|MxToolbox|Hybrid Analysis)/gi);
             if (tools) tools.forEach((tool: string) => {
@@ -1239,7 +1248,7 @@ export const GraphVisualizer = ({ selectedAlertId }: GraphVisualizerProps) => {
                 { id: 'agent_judge',        type: 'cyberNode', position: { x: 700, y: 150 }, data: { label: 'Verdict Judge', role: 'Agent 3', isActive: false, results: { status: 'Complete', verdict } } },
             ];
             const synthEdges = [
-                { id: 'e1-2', source: 'agent_screener',     sourceHandle: 'right',      target: 'agent_investigator', targetHandle: 'left',       animated: true, style: { stroke: '#5a8de6' } },
+                { id: 'e1-2', source: 'agent_screener',     sourceHandle: 'right',      target: 'agent_investigator', targetHandle: 'left',       animated: true, style: { stroke: '#6789c6' } },
                 { id: 'e1-3', source: 'agent_screener',     sourceHandle: 'top-source', target: 'agent_judge',        targetHandle: 'top-target', animated: true },
                 { id: 'e2-3', source: 'agent_investigator', sourceHandle: 'right',      target: 'agent_judge',        targetHandle: 'left',       animated: true },
             ];
@@ -1577,7 +1586,7 @@ export const GraphVisualizer = ({ selectedAlertId }: GraphVisualizerProps) => {
                 {/* Dynamic Glowing Top Edge */}
                 <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-cyan-400/50 to-transparent"></div>
                 {/* Scanline Pattern */}
-                <div className="absolute inset-0 opacity-[0.03] bg-[linear-gradient(0deg,transparent_24%,#74a3ee_25%,#74a3ee_26%,transparent_27%,transparent_74%,#74a3ee_75%,#74a3ee_76%,transparent_77%,transparent)] bg-[length:4px_4px]"></div>
+                <div className="absolute inset-0 opacity-[0.03] bg-[linear-gradient(0deg,transparent_24%,#83a2d4_25%,#83a2d4_26%,transparent_27%,transparent_74%,#83a2d4_75%,#83a2d4_76%,transparent_77%,transparent)] bg-[length:4px_4px]"></div>
                 {/* Side Bracket / Light Bar */}
                 <div className="absolute top-0 left-0 w-[3px] h-full bg-cyan-500/70"></div>
 
@@ -1606,7 +1615,7 @@ export const GraphVisualizer = ({ selectedAlertId }: GraphVisualizerProps) => {
                     const colorCls = caseSystem === 'thehive'
                         ? "bg-amber-950/60 border-amber-500/40 text-amber-400 hover:bg-amber-900/80 hover:text-amber-200 hover:border-amber-400/60 shadow-[0_0_12px_rgba(245,158,11,0.2)] hover:shadow-[0_0_18px_rgba(245,158,11,0.4)]"
                         : caseSystem === 'webhook'
-                        ? "bg-cyan-950/60 border-cyan-500/40 text-cyan-400 hover:bg-cyan-900/80 hover:text-cyan-200 hover:border-cyan-400/60 shadow-[0_0_12px_rgba(116,163,238,0.2)] hover:shadow-[0_0_18px_rgba(116,163,238,0.4)]"
+                        ? "bg-cyan-950/60 border-cyan-500/40 text-cyan-400 hover:bg-cyan-900/80 hover:text-cyan-200 hover:border-cyan-400/60 shadow-[0_0_12px_rgba(131,162,212,0.2)] hover:shadow-[0_0_18px_rgba(131,162,212,0.4)]"
                         : "bg-violet-950/60 border-violet-500/40 text-violet-400 hover:bg-violet-900/80 hover:text-violet-200 hover:border-violet-400/60 shadow-[0_0_12px_rgba(139,92,246,0.2)] hover:shadow-[0_0_18px_rgba(139,92,246,0.4)]";
                     const baseCls = cn("flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border text-[9px] font-black font-mono uppercase tracking-wider backdrop-blur-md transition-all cursor-pointer hover:scale-105 group focus:outline-none", colorCls);
                     const inner = <>
@@ -1636,7 +1645,7 @@ export const GraphVisualizer = ({ selectedAlertId }: GraphVisualizerProps) => {
                         {viewMode === 'details' && (
                             <motion.div
                                 layoutId="viewToggle"
-                                className="absolute inset-0 bg-cyan-500/20 rounded-md border border-cyan-500/40 shadow-[0_0_10px_rgba(90,141,230,0.15)]"
+                                className="absolute inset-0 bg-cyan-500/20 rounded-md border border-cyan-500/40 shadow-[0_0_10px_rgba(103,137,198,0.15)]"
                                 transition={{ type: 'spring', bounce: 0.2, duration: 0.6 }}
                             />
                         )}
@@ -1652,7 +1661,7 @@ export const GraphVisualizer = ({ selectedAlertId }: GraphVisualizerProps) => {
                         {viewMode === 'graph' && (
                             <motion.div
                                 layoutId="viewToggle"
-                                className="absolute inset-0 bg-cyan-500/20 rounded-md border border-cyan-500/40 shadow-[0_0_10px_rgba(90,141,230,0.15)]"
+                                className="absolute inset-0 bg-cyan-500/20 rounded-md border border-cyan-500/40 shadow-[0_0_10px_rgba(103,137,198,0.15)]"
                                 transition={{ type: 'spring', bounce: 0.2, duration: 0.6 }}
                             />
                         )}
@@ -1698,7 +1707,7 @@ export const GraphVisualizer = ({ selectedAlertId }: GraphVisualizerProps) => {
                             {/* Always show graph when in graph view mode */}
                             <ReactFlow
                                 nodes={nodes}
-                                edges={edges}
+                                edges={displayEdges}
                                 nodeTypes={nodeTypes}
                                 onNodesChange={onNodesChange as any}
                                 onEdgesChange={onEdgesChange}
@@ -1706,9 +1715,9 @@ export const GraphVisualizer = ({ selectedAlertId }: GraphVisualizerProps) => {
                                 defaultEdgeOptions={{
                                     animated: true,
                                     style: {
-                                        stroke: '#5a8de6',
+                                        stroke: '#6789c6',
                                         strokeWidth: 2,
-                                        filter: 'drop-shadow(0 0 3px rgba(90,141,230,0.5))'
+                                        filter: 'drop-shadow(0 0 3px rgba(103,137,198,0.5))'
                                     },
                                     type: 'smoothstep',
                                 }}
@@ -1740,7 +1749,7 @@ export const GraphVisualizer = ({ selectedAlertId }: GraphVisualizerProps) => {
 
                                 {/* Layer 2 — Primary aurora: large teal bloom, left-center */}
                                 <div className="absolute -left-[20%] top-[10%] w-[70%] h-[80%] rounded-full opacity-[0.18]"
-                                    style={{ background: 'radial-gradient(ellipse at center, #5a8de6 0%, #475ea8 30%, transparent 70%)', filter: 'blur(80px)' }} />
+                                    style={{ background: 'radial-gradient(ellipse at center, #6789c6 0%, #3f5d9c 30%, transparent 70%)', filter: 'blur(80px)' }} />
 
                                 {/* Layer 3 — Secondary aurora: indigo/violet bloom, top-right */}
                                 <div className="absolute right-[-10%] top-[-20%] w-[55%] h-[60%] rounded-full opacity-[0.14]"
@@ -1752,12 +1761,12 @@ export const GraphVisualizer = ({ selectedAlertId }: GraphVisualizerProps) => {
 
                                 {/* Layer 5 — Subtle cyan core highlight, dead center */}
                                 <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[50%] h-[40%] rounded-full opacity-[0.07]"
-                                    style={{ background: 'radial-gradient(ellipse at center, #74a3ee 0%, transparent 65%)', filter: 'blur(60px)' }} />
+                                    style={{ background: 'radial-gradient(ellipse at center, #83a2d4 0%, transparent 65%)', filter: 'blur(60px)' }} />
 
                                 {/* Layer 6 — Fine cyber grid */}
                                 <div className="absolute inset-0"
                                     style={{
-                                        backgroundImage: 'linear-gradient(rgba(90,141,230,0.07) 1px, transparent 1px), linear-gradient(90deg, rgba(90,141,230,0.07) 1px, transparent 1px)',
+                                        backgroundImage: 'linear-gradient(rgba(103,137,198,0.07) 1px, transparent 1px), linear-gradient(90deg, rgba(103,137,198,0.07) 1px, transparent 1px)',
                                         backgroundSize: '48px 48px',
                                         maskImage: 'radial-gradient(ellipse 90% 90% at 50% 50%, black 30%, transparent 100%)'
                                     }} />
@@ -1765,7 +1774,7 @@ export const GraphVisualizer = ({ selectedAlertId }: GraphVisualizerProps) => {
                                 {/* Layer 7 — Micro dot grid overlay */}
                                 <div className="absolute inset-0 opacity-[0.25]"
                                     style={{
-                                        backgroundImage: 'radial-gradient(circle, rgba(90,141,230,0.5) 1px, transparent 1px)',
+                                        backgroundImage: 'radial-gradient(circle, rgba(103,137,198,0.5) 1px, transparent 1px)',
                                         backgroundSize: '24px 24px',
                                         maskImage: 'radial-gradient(ellipse 80% 80% at 50% 50%, black 20%, transparent 80%)'
                                     }} />
@@ -1782,11 +1791,11 @@ export const GraphVisualizer = ({ selectedAlertId }: GraphVisualizerProps) => {
 
                                 {/* Layer 10 — Top border glow line */}
                                 <div className="absolute top-0 left-0 right-0 h-[1px]"
-                                    style={{ background: 'linear-gradient(90deg, transparent 0%, rgba(90,141,230,0.4) 30%, rgba(99,102,241,0.4) 70%, transparent 100%)' }} />
+                                    style={{ background: 'linear-gradient(90deg, transparent 0%, rgba(103,137,198,0.4) 30%, rgba(99,102,241,0.4) 70%, transparent 100%)' }} />
 
                                 {/* Layer 11 — Bottom border glow line */}
                                 <div className="absolute bottom-0 left-0 right-0 h-[1px]"
-                                    style={{ background: 'linear-gradient(90deg, transparent 10%, rgba(90,141,230,0.2) 50%, transparent 90%)' }} />
+                                    style={{ background: 'linear-gradient(90deg, transparent 10%, rgba(103,137,198,0.2) 50%, transparent 90%)' }} />
                             </div>
 
                             <motion.div
@@ -1799,7 +1808,7 @@ export const GraphVisualizer = ({ selectedAlertId }: GraphVisualizerProps) => {
                             <div className="w-[40%] flex flex-col min-h-0 relative z-10">
                                 {/* Sidebar Header */}
                                     <div className="mb-5 flex justify-center w-full -mt-6">
-                                        <h3 className="text-[11px] font-mono font-black text-cyan-400 uppercase tracking-[0.4em] drop-shadow-[0_0_8px_rgba(116,163,238,0.3)]">Identified IoCs</h3>
+                                        <h3 className="text-[11px] font-mono font-black text-cyan-400 uppercase tracking-[0.4em] drop-shadow-[0_0_8px_rgba(131,162,212,0.3)]">Identified IoCs</h3>
                                     </div>
                                     
                                     <div className="flex-1 overflow-y-auto cyber-scrollbar pr-2 pt-2 pb-4 flex flex-col gap-2">
@@ -1881,7 +1890,7 @@ export const GraphVisualizer = ({ selectedAlertId }: GraphVisualizerProps) => {
                             <div className="w-[60%] flex flex-col min-h-0 relative z-10">
                                 {/* Details Header */}
                                 <div className="mb-5 flex justify-center w-full -mt-6">
-                                    <h3 className="text-[11px] font-mono font-black text-cyan-400 uppercase tracking-[0.3em] drop-shadow-[0_0_8px_rgba(116,163,238,0.2)]">CTI Results</h3>
+                                    <h3 className="text-[11px] font-mono font-black text-cyan-400 uppercase tracking-[0.3em] drop-shadow-[0_0_8px_rgba(131,162,212,0.2)]">CTI Results</h3>
                                 </div>
 
                                 {selectedCtiIoc && groupedCti[selectedCtiIoc] ? (
@@ -1988,8 +1997,8 @@ export const GraphVisualizer = ({ selectedAlertId }: GraphVisualizerProps) => {
                                                                 </div>
                                                             </div>
 
-                                                            <a href={item.reference_link || sourceUrl} target="_blank" rel="noopener noreferrer" className="p-2 rounded-lg bg-cyan-950/20 border border-cyan-500/20 text-cyan-400 hover:text-white hover:border-cyan-400/50 hover:bg-cyan-500/20 transition-all shadow-[0_0_15px_rgba(116,163,238,0.1)] group/link">
-                                                                <ExternalLink size={14} className="drop-shadow-[0_0_5px_rgba(116,163,238,0.4)] group-hover/link:scale-110 transition-transform" />
+                                                            <a href={item.reference_link || sourceUrl} target="_blank" rel="noopener noreferrer" className="p-2 rounded-lg bg-cyan-950/20 border border-cyan-500/20 text-cyan-400 hover:text-white hover:border-cyan-400/50 hover:bg-cyan-500/20 transition-all shadow-[0_0_15px_rgba(131,162,212,0.1)] group/link">
+                                                                <ExternalLink size={14} className="drop-shadow-[0_0_5px_rgba(131,162,212,0.4)] group-hover/link:scale-110 transition-transform" />
                                                             </a>
                                                         </div>
 
@@ -2112,13 +2121,13 @@ export const GraphVisualizer = ({ selectedAlertId }: GraphVisualizerProps) => {
                     >
                         <button
                             onClick={() => setShowCtiOverlay(!showCtiOverlay)}
-                            className="p-2.5 bg-cyan-900/60 border border-cyan-500/40 text-cyan-400 rounded-lg backdrop-blur-md hover:bg-cyan-800 hover:text-cyan-100 hover:scale-105 transition-all cursor-pointer flex items-center justify-center shadow-[0_0_15px_rgba(90,141,230,0.3)] group focus:outline-none"
+                            className="p-2.5 bg-cyan-900/60 border border-cyan-500/40 text-cyan-400 rounded-lg backdrop-blur-md hover:bg-cyan-800 hover:text-cyan-100 hover:scale-105 transition-all cursor-pointer flex items-center justify-center shadow-[0_0_15px_rgba(103,137,198,0.3)] group focus:outline-none"
                             title={showCtiOverlay ? "Return to Graph" : "Verify IoC"}
                         >
                             {showCtiOverlay ? (
-                                <Undo2 size={20} className="group-hover:drop-shadow-[0_0_5px_rgba(116,163,238,0.6)]" />
+                                <Undo2 size={20} className="group-hover:drop-shadow-[0_0_5px_rgba(131,162,212,0.6)]" />
                             ) : (
-                                <LinkIcon size={20} className="group-hover:drop-shadow-[0_0_5px_rgba(116,163,238,0.6)]" />
+                                <LinkIcon size={20} className="group-hover:drop-shadow-[0_0_5px_rgba(131,162,212,0.6)]" />
                             )}
                         </button>
                     </motion.div>
@@ -2140,7 +2149,7 @@ export const GraphVisualizer = ({ selectedAlertId }: GraphVisualizerProps) => {
                             }}
                             className="pointer-events-none w-max max-w-md"
                         >
-                            <div className="bg-slate-950/98 backdrop-blur-2xl border border-cyan-500/40 shadow-[0_0_50px_rgba(0,0,0,0.8),0_0_20px_rgba(90,141,230,0.15)] text-cyan-100/90 text-[11px] font-mono p-4 rounded-lg break-all">
+                            <div className="bg-slate-950/98 backdrop-blur-2xl border border-cyan-500/40 shadow-[0_0_50px_rgba(0,0,0,0.8),0_0_20px_rgba(103,137,198,0.15)] text-cyan-100/90 text-[11px] font-mono p-4 rounded-lg break-all">
                                 <div className="flex items-center gap-2 border-b border-cyan-900/50 pb-2 mb-2 bg-cyan-950/20 -mx-4 -mt-4 px-4 pt-3 rounded-t-lg">
                                     <span className="text-[10px] font-bold text-cyan-400 uppercase tracking-[0.2em]">Target Value</span>
                                     <div className="flex gap-1 ml-auto">

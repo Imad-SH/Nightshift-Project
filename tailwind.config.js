@@ -27,22 +27,22 @@ export default {
                 input: "hsl(var(--input))",
                 ring: "hsl(var(--ring))",
 
-                // The interface accent: a true blue, anchored on the BlueSec / Nightshift navies (900 #233987,
-                // 950 #111d54). The lighter shades sit at hue ~217 so they read blue, not lavender, on the dark
-                // background, and stay readable as text. Kept under the name "cyan" so every existing cyan-*
-                // class takes it.
+                // The interface accent: one blue, the navy of the hat in the Nightshift logo (900 #1b336f), and
+                // its lighter shades. Hue ~216-223 so it reads blue (not lavender), and about 45-50 % saturation
+                // so it stays calm for analysts who look at it all day; text shades keep readable contrast.
+                // Kept under the name "cyan" so every existing cyan-* class takes it.
                 cyan: {
-                    50: "#eff5fe",
-                    100: "#dde8fc",
-                    200: "#bfd5f9",
-                    300: "#9bbdf4",
-                    400: "#74a3ee",
-                    500: "#5a8de6",
-                    600: "#4d7ddc",
-                    700: "#3b62b8",
-                    800: "#2d4c98",
-                    900: "#233987",
-                    950: "#111d54",
+                    50: "#f1f5fb",
+                    100: "#e1e9f5",
+                    200: "#c4d4ec",
+                    300: "#a2bbe0",
+                    400: "#83a2d4",
+                    500: "#6789c6",
+                    600: "#5679bb",
+                    700: "#3f5d9c",
+                    800: "#2e4a85",
+                    900: "#1b336f",
+                    950: "#0e1d42",
                 },
                 // Cyber Themed Colors
                 cyber: {
@@ -51,7 +51,7 @@ export default {
                     dark: "#0F172A",
                 },
                 neon: {
-                    cyan: "#5a8de6",
+                    cyan: "#6789c6",
                     green: "#22c55e",
                     red: "#f43f5e",
                     amber: "#f59e0b",

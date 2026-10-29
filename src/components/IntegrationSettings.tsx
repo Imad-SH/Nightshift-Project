@@ -92,7 +92,7 @@ const SEVERITY_FLOORS = [
 const isTrue = (v: unknown) => v === true || v === 'true' || v === 1 || v === '1';
 
 const LABEL = 'text-[10px] font-mono font-black text-cyan-400/60 uppercase tracking-[0.25em]';
-const INPUT = 'w-full bg-cyan-950/60 border border-cyan-500/30 rounded-xl px-4 py-2.5 text-[11px] font-mono font-bold text-cyan-100 placeholder:text-cyan-500/25 focus:outline-none focus:border-cyan-400 focus:shadow-[0_0_20px_rgba(90,141,230,0.15)] transition-all tracking-wider';
+const INPUT = 'w-full bg-cyan-950/60 border border-cyan-500/30 rounded-xl px-4 py-2.5 text-[11px] font-mono font-bold text-cyan-100 placeholder:text-cyan-500/25 focus:outline-none focus:border-cyan-400 focus:shadow-[0_0_20px_rgba(103,137,198,0.15)] transition-all tracking-wider';
 const BUTTON = 'py-3 px-4 rounded-xl border text-[10px] font-mono font-black uppercase tracking-[0.2em] flex items-center justify-center gap-2 transition-all duration-300 disabled:opacity-40 disabled:cursor-not-allowed';
 
 async function copyText(text: string): Promise<boolean> {
@@ -296,7 +296,7 @@ const ConnectorCard = ({ connector, onOpen }: { connector: ConnectorView; onOpen
         <motion.button
             whileHover={{ y: -2 }}
             onClick={onOpen}
-            className="w-full text-left relative bg-gradient-to-br from-slate-900/95 via-cyan-950/30 to-slate-900/95 backdrop-blur-xl border-2 rounded-2xl p-4 transition-all group border-cyan-500/25 hover:border-cyan-400/50 hover:shadow-[0_0_24px_rgba(116,163,238,0.08)]"
+            className="w-full text-left relative bg-gradient-to-br from-slate-900/95 via-cyan-950/30 to-slate-900/95 backdrop-blur-xl border-2 rounded-2xl p-4 transition-all group border-cyan-500/25 hover:border-cyan-400/50 hover:shadow-[0_0_24px_rgba(131,162,212,0.08)]"
         >
             {/* Case management set up: whether escalations go to it */}
             {connector.kind === 'soar' && connector.configured && (
@@ -591,7 +591,7 @@ const AutoEscalationPanel = ({ value, activeSoar, target, onSave }: { value: Aut
     return (
         <section id="auto-escalation" className={cn(
             'relative rounded-3xl border-2 p-6 overflow-hidden transition-colors duration-500 scroll-mt-6',
-            on ? 'border-cyan-400/40 bg-gradient-to-r from-cyan-950/60 via-slate-900/95 to-slate-900/95 shadow-[0_0_40px_rgba(116,163,238,0.08)]'
+            on ? 'border-cyan-400/40 bg-gradient-to-r from-cyan-950/60 via-slate-900/95 to-slate-900/95 shadow-[0_0_40px_rgba(131,162,212,0.08)]'
                : off ? 'border-rose-500/30 bg-gradient-to-r from-rose-950/40 via-slate-900/95 to-slate-900/95 shadow-[0_0_40px_rgba(244,63,94,0.06)]'
                : 'border-cyan-500/20 bg-gradient-to-r from-slate-900/95 via-slate-900/90 to-slate-900/95',
             disabled && 'opacity-60'
@@ -601,10 +601,10 @@ const AutoEscalationPanel = ({ value, activeSoar, target, onSave }: { value: Aut
             <div className="relative flex items-center justify-between gap-6 flex-wrap">
                 <div className="flex items-center gap-4">
                     <div className={cn('w-12 h-12 rounded-2xl flex items-center justify-center border transition-all duration-500',
-                        on ? 'border-cyan-300/60 bg-cyan-400/15 text-cyan-200 shadow-[0_0_24px_rgba(116,163,238,0.35)]'
+                        on ? 'border-cyan-300/60 bg-cyan-400/15 text-cyan-200 shadow-[0_0_24px_rgba(131,162,212,0.35)]'
                            : off ? 'border-rose-400/50 bg-rose-500/10 text-rose-300 shadow-[0_0_20px_rgba(244,63,94,0.2)]'
                            : 'border-slate-600 bg-slate-800/50 text-slate-500')}>
-                        {off ? <ZapOff size={20} /> : <Zap size={20} className={cn(on && 'drop-shadow-[0_0_6px_rgba(191,213,249,0.8)]')} />}
+                        {off ? <ZapOff size={20} /> : <Zap size={20} className={cn(on && 'drop-shadow-[0_0_6px_rgba(196,212,236,0.8)]')} />}
                     </div>
                     <div>
                         <div className="text-lg font-black text-white tracking-[0.15em] uppercase">Auto-escalation</div>
@@ -620,7 +620,7 @@ const AutoEscalationPanel = ({ value, activeSoar, target, onSave }: { value: Aut
                     <button type="button" role="switch" aria-checked={value.auto_escalation_enabled} disabled={disabled} aria-label="Auto-escalation"
                         onClick={() => onSave({ auto_escalation_enabled: !value.auto_escalation_enabled })}
                         className={cn('relative w-14 h-7 rounded-full border transition-all flex-shrink-0', value.auto_escalation_enabled ? 'bg-cyan-500/40 border-cyan-400/60' : 'bg-slate-800 border-slate-600')}>
-                        <span className={cn('absolute top-[3px] w-5 h-5 rounded-full transition-all', value.auto_escalation_enabled ? 'left-[30px] bg-cyan-100 shadow-[0_0_10px_rgba(191,213,249,0.8)]' : 'left-[3px] bg-slate-400')} />
+                        <span className={cn('absolute top-[3px] w-5 h-5 rounded-full transition-all', value.auto_escalation_enabled ? 'left-[30px] bg-cyan-100 shadow-[0_0_10px_rgba(196,212,236,0.8)]' : 'left-[3px] bg-slate-400')} />
                     </button>
                 </div>
             </div>
@@ -646,7 +646,7 @@ const AutoEscalationPanel = ({ value, activeSoar, target, onSave }: { value: Aut
                                     <button key={s.value} title={s.label} onClick={() => onSave({ auto_escalation_min_score: s.value })}
                                         aria-pressed={value.auto_escalation_min_score === s.value}
                                         className={cn('px-3 py-1.5 rounded-md text-[10px] font-mono font-black uppercase tracking-wider transition-all',
-                                            value.auto_escalation_min_score === s.value ? 'bg-cyan-500/25 text-cyan-100 shadow-[inset_0_0_0_1px_rgba(155,189,244,0.4)]' : 'text-slate-500 hover:text-cyan-200')}>
+                                            value.auto_escalation_min_score === s.value ? 'bg-cyan-500/25 text-cyan-100 shadow-[inset_0_0_0_1px_rgba(162,187,224,0.4)]' : 'text-slate-500 hover:text-cyan-200')}>
                                         {SEVERITY_SHORT[s.value] || s.label}
                                     </button>
                                 ))}
@@ -677,10 +677,10 @@ const HAT_MARK = '/assets/Hat%20Part%20Light.png';
 
 const PipelineNode = ({ visual, title, value, detail, ok, center }: { visual: React.ReactNode; title: string; value: string; detail: string; ok: boolean; center?: boolean }) => (
     <div className={cn('relative rounded-2xl border px-4 py-4 flex items-center gap-3 min-w-0 transition-colors duration-500',
-        center ? 'border-cyan-400/50 bg-cyan-500/10 shadow-[0_0_32px_rgba(116,163,238,0.14)]'
+        center ? 'border-cyan-400/50 bg-cyan-500/10 shadow-[0_0_32px_rgba(131,162,212,0.14)]'
             : ok ? 'border-emerald-500/30 bg-emerald-500/[0.04]' : 'border-slate-600/40 bg-slate-800/30')}>
         <div className={cn('relative w-11 h-11 rounded-xl flex items-center justify-center border flex-shrink-0',
-            center ? 'border-cyan-300/60 bg-slate-950/80 text-cyan-100 shadow-[inset_0_0_14px_rgba(116,163,238,0.3),0_0_16px_rgba(116,163,238,0.2)]' : ok ? 'border-emerald-400/40 bg-slate-950/50 text-emerald-200' : 'border-slate-600 text-slate-500')}>
+            center ? 'border-cyan-300/60 bg-slate-950/80 text-cyan-100 shadow-[inset_0_0_14px_rgba(131,162,212,0.3),0_0_16px_rgba(131,162,212,0.2)]' : ok ? 'border-emerald-400/40 bg-slate-950/50 text-emerald-200' : 'border-slate-600 text-slate-500')}>
             {visual}
         </div>
         <div className="min-w-0">
@@ -702,7 +702,7 @@ const FlowLink = ({ live, label }: { live: boolean; label?: string }) => {
             <div className={cn('relative h-8 w-px md:h-px md:w-20 lg:w-24', live ? 'bg-cyan-400/30' : 'border-l md:border-l-0 md:border-t border-dashed border-slate-600')}>
                 {live && !reduce && [0, 0.6, 1.2].map((delay) => (
                     <motion.span key={delay}
-                        className="absolute left-[-2.5px] top-0 md:top-[-2.5px] md:left-0 w-1.5 h-1.5 rounded-full bg-cyan-300 shadow-[0_0_8px_rgba(155,189,244,0.9)]"
+                        className="absolute left-[-2.5px] top-0 md:top-[-2.5px] md:left-0 w-1.5 h-1.5 rounded-full bg-cyan-300 shadow-[0_0_8px_rgba(162,187,224,0.9)]"
                         initial={{ opacity: 0 }}
                         animate={{ opacity: [0, 1, 1, 0], ...(typeof window !== 'undefined' && window.innerWidth >= 768 ? { left: ['0%', '100%'] } : { top: ['0%', '100%'] }) }}
                         transition={{ duration: 1.8, delay, repeat: Infinity, ease: 'linear' }} />
@@ -777,7 +777,7 @@ const PipelineOverview = ({ siem, target, autoEscalation, onShowAutoEscalation }
                     detail={lastAlert ? `Last alert ${formatDistanceToNow(new Date(lastAlert), { addSuffix: true })}` : live.length ? 'Waiting for the first alert' : 'Connect a SIEM below'} />
                 <FlowLink live={live.length > 0} label="Alerts" />
                 <PipelineNode title="AI triage" center value="3 AI agents" detail="Extract · Investigate · Decide" ok
-                    visual={<motion.img src={HAT_MARK} alt="Nightshift" className="w-[84%] h-[84%] object-contain drop-shadow-[0_0_6px_rgba(191,213,249,0.35)]"
+                    visual={<motion.img src={HAT_MARK} alt="Nightshift" className="w-[84%] h-[84%] object-contain drop-shadow-[0_0_6px_rgba(196,212,236,0.35)]"
                         animate={reduce ? undefined : { y: [0, -1.5, 0] }} transition={{ duration: 3.2, repeat: Infinity, ease: 'easeInOut' }} />} />
                 {target && !autoEscalation.auto_escalation_enabled
                     ? <BlockedLink label="Auto-escalation off" onClick={onShowAutoEscalation} />
