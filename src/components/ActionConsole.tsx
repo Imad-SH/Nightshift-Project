@@ -60,45 +60,46 @@ interface CyberCardProps {
     onClick?: () => void;
     hasPlaceholder?: boolean;
     imageSrc?: string;
+    imageSize?: number; // px, the logo drawn from imageSrc
     centralIcon?: LucideIcon;
     hideCornerIcon?: boolean;
     isScanning?: boolean;
     noAnimation?: boolean;
 }
 
-function CyberCard({ icon: Icon, title, subtitle, color, onClick, hasPlaceholder, imageSrc, centralIcon: CentralIcon, hideCornerIcon, isScanning, noAnimation }: CyberCardProps) {
+function CyberCard({ icon: Icon, title, subtitle, color, onClick, hasPlaceholder, imageSrc, imageSize = 20, centralIcon: CentralIcon, hideCornerIcon, isScanning, noAnimation }: CyberCardProps) {
     // One accent per action: a tinted gradient surface, a gradient icon tile, and a glow on hover
     const colorMap: Record<CyberCardProps['color'], { card: string; tile: string; glow: string; chip: string }> = {
         cyan: {
             card: 'border-cyan-500/30 from-cyan-500/[0.14] via-slate-900/50 to-slate-900/70 hover:border-cyan-400/70 hover:shadow-[0_14px_34px_-14px_rgba(6,182,212,0.65)]',
             tile: 'text-cyan-100 from-cyan-400/35 to-cyan-700/20 border-cyan-400/40 shadow-[0_6px_16px_-6px_rgba(6,182,212,0.6)]',
-            glow: 'bg-cyan-400/25', chip: 'group-hover:text-cyan-200 group-hover:border-cyan-400/50',
+            glow: 'bg-cyan-400/25', chip: 'text-cyan-300 border-cyan-400/30 bg-cyan-400/[0.08] group-hover:text-cyan-100 group-hover:border-cyan-400/60 group-hover:bg-cyan-400/[0.16]',
         },
         amber: {
             card: 'border-amber-500/25 from-amber-500/[0.12] via-slate-900/50 to-slate-900/70 hover:border-amber-400/60 hover:shadow-[0_14px_34px_-14px_rgba(245,158,11,0.5)]',
             tile: 'text-amber-200 from-amber-400/30 to-amber-700/15 border-amber-400/40 shadow-[0_6px_16px_-6px_rgba(245,158,11,0.5)]',
-            glow: 'bg-amber-400/20', chip: 'group-hover:text-amber-200 group-hover:border-amber-400/50',
+            glow: 'bg-amber-400/20', chip: 'text-amber-300 border-amber-400/30 bg-amber-400/[0.08] group-hover:text-amber-100 group-hover:border-amber-400/60 group-hover:bg-amber-400/[0.16]',
         },
         red: {
             card: 'border-rose-500/30 from-rose-500/[0.14] via-slate-900/50 to-slate-900/70 hover:border-rose-400/70 hover:shadow-[0_14px_34px_-14px_rgba(244,63,94,0.55)]',
             tile: 'text-red-400 from-rose-400/30 to-rose-700/15 border-rose-400/40 shadow-[0_6px_16px_-6px_rgba(244,63,94,0.55)]',
-            glow: 'bg-rose-400/20', chip: 'group-hover:text-rose-200 group-hover:border-rose-400/50',
+            glow: 'bg-rose-400/20', chip: 'text-red-400 border-rose-400/30 bg-rose-400/[0.08] group-hover:text-red-300 group-hover:border-rose-400/60 group-hover:bg-rose-400/[0.16]',
         },
         slate: {
             card: 'border-slate-500/30 from-slate-400/[0.09] via-slate-900/50 to-slate-900/70 hover:border-slate-400/60 hover:shadow-[0_14px_34px_-14px_rgba(148,163,184,0.4)]',
             tile: 'text-slate-100 from-slate-300/25 to-slate-600/15 border-slate-400/35 shadow-[0_6px_16px_-6px_rgba(148,163,184,0.4)]',
-            glow: 'bg-slate-300/15', chip: 'group-hover:text-slate-100 group-hover:border-slate-400/50',
+            glow: 'bg-slate-300/15', chip: 'text-slate-300 border-slate-400/30 bg-slate-400/[0.08] group-hover:text-slate-100 group-hover:border-slate-400/60 group-hover:bg-slate-400/[0.16]',
         },
         // The teal of the Nightshift logo (#70c3b8)
         teal: {
             card: 'border-[#70c3b8]/30 from-[#70c3b8]/[0.13] via-slate-900/50 to-slate-900/70 hover:border-[#70c3b8]/70 hover:shadow-[0_14px_34px_-14px_rgba(112,195,184,0.55)]',
             tile: 'text-[#d4f0ec] from-[#70c3b8]/35 to-[#2f7f75]/20 border-[#70c3b8]/40 shadow-[0_6px_16px_-6px_rgba(112,195,184,0.55)]',
-            glow: 'bg-[#70c3b8]/20', chip: 'group-hover:text-[#bfe7e1] group-hover:border-[#70c3b8]/50',
+            glow: 'bg-[#70c3b8]/20', chip: 'text-[#a8ddd5] border-[#70c3b8]/30 bg-[#70c3b8]/[0.08] group-hover:text-[#d4f0ec] group-hover:border-[#70c3b8]/60 group-hover:bg-[#70c3b8]/[0.16]',
         },
         violet: {
             card: 'border-violet-500/25 from-violet-500/[0.12] via-slate-900/50 to-slate-900/70 hover:border-violet-400/60 hover:shadow-[0_14px_34px_-14px_rgba(139,92,246,0.5)]',
             tile: 'text-violet-100 from-violet-400/30 to-violet-700/15 border-violet-400/40 shadow-[0_6px_16px_-6px_rgba(139,92,246,0.5)]',
-            glow: 'bg-violet-400/20', chip: 'group-hover:text-violet-200 group-hover:border-violet-400/50',
+            glow: 'bg-violet-400/20', chip: 'text-violet-300 border-violet-400/30 bg-violet-400/[0.08] group-hover:text-violet-100 group-hover:border-violet-400/60 group-hover:bg-violet-400/[0.16]',
         },
     };
     const tone = colorMap[color];
@@ -126,8 +127,10 @@ function CyberCard({ icon: Icon, title, subtitle, color, onClick, hasPlaceholder
                         <Loader2 size={18} className="animate-spin" />
                     ) : (
                         <div
-                            className="w-5 h-5 bg-current"
+                            className="bg-current"
                             style={{
+                                width: imageSize,
+                                height: imageSize,
                                 WebkitMaskImage: `url("${imageSrc}")`,
                                 maskImage: `url("${imageSrc}")`,
                                 WebkitMaskSize: 'contain',
@@ -160,7 +163,7 @@ function CyberCard({ icon: Icon, title, subtitle, color, onClick, hasPlaceholder
             </div>
             {/* The action's own icon (open in the case system, download); none on the scan button */}
             {hasPlaceholder && !hideCornerIcon && !isScanning && (
-                <div className={cn("relative ml-auto shrink-0 w-8 h-8 rounded-full border border-white/10 bg-white/[0.03] flex items-center justify-center text-slate-500 transition-all duration-300", tone.chip)}>
+                <div className={cn("relative ml-auto shrink-0 w-8 h-8 rounded-full border flex items-center justify-center transition-all duration-300", tone.chip)}>
                     <Icon size={14} strokeWidth={2.2} className="transition-transform duration-300 group-hover:translate-x-0.5" />
                 </div>
             )}
@@ -876,6 +879,7 @@ export const ActionConsole: React.FC<ActionConsoleProps> = ({ alert, isScanning 
                         color={soarId ? "slate" : soar.color}
                         hasPlaceholder
                         imageSrc={soar.logo}
+                        imageSize={28}
                         onClick={onSoarClick}
                         isScanning={isEscalating}
                     />
@@ -911,6 +915,7 @@ export const ActionConsole: React.FC<ActionConsoleProps> = ({ alert, isScanning 
                         color={soarId ? "slate" : soar.color}
                         hasPlaceholder
                         imageSrc={soar.logo}
+                        imageSize={28}
                         onClick={onSoarClick}
                         isScanning={isEscalating}
                     />
