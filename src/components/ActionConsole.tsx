@@ -860,7 +860,7 @@ export const ActionConsole: React.FC<ActionConsoleProps> = ({ alert, isScanning 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-3 h-full">
                     <CyberCard
                         icon={isStopping ? RotateCcw : (activeIsScanning ? Square : (hasCompletedOnce ? RotateCcw : Play))}
-                        title={isStopping ? "Stopping..." : (activeIsScanning ? "Stop AI scan" : (hasCompletedOnce ? "Re-scan alert" : "Scan alert"))}
+                        title={isStopping ? "Stopping..." : (activeIsScanning ? "Stop AI scan" : (hasCompletedOnce ? "Restart AI Analysis" : "Analyze Alert with AI"))}
                         subtitle={isStopping ? "Ending the task" : (activeIsScanning ? "Investigation running" : (hasCompletedOnce ? "Run the investigation again" : "Start the investigation"))}
                         color={isStopping ? "slate" : (activeIsScanning ? "red" : "cyan")}
                         hasPlaceholder
@@ -895,7 +895,7 @@ export const ActionConsole: React.FC<ActionConsoleProps> = ({ alert, isScanning 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3 h-full">
                     <CyberCard
                         icon={isStopping ? RotateCcw : (activeIsScanning ? Square : Bot)}
-                        title={isStopping ? "Stopping..." : (activeIsScanning ? "Stop AI scan" : "Scan with AI")}
+                        title={isStopping ? "Stopping..." : (activeIsScanning ? "Stop AI scan" : "Analyze Alert with AI")}
                         subtitle={isStopping ? "Ending the task" : (activeIsScanning ? "Investigation running" : "Start the investigation")}
                         color={isStopping ? "slate" : (activeIsScanning ? "red" : "cyan")}
                         hasPlaceholder
