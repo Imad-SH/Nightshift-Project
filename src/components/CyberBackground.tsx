@@ -47,7 +47,7 @@ const CyberSphere = ({ count = 3000, radius = 5 }) => {
       <Points ref={pointsRef} positions={positions} stride={3} frustumCulled={false}>
         <PointMaterial
           transparent
-          color="#8aa2ee" // cyan-400
+          color="#74a3ee" // cyan-400
           size={0.03}
           sizeAttenuation={true}
           depthWrite={false}

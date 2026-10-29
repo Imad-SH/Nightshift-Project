@@ -16,10 +16,10 @@ const GeometricMesh = () => {
         <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
             <svg width="100%" height="100%" className="absolute inset-0 opacity-[0.03]">
                 <pattern id="mesh-pattern" x="0" y="0" width="100" height="100" patternUnits="userSpaceOnUse">
-                    <circle cx="2" cy="2" r="1.5" fill="#6f8be6" />
-                    <line x1="2" y1="2" x2="100" y2="100" stroke="#6f8be6" strokeWidth="0.5" />
-                    <line x1="2" y1="2" x2="100" y2="2" stroke="#6f8be6" strokeWidth="0.5" />
-                    <line x1="100" y1="2" x2="100" y2="100" stroke="#6f8be6" strokeWidth="0.5" />
+                    <circle cx="2" cy="2" r="1.5" fill="#5a8de6" />
+                    <line x1="2" y1="2" x2="100" y2="100" stroke="#5a8de6" strokeWidth="0.5" />
+                    <line x1="2" y1="2" x2="100" y2="2" stroke="#5a8de6" strokeWidth="0.5" />
+                    <line x1="100" y1="2" x2="100" y2="100" stroke="#5a8de6" strokeWidth="0.5" />
                 </pattern>
                 <rect width="100%" height="100%" fill="url(#mesh-pattern)" />
             </svg>
@@ -29,7 +29,7 @@ const GeometricMesh = () => {
                     scale: [1, 1.05, 1]
                 }}
                 transition={{ duration: 15, repeat: Infinity, ease: "easeInOut" }}
-                className="absolute inset-[-10%] bg-[radial-gradient(circle_at_50%_50%,rgba(111,139,230,0.1)_0%,transparent_70%)]"
+                className="absolute inset-[-10%] bg-[radial-gradient(circle_at_50%_50%,rgba(90,141,230,0.1)_0%,transparent_70%)]"
             />
         </div>
     );
@@ -126,7 +126,7 @@ const UserPreviewPanel = ({ selectedUser }: { selectedUser: any }) => {
                     Authentication Logs
                 </h3>
                 <div className="space-y-8 relative ml-2">
-                    <div className="absolute left-[3px] top-1 bottom-1 w-[1px] bg-cyan-500/20 shadow-[0_0_10px_rgba(138,162,238,0.3)]" />
+                    <div className="absolute left-[3px] top-1 bottom-1 w-[1px] bg-cyan-500/20 shadow-[0_0_10px_rgba(116,163,238,0.3)]" />
 
                     {isLoadingLogs ? (
                         <div className="text-[10px] font-mono text-cyan-500/50 uppercase tracking-widest animate-pulse ml-8">Fetching securely...</div>
@@ -138,7 +138,7 @@ const UserPreviewPanel = ({ selectedUser }: { selectedUser: any }) => {
                         const dateStr = date.toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' });
                         return (
                             <div key={i} className="relative pl-8 group/item">
-                                <div className="absolute left-0 top-1.5 w-2 h-2 rounded-full bg-slate-950 border-2 border-cyan-500/80 shadow-[0_0_8px_#8aa2ee] group-hover/item:scale-125 transition-transform" />
+                                <div className="absolute left-0 top-1.5 w-2 h-2 rounded-full bg-slate-950 border-2 border-cyan-500/80 shadow-[0_0_8px_#74a3ee] group-hover/item:scale-125 transition-transform" />
                                 <div className="flex flex-col mb-2">
                                     <div className="flex items-center gap-2">
                                         <span className="text-[10px] font-mono font-black text-cyan-400/90 tracking-wider">{timeStr}</span>
@@ -161,12 +161,12 @@ const UserPreviewPanel = ({ selectedUser }: { selectedUser: any }) => {
 
 const getRoleStyle = (role: string) => {
     if (role.includes('Manager'))
-        return { badge: 'bg-cyan-500/10 border-cyan-400/40 text-cyan-300', ring: 'border-cyan-400/70', glow: 'rgba(138,162,238,0.35)', text: 'text-cyan-300' };
+        return { badge: 'bg-cyan-500/10 border-cyan-400/40 text-cyan-300', ring: 'border-cyan-400/70', glow: 'rgba(116,163,238,0.35)', text: 'text-cyan-300' };
     if (role.includes('L3'))
         return { badge: 'bg-violet-500/10 border-violet-400/40 text-violet-300', ring: 'border-violet-400/70', glow: 'rgba(167,139,250,0.35)', text: 'text-violet-300' };
     if (role.includes('L2'))
         return { badge: 'bg-blue-500/10 border-blue-400/40 text-blue-300', ring: 'border-blue-400/70', glow: 'rgba(96,165,250,0.35)', text: 'text-blue-300' };
-    return { badge: 'bg-cyan-500/10 border-cyan-400/40 text-cyan-300', ring: 'border-cyan-400/70', glow: 'rgba(138,162,238,0.35)', text: 'text-cyan-300' };
+    return { badge: 'bg-cyan-500/10 border-cyan-400/40 text-cyan-300', ring: 'border-cyan-400/70', glow: 'rgba(116,163,238,0.35)', text: 'text-cyan-300' };
 };
 
 const StatusBadge = ({ status }: { status: string }) => {
@@ -175,10 +175,10 @@ const StatusBadge = ({ status }: { status: string }) => {
         <div className={cn(
             "inline-flex items-center gap-2 px-3 py-1 rounded-lg border text-[10px] font-mono font-black tracking-[0.1em] transition-all",
             isActive 
-                ? "bg-cyan-500/10 border-cyan-500/30 text-cyan-400 shadow-[0_0_15px_rgba(138,162,238,0.1)]"
+                ? "bg-cyan-500/10 border-cyan-500/30 text-cyan-400 shadow-[0_0_15px_rgba(116,163,238,0.1)]"
                 : "bg-rose-500/10 border-rose-500/30 text-rose-400 shadow-[0_0_15px_rgba(244,63,94,0.1)]"
         )}>
-            <div className={cn("w-1.5 h-1.5 rounded-full", isActive ? "bg-cyan-400 animate-pulse shadow-[0_0_8px_#8aa2ee]" : "bg-rose-400")} />
+            <div className={cn("w-1.5 h-1.5 rounded-full", isActive ? "bg-cyan-400 animate-pulse shadow-[0_0_8px_#74a3ee]" : "bg-rose-400")} />
             {status}
         </div>
     );
@@ -258,10 +258,10 @@ const BentoStatCard = ({ icon: Icon, label, value, subValue, color, children, cl
 
     const shadowStyle =
         color === 'emerald'
-            ? 'hover:shadow-[0_0_30px_rgba(138,162,238,0.15),inset_0_1px_0_rgba(255,255,255,0.05)] hover:border-cyan-400/60'
+            ? 'hover:shadow-[0_0_30px_rgba(116,163,238,0.15),inset_0_1px_0_rgba(255,255,255,0.05)] hover:border-cyan-400/60'
             : color === 'rose'
             ? 'hover:shadow-[0_0_30px_rgba(244,63,94,0.15),inset_0_1px_0_rgba(255,255,255,0.05)] hover:border-rose-400/60'
-            : 'hover:shadow-[0_0_30px_rgba(138,162,238,0.15),inset_0_1px_0_rgba(255,255,255,0.05)] hover:border-cyan-400/60';
+            : 'hover:shadow-[0_0_30px_rgba(116,163,238,0.15),inset_0_1px_0_rgba(255,255,255,0.05)] hover:border-cyan-400/60';
 
     const bgStyle = 'bg-gradient-to-br from-slate-800/40 via-cyan-900/10 to-slate-900/40';
 
@@ -277,7 +277,7 @@ const BentoStatCard = ({ icon: Icon, label, value, subValue, color, children, cl
         )}>
             {/* Subtle ambient light glow on hover */}
             <div className={cn(
-                "absolute -inset-y-0 -inset-x-0 bg-[radial-gradient(circle_at_50%_0%,rgba(111,139,230,0.03),transparent_60%)] opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none",
+                "absolute -inset-y-0 -inset-x-0 bg-[radial-gradient(circle_at_50%_0%,rgba(90,141,230,0.03),transparent_60%)] opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none",
                 color === 'emerald' && "bg-[radial-gradient(circle_at_50%_0%,rgba(16,185,129,0.03),transparent_60%)]",
                 color === 'rose' && "bg-[radial-gradient(circle_at_50%_0%,rgba(244,63,94,0.03),transparent_60%)]"
             )} />
@@ -329,7 +329,7 @@ const CustomDropdown = ({ label, value, options, onChange }: { label: string, va
                 onClick={() => setIsOpen(!isOpen)}
                 className={cn(
                     "w-full bg-slate-950/50 border-2 border-slate-700/50 hover:border-cyan-500/50 focus:outline-none rounded-xl py-3 px-4 flex items-center justify-between transition-all",
-                    isOpen && "border-cyan-500/50 shadow-[0_0_15px_rgba(111,139,230,0.1)]"
+                    isOpen && "border-cyan-500/50 shadow-[0_0_15px_rgba(90,141,230,0.1)]"
                 )}
             >
                 <span className="text-sm font-medium text-cyan-100 tracking-wide font-sans">{value}</span>
@@ -1149,7 +1149,7 @@ export const UserManagement = () => {
                                 <div className="flex items-center justify-between">
                                     <span className="text-[9px] font-mono text-slate-400 uppercase">Success (24h)</span>
                                     <div className="flex items-center gap-1.5">
-                                        <div className="w-1.5 h-1.5 rounded-full bg-cyan-400 shadow-[0_0_8px_#8aa2ee]" />
+                                        <div className="w-1.5 h-1.5 rounded-full bg-cyan-400 shadow-[0_0_8px_#74a3ee]" />
                                         <span className="text-xs font-mono font-bold text-white">{loginStats.success}</span>
                                     </div>
                                 </div>
@@ -1282,7 +1282,7 @@ export const UserManagement = () => {
                                         >
                                             {/* Selection cyber bar */}
                                             {userToEdit?.id === analyst.id && (
-                                                <div className="absolute left-0 top-0 bottom-0 w-[2px] bg-cyan-400 shadow-[0_0_8px_#8aa2ee] z-10" />
+                                                <div className="absolute left-0 top-0 bottom-0 w-[2px] bg-cyan-400 shadow-[0_0_8px_#74a3ee] z-10" />
                                             )}
                                             {/* User */}
                                             <div className="flex items-center gap-3">

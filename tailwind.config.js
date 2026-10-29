@@ -27,19 +27,20 @@ export default {
                 input: "hsl(var(--input))",
                 ring: "hsl(var(--ring))",
 
-                // The interface accent: the Nightshift / BlueSec blues (700 #475ea8, 900 #233987, 950 #111d54),
-                // with lighter tints that stay readable on the dark background. Kept under the name "cyan"
-                // so every existing cyan-* class takes the brand colour.
+                // The interface accent: a true blue, anchored on the BlueSec / Nightshift navies (900 #233987,
+                // 950 #111d54). The lighter shades sit at hue ~217 so they read blue, not lavender, on the dark
+                // background, and stay readable as text. Kept under the name "cyan" so every existing cyan-*
+                // class takes it.
                 cyan: {
-                    50: "#f1f4fd",
-                    100: "#e2e8fb",
-                    200: "#c9d4f7",
-                    300: "#a9bbf3",
-                    400: "#8aa2ee",
-                    500: "#6f8be6",
-                    600: "#617ddb",
-                    700: "#475ea8",
-                    800: "#36498f",
+                    50: "#eff5fe",
+                    100: "#dde8fc",
+                    200: "#bfd5f9",
+                    300: "#9bbdf4",
+                    400: "#74a3ee",
+                    500: "#5a8de6",
+                    600: "#4d7ddc",
+                    700: "#3b62b8",
+                    800: "#2d4c98",
                     900: "#233987",
                     950: "#111d54",
                 },
@@ -50,7 +51,7 @@ export default {
                     dark: "#0F172A",
                 },
                 neon: {
-                    cyan: "#6f8be6",
+                    cyan: "#5a8de6",
                     green: "#22c55e",
                     red: "#f43f5e",
                     amber: "#f59e0b",

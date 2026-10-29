@@ -38,7 +38,7 @@ export const TimeFilterControl = ({
                     className={cn(
                         "px-2.5 py-1 text-[8px] font-mono font-bold tracking-widest rounded-lg transition-all duration-300",
                         timeFilter === f.value 
-                            ? "bg-cyan-500/20 text-cyan-100 shadow-[0_0_20px_rgba(138,162,238,0.15)] border border-cyan-500/30" 
+                            ? "bg-cyan-500/20 text-cyan-100 shadow-[0_0_20px_rgba(116,163,238,0.15)] border border-cyan-500/30" 
                             : "text-cyan-100/40 hover:text-cyan-100 hover:bg-cyan-400/5 border border-transparent"
                     )}
                 >
@@ -51,7 +51,7 @@ export const TimeFilterControl = ({
                 className={cn(
                     "p-1 rounded-lg transition-all duration-300 flex items-center justify-center",
                     timeFilter === 'CUSTOM'
-                        ? "bg-cyan-500/20 text-cyan-100 shadow-[0_0_20px_rgba(138,162,238,0.15)] border border-cyan-500/30"
+                        ? "bg-cyan-500/20 text-cyan-100 shadow-[0_0_20px_rgba(116,163,238,0.15)] border border-cyan-500/30"
                         : "text-cyan-500/40 hover:text-cyan-400 hover:bg-cyan-400/5 border border-transparent"
                 )}
             >
@@ -65,11 +65,11 @@ export const TimeFilterControl = ({
                         initial={{ opacity: 0, scale: 0.98, y: 8 }}
                         animate={{ opacity: 1, scale: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.98, y: 8 }}
-                        className="absolute top-full right-0 mt-2 p-3 bg-slate-900/90 backdrop-blur-2xl border border-cyan-500/40 rounded-xl shadow-[0_20px_40px_rgba(0,0,0,0.4),0_0_15px_rgba(138,162,238,0.1)] z-[100] flex flex-col gap-3 min-w-[220px]"
+                        className="absolute top-full right-0 mt-2 p-3 bg-slate-900/90 backdrop-blur-2xl border border-cyan-500/40 rounded-xl shadow-[0_20px_40px_rgba(0,0,0,0.4),0_0_15px_rgba(116,163,238,0.1)] z-[100] flex flex-col gap-3 min-w-[220px]"
                     >
                         <div className="space-y-1">
                             <div className="flex items-center gap-1.5 mb-0.5">
-                                <div className="w-1 h-1 rounded-full bg-cyan-400 shadow-[0_0_5px_rgba(138,162,238,0.8)]" />
+                                <div className="w-1 h-1 rounded-full bg-cyan-400 shadow-[0_0_5px_rgba(116,163,238,0.8)]" />
                                 <span className="text-[7.5px] font-black text-cyan-400 uppercase tracking-[0.2em] font-mono">Start Date</span>
                             </div>
                             <input
@@ -84,7 +84,7 @@ export const TimeFilterControl = ({
                         </div>
                         <div className="space-y-1">
                             <div className="flex items-center gap-1.5 mb-0.5">
-                                <div className="w-1 h-1 rounded-full bg-cyan-400 shadow-[0_0_5px_rgba(138,162,238,0.8)]" />
+                                <div className="w-1 h-1 rounded-full bg-cyan-400 shadow-[0_0_5px_rgba(116,163,238,0.8)]" />
                                 <span className="text-[7.5px] font-black text-cyan-400 uppercase tracking-[0.2em] font-mono">End Date</span>
                             </div>
                             <input

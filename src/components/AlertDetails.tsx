@@ -15,7 +15,7 @@ import { cn } from './DashboardLayout';
 
 /** Uppercase field label — shared so label styling stays consistent across panels. */
 const FieldLabel = ({ children }: { children: React.ReactNode }) => (
-    <div className="text-[9px] uppercase tracking-wider text-cyan-400 font-mono mb-1 [text-shadow:0_0_4px_rgba(138,162,238,0.4)]">
+    <div className="text-[9px] uppercase tracking-wider text-cyan-400 font-mono mb-1 [text-shadow:0_0_4px_rgba(116,163,238,0.4)]">
         {children}
     </div>
 );
@@ -254,7 +254,7 @@ export const AlertDetails = ({ alert }: { alert: any }) => {
             {/* Background Texture */}
 
             {/* === 1. SEVERITY HEADER === */}
-            <div className={cn("flex-none p-1 rounded-xl border border-cyan-500/50 backdrop-blur-md relative overflow-hidden transition-all duration-300 shadow-[0_0_15px_rgba(138,162,238,0.1)]", config.panelBg)}>
+            <div className={cn("flex-none p-1 rounded-xl border border-cyan-500/50 backdrop-blur-md relative overflow-hidden transition-all duration-300 shadow-[0_0_15px_rgba(116,163,238,0.1)]", config.panelBg)}>
                 <div className="flex justify-between items-center px-3 py-2 relative z-10">
                     <div className="flex items-center gap-4">
                         <div className="flex items-end gap-1 h-5 pb-0.5">
@@ -471,7 +471,7 @@ export const AlertDetails = ({ alert }: { alert: any }) => {
                             </div>
                             <div className="text-right shrink-0">
                                 <FieldLabel>Rule ID</FieldLabel>
-                                <div className="text-xs font-bold text-cyan-400 font-mono bg-cyan-950/50 px-2 py-1 rounded border border-cyan-500/20 hover:bg-cyan-900/50 transition-colors shadow-[0_0_10px_rgba(138,162,238,0.2)]">
+                                <div className="text-xs font-bold text-cyan-400 font-mono bg-cyan-950/50 px-2 py-1 rounded border border-cyan-500/20 hover:bg-cyan-900/50 transition-colors shadow-[0_0_10px_rgba(116,163,238,0.2)]">
                                     {displayData.ruleId}
                                 </div>
                             </div>
