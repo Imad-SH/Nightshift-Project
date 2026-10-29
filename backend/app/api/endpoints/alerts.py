@@ -132,12 +132,15 @@ async def get_dashboard_kpis(
     return stats
 
 
-@router.post("/manual-upload")
-async def manual_alert_upload(request: Request, db: AsyncSession = Depends(get_db)):
+MAX_BULK_IMPORT = 500  # alerts per bulk request; the interface sends larger imports in batches
+
+
+async def _import_alert(db: AsyncSession, raw_json) -> dict:
     """
-    Manually inject a Wazuh alert into the live stream: same intake as SIEM alerts, without an AI scan.
-    Accepts a Wazuh alert as Wazuh writes it (alerts.json) or an OpenSearch export of one; any other
-    JSON is refused, so a random file never shows up as an alert.
+    One manual import: the same intake as SIEM alerts, without an AI scan. Accepts a Wazuh alert as
+    Wazuh writes it (alerts.json) or an OpenSearch export of one; any other JSON is refused, so a
+    random file never shows up as an alert. Returns the ingest result; raises HTTPException with the
+    reason when the alert is not imported.
     """
     import uuid
     from datetime import datetime, timezone
@@ -145,10 +148,6 @@ async def manual_alert_upload(request: Request, db: AsyncSession = Depends(get_d
     from app.connectors.siem.wazuh import is_wazuh_alert
     from app.services import ingest
 
-    try:
-        raw_json = await request.json()
-    except Exception:
-        raise HTTPException(status_code=400, detail="Invalid JSON body")
     if not isinstance(raw_json, dict):
         raise HTTPException(status_code=400, detail="The alert must be a JSON object")
 
@@ -156,22 +155,23 @@ async def manual_alert_upload(request: Request, db: AsyncSession = Depends(get_d
     if isinstance(raw_json.get('_source'), dict):
         # OpenSearch / Elasticsearch document envelope (exported from Wazuh/OpenSearch Dashboards)
         alert_data = raw_json['_source']
-        # Carry over injected metadata that was stamped on the outer envelope by the frontend
-        for _k in ('_injected_by', '_injected_at'):
-            if _k in raw_json:
-                alert_data[_k] = raw_json[_k]
     elif isinstance(raw_json.get('payload'), dict):
         alert_data = raw_json['payload']
     elif isinstance(raw_json.get('alert'), dict):
         alert_data = raw_json['alert']
     else:
         alert_data = raw_json
+    if alert_data is not raw_json:
+        # Carry over the importer metadata the interface stamps on the outer envelope
+        for _k in ('_injected_by', '_injected_at'):
+            if _k in raw_json:
+                alert_data[_k] = raw_json[_k]
 
     if not is_wazuh_alert(alert_data):
         raise HTTPException(
             status_code=400,
-            detail="This file is not a Wazuh alert. Import an alert as Wazuh writes it (alerts.json), "
-                   "with a rule that has an id, a level and a description.",
+            detail="Not a Wazuh alert: it needs a rule with an id, a level and a description, "
+                   "as Wazuh writes it (alerts.json).",
         )
 
     # Assign a unique ID only if the JSON has none
@@ -189,5 +189,47 @@ async def manual_alert_upload(request: Request, db: AsyncSession = Depends(get_d
         raise HTTPException(status_code=422, detail=f"Could not parse alert: {e}")
     if result.get("status") != "success":
         raise HTTPException(status_code=409, detail=result.get("message", "Alert not accepted"))
+    return result
 
+
+@router.post("/manual-upload")
+async def manual_alert_upload(request: Request, db: AsyncSession = Depends(get_db)):
+    """Manually inject one Wazuh alert into the live stream (see _import_alert)."""
+    try:
+        raw_json = await request.json()
+    except Exception:
+        raise HTTPException(status_code=400, detail="Invalid JSON body")
+    result = await _import_alert(db, raw_json)
     return {"status": "ok", "alert_id": result["alert_id"], "alert": result["alert"], "message": "Alert injected into live stream"}
+
+
+@router.post("/manual-upload/bulk")
+async def manual_alert_upload_bulk(request: Request, db: AsyncSession = Depends(get_db)):
+    """
+    Inject several Wazuh alerts at once: {"alerts": [...]}, at most MAX_BULK_IMPORT per request.
+    Each alert is checked and imported on its own; the answer lists the imported alerts and, for the
+    others, their position in the list and why they were skipped.
+    """
+    import logging
+    try:
+        body = await request.json()
+    except Exception:
+        raise HTTPException(status_code=400, detail="Invalid JSON body")
+    alerts = body.get("alerts") if isinstance(body, dict) else None
+    if not isinstance(alerts, list) or not alerts:
+        raise HTTPException(status_code=400, detail='Send {"alerts": [...]} with at least one alert')
+    if len(alerts) > MAX_BULK_IMPORT:
+        raise HTTPException(status_code=413, detail=f"At most {MAX_BULK_IMPORT} alerts per request")
+
+    imported, skipped = [], []
+    for index, item in enumerate(alerts):
+        try:
+            result = await _import_alert(db, item)
+            imported.append(result["alert"])
+        except HTTPException as e:
+            skipped.append({"index": index, "reason": str(e.detail)})
+        except Exception as e:  # one broken alert must not stop the others
+            await db.rollback()
+            logging.getLogger(__name__).warning(f"[Import] Alert {index} failed: {e}")
+            skipped.append({"index": index, "reason": "Could not import this alert"})
+    return {"imported": imported, "skipped": skipped}

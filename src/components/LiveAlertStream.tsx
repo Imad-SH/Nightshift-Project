@@ -2,7 +2,7 @@ import React from 'react';
 import { useSocket } from '../hooks/useSocket';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from './DashboardLayout';
-import { Loader2, Filter, X, Plus, Upload, FileJson, User as UserIcon } from 'lucide-react';
+import { Loader2, Filter, X, Plus, Upload, FileJson, User as UserIcon, TriangleAlert, CircleCheck } from 'lucide-react';
 import { useSocAuth } from '../contexts/AuthContext';
 import type { Alert, SocketEvent } from '../types';
 import { apiBase } from '../config';
@@ -289,6 +289,35 @@ const AlertItem = React.memo(({
 
 // Dynamic virtualization constants
 const MARGIN = 8;
+
+// Manual import: alerts per request to the bulk endpoint, and per import
+const IMPORT_BATCH = 100;
+const MAX_IMPORT = 2000;
+
+/** Alerts in a pasted text or a file: one JSON object, a JSON array, an OpenSearch search export
+ *  (hits.hits[]) or Wazuh's alerts.json (one JSON object per line). The server checks each one. */
+function parseAlertsText(text: string): { alerts: any[]; error?: string } {
+    const trimmed = text.trim();
+    if (!trimmed) return { alerts: [] };
+    try {
+        const value = JSON.parse(trimmed);
+        if (Array.isArray(value)) return { alerts: value };
+        if (value && Array.isArray(value.hits?.hits)) return { alerts: value.hits.hits };
+        return { alerts: [value] };
+    } catch {
+        // Not a single JSON document: try one alert per line
+    }
+    const lines = trimmed.split(/\r?\n/).filter((line) => line.trim());
+    const alerts: any[] = [];
+    for (let i = 0; i < lines.length; i++) {
+        try {
+            alerts.push(JSON.parse(lines[i]));
+        } catch {
+            return { alerts: [], error: lines.length > 1 ? `Line ${i + 1} is not valid JSON` : 'Not valid JSON' };
+        }
+    }
+    return { alerts };
+}
 const ESTIMATED_AVG_HEIGHT = 130; 
 
 export const LiveAlertStream: React.FC<LiveAlertStreamProps> = ({ onSelectAlert, selectedAlertId }) => {
@@ -299,10 +328,15 @@ export const LiveAlertStream: React.FC<LiveAlertStreamProps> = ({ onSelectAlert,
     // Upload modal state — declared at top to maintain stable hook order
     const [isUploadModalOpen, setIsUploadModalOpen] = React.useState(false);
     const [uploadJson, setUploadJson] = React.useState('');
+    const [uploadFiles, setUploadFiles] = React.useState<{ name: string; alerts: any[]; error?: string }[]>([]);
     const [uploadError, setUploadError] = React.useState<string | null>(null);
-    const [uploadSuccess, setUploadSuccess] = React.useState(false);
+    const [uploadResult, setUploadResult] = React.useState<{ imported: number; skipped: { label: string; reason: string }[] } | null>(null);
+    const [uploadProgress, setUploadProgress] = React.useState<{ done: number; total: number } | null>(null);
     const [isUploading, setIsUploading] = React.useState(false);
+    const [isFileOver, setIsFileOver] = React.useState(false);
     const fileInputRef = React.useRef<HTMLInputElement>(null);
+    const pasted = React.useMemo(() => parseAlertsText(uploadJson), [uploadJson]);
+    const importCount = uploadFiles.reduce((n, f) => n + f.alerts.length, 0) + (pasted.error ? 0 : pasted.alerts.length);
 
     const [isFilterModalOpen, setIsFilterModalOpen] = React.useState(false);
     const [activeFilter, setActiveFilter] = React.useState<FilterState>(defaultFilter);
@@ -552,74 +586,95 @@ export const LiveAlertStream: React.FC<LiveAlertStreamProps> = ({ onSelectAlert,
         };
     }, []);
 
-    const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = (ev) => {
-            const text = ev.target?.result as string;
+    const addUploadFiles = async (fileList: FileList | null) => {
+        if (!fileList || !fileList.length) return;
+        setUploadResult(null);
+        setUploadError(null);
+        const read = await Promise.all(Array.from(fileList).map(async (file) => {
             try {
-                // Pretty-print to validate it's valid JSON
-                setUploadJson(JSON.stringify(JSON.parse(text), null, 2));
-                setUploadError(null);
+                const parsed = parseAlertsText(await file.text());
+                return { name: file.name, alerts: parsed.alerts, error: parsed.error || (parsed.alerts.length ? undefined : 'Empty file') };
             } catch {
-                setUploadError('File is not valid JSON.');
+                return { name: file.name, alerts: [], error: 'Could not read the file' };
             }
-        };
-        reader.readAsText(file);
+        }));
+        setUploadFiles((prev) => [...prev, ...read]);
+    };
+
+    const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+        addUploadFiles(e.target.files);
         e.target.value = '';
+    };
+
+    const resetUpload = () => {
+        setUploadJson(''); setUploadFiles([]); setUploadError(null); setUploadResult(null); setUploadProgress(null);
+    };
+
+    const closeUploadModal = () => {
+        if (isUploading) return;
+        setIsUploadModalOpen(false);
+        resetUpload();
     };
 
     const handleUploadSubmit = async () => {
         setUploadError(null);
-        let parsed: any;
-        try {
-            parsed = JSON.parse(uploadJson);
-        } catch {
-            setUploadError('Invalid JSON — please fix before submitting.');
-            return;
-        }
-        // Reject if the ID already exists in the live stream
-        // Check both top-level id and nested _source.id (OpenSearch envelope format)
-        const rawId = parsed.id || parsed._source?.id || null;
-        const existingId = rawId ? String(rawId) : null;
-        if (existingId && alerts.some(a => a.id === existingId)) {
-            setUploadError(`Alert with ID "${existingId}" already exists in the live stream.`);
+        setUploadResult(null);
+        // Every alert with a label for the summary: the file (and its position), or the pasted text
+        const items: { label: string; alert: any }[] = [];
+        uploadFiles.forEach((f) => f.alerts.forEach((a, i) => items.push({ label: f.alerts.length > 1 ? `${f.name} #${i + 1}` : f.name, alert: a })));
+        if (!pasted.error) pasted.alerts.forEach((a, i) => items.push({ label: pasted.alerts.length > 1 ? `Pasted alert #${i + 1}` : 'Pasted alert', alert: a }));
+        if (!items.length) return;
+        if (items.length > MAX_IMPORT) {
+            setUploadError(`At most ${MAX_IMPORT.toLocaleString('en-US')} alerts per import (this one has ${items.length.toLocaleString('en-US')}).`);
             return;
         }
 
-        // Stamp with uploader info — stored in raw_data, shown in the alert card
-        parsed._injected_by = displayName;
-        parsed._injected_at = new Date().toISOString();
+        // Stamp each alert with who imported it and when: stored in raw_data, shown under the card
+        const stampedAt = new Date().toISOString();
+        const stamp = (a: any) => (a && typeof a === 'object' && !Array.isArray(a)) ? { ...a, _injected_by: displayName, _injected_at: stampedAt } : a;
 
         setIsUploading(true);
+        setUploadProgress({ done: 0, total: items.length });
+        const skipped: { label: string; reason: string }[] = [];
+        let imported = 0;
+        let failed = false;
         try {
-            const res = await fetch(`${apiBase()}/api/alerts/manual-upload`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    ...(token ? { Authorization: `Bearer ${token}` } : {})
-                },
-                body: JSON.stringify(parsed)
-            });
-            const data = await res.json();
-            if (!res.ok) throw new Error(data.detail || 'Upload failed');
-            // Directly inject the returned alert into the live stream state
-            // (avoids relying on the socket new_alert event which may race)
-            if (data.alert) {
-                injectAlert(data.alert);
-                if (scrollRef.current) {
-                    scrollRef.current.scrollTo({ top: 0, behavior: 'smooth' });
-                    setScrollTopState(0);
-                }
+            for (let start = 0; start < items.length; start += IMPORT_BATCH) {
+                const batch = items.slice(start, start + IMPORT_BATCH);
+                const res = await fetch(`${apiBase()}/api/alerts/manual-upload/bulk`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        ...(token ? { Authorization: `Bearer ${token}` } : {})
+                    },
+                    body: JSON.stringify({ alerts: batch.map((item) => stamp(item.alert)) })
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.detail || 'Import failed');
+                // Add the new alerts to the live stream directly (the socket event may race)
+                (data.imported || []).forEach((a: any) => injectAlert(a));
+                imported += (data.imported || []).length;
+                (data.skipped || []).forEach((s: { index: number; reason: string }) =>
+                    skipped.push({ label: batch[s.index]?.label ?? `Alert #${start + s.index + 1}`, reason: s.reason }));
+                setUploadProgress({ done: Math.min(start + IMPORT_BATCH, items.length), total: items.length });
             }
-            setUploadSuccess(true);
-            setUploadJson('');
-            setTimeout(() => { setUploadSuccess(false); setIsUploadModalOpen(false); }, 1500);
         } catch (err: any) {
-            setUploadError(err.message || 'Upload failed');
+            failed = true;
+            setUploadError(err.message || 'Import failed');
         } finally {
             setIsUploading(false);
+            setUploadProgress(null);
+        }
+
+        if (imported && scrollRef.current) {
+            scrollRef.current.scrollTo({ top: 0, behavior: 'smooth' });
+            setScrollTopState(0);
+        }
+        setUploadResult({ imported, skipped });
+        if (imported) { setUploadJson(''); setUploadFiles([]); }
+        // Everything went in: close on its own, as before
+        if (imported && !skipped.length && !failed) {
+            setTimeout(() => { setIsUploadModalOpen(false); resetUpload(); }, 1500);
         }
     };
 
@@ -628,8 +683,8 @@ export const LiveAlertStream: React.FC<LiveAlertStreamProps> = ({ onSelectAlert,
 
             {/* INJECT ALERT BUTTON — top-left corner */}
             <button
-                onClick={() => { setIsUploadModalOpen(!isUploadModalOpen); setIsFilterModalOpen(false); }}
-                title="Inject Alert"
+                onClick={() => { if (isUploadModalOpen) { closeUploadModal(); } else { setIsUploadModalOpen(true); setIsFilterModalOpen(false); } }}
+                title="Import alerts"
                 className={cn(
                     "absolute -top-3 -left-3 z-[110] w-7 h-7 rounded-full flex items-center justify-center border transition-all duration-200 shadow-lg",
                     isUploadModalOpen
@@ -655,67 +710,154 @@ export const LiveAlertStream: React.FC<LiveAlertStreamProps> = ({ onSelectAlert,
                             exit={{ opacity: 0, y: -20 }}
                             transition={{ type: 'spring', damping: 25, stiffness: 350 }}
                             onClick={(e) => e.stopPropagation()}
-                            className="w-full bg-gradient-to-r from-slate-800/70 via-cyan-800/40 to-slate-800/70 backdrop-blur-3xl border-x border-b border-cyan-400/50 rounded-b-2xl shadow-[0_20px_60px_rgba(34,211,238,0.2),inset_0_0_40px_rgba(34,211,238,0.15)] overflow-hidden"
+                            className="w-full max-h-full overflow-y-auto cyber-scrollbar bg-slate-900 border-x border-b border-cyan-500/30 rounded-b-2xl shadow-[0_24px_60px_rgba(0,0,0,0.6)] font-sans"
                         >
                             <div className="p-5 space-y-4">
                                 {/* Header */}
-                                <div className="flex items-center justify-between pb-2 border-b border-cyan-500/30">
-                                    <div className="flex items-center gap-2">
-                                        <FileJson size={10} className="text-cyan-400" />
-                                        <h3 className="text-[9px] font-black text-white uppercase tracking-[0.25em] font-mono drop-shadow-[0_0_8px_rgba(34,211,238,0.6)]">
-                                            Inject Alert
-                                        </h3>
+                                <div className="flex items-start justify-between gap-3">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-9 h-9 rounded-lg border border-cyan-500/30 bg-cyan-500/10 flex items-center justify-center text-cyan-300 shrink-0">
+                                            <FileJson size={17} />
+                                        </div>
+                                        <div>
+                                            <h3 className="text-[14px] font-semibold text-slate-100 leading-tight">Import alerts</h3>
+                                            <p className="text-[11.5px] text-slate-400 mt-0.5">Wazuh alerts, one or many</p>
+                                        </div>
                                     </div>
-                                    <button onClick={() => { setIsUploadModalOpen(false); setUploadError(null); setUploadJson(''); }} className="text-slate-400 hover:text-cyan-400 transition-colors p-1">
-                                        <X size={14} />
+                                    <button onClick={closeUploadModal} title="Close" className="text-slate-500 hover:text-slate-200 hover:bg-slate-800/60 rounded-md transition-colors p-1.5">
+                                        <X size={15} />
                                     </button>
                                 </div>
 
-                                {/* File picker */}
-                                <div>
-                                    <input ref={fileInputRef} type="file" accept=".json,application/json" className="hidden" onChange={handleFileSelect} />
-                                    <button
-                                        onClick={() => fileInputRef.current?.click()}
-                                        className="w-full py-2 border border-dashed border-cyan-500/40 rounded-lg text-[9px] font-bold text-cyan-400/70 hover:border-cyan-400 hover:text-cyan-300 hover:bg-cyan-950/30 transition-all font-mono uppercase tracking-widest flex items-center justify-center gap-2"
-                                    >
-                                        <Upload size={12} />
-                                        Load from .json file
-                                    </button>
+                                {/* Files: picker or drag and drop, several at once */}
+                                <input ref={fileInputRef} type="file" multiple accept=".json,.ndjson,.jsonl,application/json" className="hidden" onChange={handleFileSelect} />
+                                <div
+                                    role="button"
+                                    tabIndex={0}
+                                    onClick={() => fileInputRef.current?.click()}
+                                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fileInputRef.current?.click(); } }}
+                                    onDragOver={(e) => { e.preventDefault(); setIsFileOver(true); }}
+                                    onDragLeave={() => setIsFileOver(false)}
+                                    onDrop={(e) => { e.preventDefault(); setIsFileOver(false); addUploadFiles(e.dataTransfer.files); }}
+                                    className={cn(
+                                        "rounded-xl border border-dashed px-4 py-5 text-center cursor-pointer transition-all outline-none focus-visible:ring-2 focus-visible:ring-cyan-400/50",
+                                        isFileOver ? "border-cyan-400 bg-cyan-500/10" : "border-slate-600/60 bg-slate-950/40 hover:border-cyan-500/50 hover:bg-cyan-500/[0.04]"
+                                    )}
+                                >
+                                    <Upload size={18} className="mx-auto text-cyan-300 mb-2" />
+                                    <p className="text-[12.5px] text-slate-200"><span className="font-semibold text-cyan-300">Choose files</span> or drop them here</p>
+                                    <p className="text-[11px] text-slate-500 mt-1 leading-relaxed">JSON: one alert, a list, Wazuh's alerts.json (one per line) or an OpenSearch export</p>
                                 </div>
 
-                                {/* JSON textarea */}
+                                {uploadFiles.length > 0 && (
+                                    <ul className="space-y-1.5">
+                                        {uploadFiles.map((f, i) => (
+                                            <li key={`${f.name}-${i}`} className="flex items-center gap-2.5 px-3 py-2 rounded-lg bg-slate-800/40 border border-slate-700/50">
+                                                <FileJson size={14} className={f.error ? "text-rose-400 shrink-0" : "text-slate-400 shrink-0"} />
+                                                <span className="text-[12px] text-slate-200 truncate flex-1" title={f.name}>{f.name}</span>
+                                                <span className={cn("text-[11px] whitespace-nowrap", f.error ? "text-rose-300" : "text-slate-400")}>
+                                                    {f.error || `${f.alerts.length.toLocaleString('en-US')} alert${f.alerts.length === 1 ? '' : 's'}`}
+                                                </span>
+                                                <button
+                                                    onClick={() => setUploadFiles((prev) => prev.filter((_, j) => j !== i))}
+                                                    disabled={isUploading}
+                                                    title="Remove"
+                                                    className="text-slate-500 hover:text-slate-200 transition-colors p-0.5 disabled:opacity-40"
+                                                >
+                                                    <X size={13} />
+                                                </button>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                )}
+
+                                {/* Or paste */}
                                 <div className="space-y-1.5">
-                                    <label className="text-[8px] font-black text-cyan-200/60 uppercase tracking-[0.2em] font-mono">Paste JSON Alert</label>
+                                    <div className="flex items-center justify-between gap-2">
+                                        <label htmlFor="import-paste" className="text-[11.5px] font-medium text-slate-400">Or paste JSON</label>
+                                        {uploadJson.trim() && (
+                                            <span className={cn("text-[11px]", pasted.error ? "text-rose-300" : "text-emerald-300")}>
+                                                {pasted.error || `${pasted.alerts.length.toLocaleString('en-US')} alert${pasted.alerts.length === 1 ? '' : 's'} found`}
+                                            </span>
+                                        )}
+                                    </div>
                                     <textarea
+                                        id="import-paste"
                                         value={uploadJson}
-                                        onChange={(e) => { setUploadJson(e.target.value); setUploadError(null); }}
-                                        placeholder={'{\n  "rule": { "level": 10, "description": "..." },\n  "agent": { "name": "workstation-1" }\n}'}
-                                        rows={10}
-                                        className="w-full bg-black/60 border border-cyan-500/30 rounded-lg px-3 py-2 text-[10px] text-cyan-100 font-mono outline-none focus:border-cyan-400 focus:shadow-[0_0_15px_rgba(34,211,238,0.2)] transition-all placeholder:text-cyan-500/20 resize-none custom-scrollbar"
+                                        onChange={(e) => { setUploadJson(e.target.value); setUploadError(null); setUploadResult(null); }}
+                                        placeholder={'{\n  "rule": { "id": "5712", "level": 10, "description": "..." },\n  "agent": { "name": "workstation-1" }\n}'}
+                                        rows={7}
+                                        spellCheck={false}
+                                        className="w-full bg-slate-950/70 border border-slate-700/60 rounded-lg px-3 py-2.5 text-[11.5px] leading-relaxed text-slate-200 font-mono outline-none focus:border-cyan-500/60 focus:ring-2 focus:ring-cyan-500/15 transition-all placeholder:text-slate-600 resize-none cyber-scrollbar"
                                     />
                                 </div>
 
-                                {/* Error / Success */}
+                                {/* Error, or what was imported and what was skipped */}
                                 {uploadError && (
-                                    <p className="text-[9px] font-bold text-rose-400 font-mono tracking-wide">{uploadError}</p>
+                                    <div className="flex items-start gap-2 px-3 py-2.5 rounded-lg bg-rose-500/10 border border-rose-500/30 text-[11.5px] text-rose-200">
+                                        <TriangleAlert size={14} className="shrink-0 mt-px text-rose-300" />
+                                        <span>{uploadError}</span>
+                                    </div>
                                 )}
-                                {uploadSuccess && (
-                                    <p className="text-[9px] font-bold text-emerald-400 font-mono tracking-wide">Alert injected into live stream ✓</p>
+                                {uploadResult && (
+                                    <div className={cn(
+                                        "px-3 py-2.5 rounded-lg border text-[11.5px]",
+                                        uploadResult.skipped.length ? "bg-amber-500/10 border-amber-500/30" : "bg-emerald-500/10 border-emerald-500/30"
+                                    )}>
+                                        <div className="flex items-center gap-2">
+                                            {uploadResult.skipped.length
+                                                ? <TriangleAlert size={14} className="text-amber-300 shrink-0" />
+                                                : <CircleCheck size={14} className="text-emerald-300 shrink-0" />}
+                                            <span className="text-slate-100 font-medium">
+                                                {uploadResult.imported.toLocaleString('en-US')} imported
+                                                {uploadResult.skipped.length > 0 && <span className="text-amber-200"> · {uploadResult.skipped.length.toLocaleString('en-US')} skipped</span>}
+                                            </span>
+                                        </div>
+                                        {uploadResult.skipped.length > 0 && (
+                                            <ul className="mt-2 max-h-28 overflow-y-auto cyber-scrollbar space-y-1 pl-[22px]">
+                                                {uploadResult.skipped.slice(0, 50).map((s, i) => (
+                                                    <li key={i} className="text-[11px] leading-snug">
+                                                        <span className="text-slate-200 font-medium">{s.label}</span>
+                                                        <span className="text-slate-400">: {s.reason}</span>
+                                                    </li>
+                                                ))}
+                                                {uploadResult.skipped.length > 50 && (
+                                                    <li className="text-[11px] text-slate-500">and {(uploadResult.skipped.length - 50).toLocaleString('en-US')} more</li>
+                                                )}
+                                            </ul>
+                                        )}
+                                    </div>
                                 )}
 
-                                {/* Submit */}
-                                <button
-                                    onClick={handleUploadSubmit}
-                                    disabled={isUploading || !uploadJson.trim()}
-                                    className={cn(
-                                        "w-full py-2 text-[9px] font-black rounded-lg border uppercase tracking-[0.25em] transition-all font-mono flex items-center justify-center gap-2",
-                                        isUploading || !uploadJson.trim()
-                                            ? "bg-slate-800/60 border-slate-600/40 text-slate-500 cursor-not-allowed"
-                                            : "bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 border-cyan-500/50 shadow-[0_0_20px_rgba(34,211,238,0.15)] hover:shadow-[0_0_30px_rgba(34,211,238,0.25)] active:scale-[0.98]"
-                                    )}
-                                >
-                                    {isUploading ? <><Loader2 size={10} className="animate-spin" /> Injecting...</> : 'Inject into Live Stream'}
-                                </button>
+                                {/* Footer */}
+                                <div className="flex items-center justify-between gap-3 pt-1">
+                                    <span className="text-[11px] text-slate-500">Imported alerts are not scanned automatically</span>
+                                    <div className="flex items-center gap-2 shrink-0">
+                                        <button
+                                            onClick={closeUploadModal}
+                                            disabled={isUploading}
+                                            className="px-3.5 py-2 rounded-lg text-[12px] font-medium text-slate-300 hover:text-white hover:bg-slate-800/60 transition-colors disabled:opacity-40"
+                                        >
+                                            Cancel
+                                        </button>
+                                        <button
+                                            onClick={handleUploadSubmit}
+                                            disabled={isUploading || !importCount || (!!uploadJson.trim() && !!pasted.error)}
+                                            className={cn(
+                                                "px-4 py-2 rounded-lg text-[12px] font-semibold flex items-center gap-2 transition-all whitespace-nowrap",
+                                                isUploading || !importCount || (!!uploadJson.trim() && !!pasted.error)
+                                                    ? "bg-slate-800/70 text-slate-500 cursor-not-allowed"
+                                                    : "bg-cyan-500 text-slate-950 hover:bg-cyan-400 shadow-[0_8px_20px_-8px_rgba(0,242,234,0.6)] active:scale-[0.98]"
+                                            )}
+                                        >
+                                            {isUploading
+                                                ? <><Loader2 size={13} className="animate-spin" /> Importing {uploadProgress ? `${uploadProgress.done.toLocaleString('en-US')} / ${uploadProgress.total.toLocaleString('en-US')}` : ''}</>
+                                                : importCount
+                                                    ? `Import ${importCount.toLocaleString('en-US')} alert${importCount === 1 ? '' : 's'}`
+                                                    : 'Import'}
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
                         </motion.div>
                     </motion.div>
