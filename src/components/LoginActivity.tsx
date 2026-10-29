@@ -22,7 +22,7 @@ const LogEntryCard = ({ event, formatError }: { event: any, formatError: (s: str
             layout
             initial={{ opacity: 0, scale: 0.99 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="group transition-all duration-300 cursor-pointer bg-white/[0.02] backdrop-blur-md border border-cyan-500/20 rounded-xl px-8 py-2 grid grid-cols-[20%_25%_15%_15%_auto] items-center hover:shadow-[0_0_20px_rgba(103,137,198,0.1)] hover:border-cyan-500/40 relative overflow-hidden shrink-0"
+            className="group transition-all duration-300 cursor-pointer bg-white/[0.02] backdrop-blur-md border border-cyan-500/20 rounded-xl px-8 py-2 grid grid-cols-[20%_25%_15%_15%_auto] items-center hover:shadow-[0_0_20px_rgba(74,134,220,0.1)] hover:border-cyan-500/40 relative overflow-hidden shrink-0"
         >
             <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/0 via-cyan-500/5 to-cyan-500/0 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
             
@@ -208,7 +208,7 @@ export const LoginActivity = () => {
                 {/* MAIN TABLE SECTION */}
                 <div className="flex flex-col flex-1 min-h-0">
                     {/* SEARCH TOOLBAR */}
-                    <div className="p-2 border border-cyan-500/40 shadow-[0_0_20px_rgba(103,137,198,0.15)] flex items-center justify-between bg-white/[0.02] backdrop-blur-md rounded-[32px] mb-4 relative overflow-hidden group/controls">
+                    <div className="p-2 border border-cyan-500/40 shadow-[0_0_20px_rgba(74,134,220,0.15)] flex items-center justify-between bg-white/[0.02] backdrop-blur-md rounded-[32px] mb-4 relative overflow-hidden group/controls">
                         <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/0 via-cyan-500/5 to-cyan-500/0 opacity-0 group-hover/controls:opacity-100 transition-opacity pointer-events-none" />
                         <div className="flex items-center gap-6 w-full px-2">
                             <div className="relative group/search flex-1 max-w-sm">
@@ -231,11 +231,11 @@ export const LoginActivity = () => {
 
                     {/* LIST HEADERS */}
                     <div className="grid grid-cols-[20%_25%_15%_15%_auto] px-8 py-2 mb-1 text-[10px] font-mono font-black text-cyan-400 tracking-[0.3em] relative">
-                        <div className="drop-shadow-[0_0_8px_rgba(131,162,212,0.4)]">TIMESTAMP</div>
-                        <div className="drop-shadow-[0_0_8px_rgba(131,162,212,0.4)]">USERNAME</div>
-                        <div className="drop-shadow-[0_0_8px_rgba(131,162,212,0.4)]">IP ADDRESS</div>
-                        <div className="drop-shadow-[0_0_8px_rgba(131,162,212,0.4)]">TYPE</div>
-                        <div className="text-right drop-shadow-[0_0_8px_rgba(131,162,212,0.4)]">DETAILS</div>
+                        <div className="drop-shadow-[0_0_8px_rgba(101,158,232,0.4)]">TIMESTAMP</div>
+                        <div className="drop-shadow-[0_0_8px_rgba(101,158,232,0.4)]">USERNAME</div>
+                        <div className="drop-shadow-[0_0_8px_rgba(101,158,232,0.4)]">IP ADDRESS</div>
+                        <div className="drop-shadow-[0_0_8px_rgba(101,158,232,0.4)]">TYPE</div>
+                        <div className="text-right drop-shadow-[0_0_8px_rgba(101,158,232,0.4)]">DETAILS</div>
                     </div>
 
                     {/* CONTENT LIST */}

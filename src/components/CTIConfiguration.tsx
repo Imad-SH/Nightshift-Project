@@ -331,16 +331,16 @@ const CTICard = ({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95 }}
             whileHover={{
-                boxShadow: '0 0 0 1px rgba(103,137,198,0.45), 0 16px 40px rgba(0,0,0,0.4), inset 0 1px 0 rgba(103,137,198,0.2)',
+                boxShadow: '0 0 0 1px rgba(74,134,220,0.45), 0 16px 40px rgba(0,0,0,0.4), inset 0 1px 0 rgba(74,134,220,0.2)',
                 y: -2,
-                background: 'linear-gradient(145deg, rgba(103,137,198,0.13) 0%, rgba(86,121,187,0.06) 40%, rgba(2,6,23,0.6) 100%)',
+                background: 'linear-gradient(145deg, rgba(74,134,220,0.13) 0%, rgba(66,119,210,0.06) 40%, rgba(2,6,23,0.6) 100%)',
             }}
             transition={{ duration: 0.2 }}
             className="relative rounded-2xl p-5 flex flex-col gap-4"
             style={{
-                background: 'linear-gradient(145deg, rgba(103,137,198,0.08) 0%, rgba(86,121,187,0.04) 40%, rgba(2,6,23,0.6) 100%)',
-                border: '1px solid rgba(103,137,198,0.25)',
-                boxShadow: '0 0 0 1px rgba(103,137,198,0.06), 0 8px 32px rgba(0,0,0,0.35), inset 0 1px 0 rgba(103,137,198,0.12)',
+                background: 'linear-gradient(145deg, rgba(74,134,220,0.08) 0%, rgba(66,119,210,0.04) 40%, rgba(2,6,23,0.6) 100%)',
+                border: '1px solid rgba(74,134,220,0.25)',
+                boxShadow: '0 0 0 1px rgba(74,134,220,0.06), 0 8px 32px rgba(0,0,0,0.35), inset 0 1px 0 rgba(74,134,220,0.12)',
                 backdropFilter: 'blur(20px)',
             }}
         >
@@ -414,7 +414,7 @@ const CTICard = ({
                                                 ? 'rgba(16,185,129,0.35)'
                                                 : testResult === 'failed'
                                                 ? 'rgba(239,68,68,0.35)'
-                                                : 'rgba(131,162,212,0.35)',
+                                                : 'rgba(101,158,232,0.35)',
                                         }}
                                     >
                                         {/* Downward pointing arrow */}
@@ -426,7 +426,7 @@ const CTICard = ({
                                                     ? 'rgba(16,185,129,0.35)'
                                                     : testResult === 'failed'
                                                     ? 'rgba(239,68,68,0.35)'
-                                                    : 'rgba(131,162,212,0.35)',
+                                                    : 'rgba(101,158,232,0.35)',
                                             }}
                                         />
 
@@ -584,7 +584,7 @@ const CTICard = ({
 
 // ─── Add Custom Source Modal ───────────────────────────────────────────────────
 const PRESET_COLORS = [
-    '#83a2d4', '#4285f4', '#ef4444', '#f97316', '#a855f7',
+    '#659ee8', '#4285f4', '#ef4444', '#f97316', '#a855f7',
     '#16a34a', '#d97706', '#0ea5e9', '#7c3aed', '#94a3b8',
 ];
 
@@ -605,7 +605,7 @@ const AddSourceModal = ({
 }) => {
     const [name, setName] = useState('');
     const [abbr, setAbbr] = useState('');
-    const [color, setColor] = useState('#83a2d4');
+    const [color, setColor] = useState('#659ee8');
     const [website, setWebsite] = useState('');
     const [apiKey, setApiKey] = useState('');
     const [baseUrl, setBaseUrl] = useState('');
@@ -623,7 +623,7 @@ const AddSourceModal = ({
     const reset = () => {
         setName(''); setAbbr(''); setWebsite(''); setApiKey(''); setBaseUrl('');
         setTestEndpoint(''); setAuthType('header'); setAuthParam('X-API-Key');
-        setSelectedTypes([]); setColor('#83a2d4'); setShowKey(false);
+        setSelectedTypes([]); setColor('#659ee8'); setShowKey(false);
         setLogo(''); setLogoUrlMode(false);
     };
 
@@ -631,7 +631,7 @@ const AddSourceModal = ({
         if (editSource) {
             setName(editSource.name || '');
             setAbbr(editSource.abbr || '');
-            setColor(editSource.color || '#83a2d4');
+            setColor(editSource.color || '#659ee8');
             setWebsite(editSource.website || '');
             setApiKey(editSource.apiKey || editSource.currentKey || '');
             setBaseUrl(editSource.baseUrl || '');
@@ -1198,15 +1198,15 @@ export const CTIConfiguration = () => {
                             className="group relative rounded-2xl p-5 flex flex-col items-center justify-center gap-4 min-h-[200px] cursor-pointer overflow-hidden hover:bg-cyan-500/[0.04] transition-colors duration-200"
                             style={{
                                 background: 'transparent',
-                                border: '1px dashed rgba(103,137,198,0.20)',
+                                border: '1px dashed rgba(74,134,220,0.20)',
                             }}
                         >
                             <div
                                 className="w-14 h-14 rounded-2xl flex items-center justify-center transition-all duration-300"
                                 style={{
-                                    background: 'linear-gradient(145deg, rgba(131,162,212,0.15), rgba(131,162,212,0.05))',
-                                    border: '1px solid rgba(131,162,212,0.25)',
-                                    boxShadow: '0 0 20px rgba(131,162,212,0.1)',
+                                    background: 'linear-gradient(145deg, rgba(101,158,232,0.15), rgba(101,158,232,0.05))',
+                                    border: '1px solid rgba(101,158,232,0.25)',
+                                    boxShadow: '0 0 20px rgba(101,158,232,0.1)',
                                 }}
                             >
                                 <Plus size={24} className="text-cyan-400/70 group-hover:text-cyan-300 transition-colors duration-300" />

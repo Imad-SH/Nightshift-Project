@@ -39,12 +39,12 @@ const NavItem: React.FC<NavItemProps> = ({ icon: Icon, label, active, isCollapse
                     }}
                 >
                     {/* Inner glow */}
-                    <div className="absolute inset-0 shadow-[inset_0_0_20px_rgba(103,137,198,0.15)] mix-blend-screen" />
+                    <div className="absolute inset-0 shadow-[inset_0_0_20px_rgba(74,134,220,0.15)] mix-blend-screen" />
 
                     {/* High-tech grid pattern */}
                     <div className="absolute inset-0 opacity-[0.15]"
                         style={{
-                            backgroundImage: "linear-gradient(rgba(103, 137, 198, 1) 1px, transparent 1px), linear-gradient(90deg, rgba(103, 137, 198, 1) 1px, transparent 1px)",
+                            backgroundImage: "linear-gradient(rgba(74, 134, 220, 1) 1px, transparent 1px), linear-gradient(90deg, rgba(74, 134, 220, 1) 1px, transparent 1px)",
                             backgroundSize: "4px 4px"
                         }}
                     />
@@ -60,7 +60,7 @@ const NavItem: React.FC<NavItemProps> = ({ icon: Icon, label, active, isCollapse
 
                 {/* --- LEFT INDICATOR --- */}
                 {/* Main vertical line with strong glow */}
-                <div className="absolute left-0 top-[15%] bottom-[15%] w-[3px] bg-cyan-400 shadow-[0_0_12px_rgba(131,162,212,0.9)] z-[-1] rounded-r-md" />
+                <div className="absolute left-0 top-[15%] bottom-[15%] w-[3px] bg-cyan-400 shadow-[0_0_12px_rgba(101,158,232,0.9)] z-[-1] rounded-r-md" />
                 {/* Technical tick marks */}
                 <div className="absolute left-0 top-0 w-[6px] h-[2px] bg-cyan-300" />
                 <div className="absolute left-0 bottom-0 w-[6px] h-[2px] bg-cyan-300" />
@@ -85,7 +85,7 @@ const NavItem: React.FC<NavItemProps> = ({ icon: Icon, label, active, isCollapse
         <div className={cn(
             "flex-shrink-0 transition-all duration-500 relative z-10",
             !isCollapsed && "mr-4",
-            active ? "scale-110 drop-shadow-[0_0_8px_rgba(131,162,212,0.8)] text-cyan-200 translate-x-1" : "group-hover:scale-110 group-hover:text-cyan-400/70"
+            active ? "scale-110 drop-shadow-[0_0_8px_rgba(101,158,232,0.8)] text-cyan-200 translate-x-1" : "group-hover:scale-110 group-hover:text-cyan-400/70"
         )}>
             <Icon size={isCollapsed ? 22 : 18} strokeWidth={active ? 2.5 : 2} />
         </div>
@@ -93,7 +93,7 @@ const NavItem: React.FC<NavItemProps> = ({ icon: Icon, label, active, isCollapse
         {/* 2. TEXT Content */}
         <span className={cn(
             "text-[12px] font-bold tracking-[0.25em] uppercase font-mono whitespace-nowrap transition-all duration-500 ease-out relative z-10",
-            active ? "text-cyan-50 drop-shadow-[0_0_5px_rgba(131,162,212,0.6)] translate-x-2" : "group-hover:translate-x-1",
+            active ? "text-cyan-50 drop-shadow-[0_0_5px_rgba(101,158,232,0.6)] translate-x-2" : "group-hover:translate-x-1",
             isCollapsed ? "w-0 opacity-0 -translate-x-8 overflow-hidden" : "w-auto opacity-100 translate-x-0"
         )}>
             {label}
@@ -101,7 +101,7 @@ const NavItem: React.FC<NavItemProps> = ({ icon: Icon, label, active, isCollapse
 
         {/* TOOLTIP FOR COLLAPSED STATE */}
         {isCollapsed && (
-            <div className="absolute left-full ml-4 px-3 py-2 bg-slate-900/95 backdrop-blur-md text-[11px] font-bold tracking-widest text-cyan-100 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-[100] border border-cyan-500/40 shadow-[0_0_20px_rgba(103,137,198,0.3)] uppercase font-mono">
+            <div className="absolute left-full ml-4 px-3 py-2 bg-slate-900/95 backdrop-blur-md text-[11px] font-bold tracking-widest text-cyan-100 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-[100] border border-cyan-500/40 shadow-[0_0_20px_rgba(74,134,220,0.3)] uppercase font-mono">
                 <div className="absolute -left-[6px] top-1/2 -translate-y-1/2 border-y-[6px] border-y-transparent border-r-[6px] border-r-cyan-500/40" />
                 {label}
             </div>
@@ -135,14 +135,14 @@ export const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, setIsCollapsed, a
             {/* Logo Area */}
             <div className={cn(
                 "relative h-20 w-full transition-all duration-300 ease-in-out overflow-hidden z-20",
-                "border-b border-cyan-500/50 shadow-[0_4px_15px_rgba(131,162,212,0.3)]"
+                "border-b border-cyan-500/50 shadow-[0_4px_15px_rgba(101,158,232,0.3)]"
             )}>
                 <div className="absolute bottom-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-cyan-300 to-transparent opacity-80" />
 
                 <div className={cn(
                     "relative inset-0 w-full h-full flex items-center justify-center transition-all duration-500 cursor-default",
                     // Brightens an uploaded logo for the dark bar; the Nightshift logo is drawn for it already
-                    customLogo ? "cyber-lighting" : "drop-shadow-[0_0_8px_rgba(103,137,198,0.3)]"
+                    customLogo ? "cyber-lighting" : "drop-shadow-[0_0_8px_rgba(74,134,220,0.3)]"
                 )}>
                     {customLogo ? (
                         <div className={cn(

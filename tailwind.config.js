@@ -27,22 +27,21 @@ export default {
                 input: "hsl(var(--input))",
                 ring: "hsl(var(--ring))",
 
-                // The interface accent: one blue, the navy of the hat in the Nightshift logo (900 #1b336f), and
-                // its lighter shades. Hue ~216-223 so it reads blue (not lavender), and about 45-50 % saturation
-                // so it stays calm for analysts who look at it all day; text shades keep readable contrast.
-                // Kept under the name "cyan" so every existing cyan-* class takes it.
+                // The interface accent (the BlueSec blue). Its shades are CSS variables defined in
+                // src/index.css (--accent-*), so the colour can be tuned there without restarting the dev
+                // server. Kept under the name "cyan" so every existing cyan-* class takes it.
                 cyan: {
-                    50: "#f1f5fb",
-                    100: "#e1e9f5",
-                    200: "#c4d4ec",
-                    300: "#a2bbe0",
-                    400: "#83a2d4",
-                    500: "#6789c6",
-                    600: "#5679bb",
-                    700: "#3f5d9c",
-                    800: "#2e4a85",
-                    900: "#1b336f",
-                    950: "#0e1d42",
+                    50: "rgb(var(--accent-50) / <alpha-value>)",
+                    100: "rgb(var(--accent-100) / <alpha-value>)",
+                    200: "rgb(var(--accent-200) / <alpha-value>)",
+                    300: "rgb(var(--accent-300) / <alpha-value>)",
+                    400: "rgb(var(--accent-400) / <alpha-value>)",
+                    500: "rgb(var(--accent-500) / <alpha-value>)",
+                    600: "rgb(var(--accent-600) / <alpha-value>)",
+                    700: "rgb(var(--accent-700) / <alpha-value>)",
+                    800: "rgb(var(--accent-800) / <alpha-value>)",
+                    900: "rgb(var(--accent-900) / <alpha-value>)",
+                    950: "rgb(var(--accent-950) / <alpha-value>)",
                 },
                 // Cyber Themed Colors
                 cyber: {
@@ -51,7 +50,7 @@ export default {
                     dark: "#0F172A",
                 },
                 neon: {
-                    cyan: "#6789c6",
+                    cyan: "rgb(var(--accent-500) / <alpha-value>)",
                     green: "#22c55e",
                     red: "#f43f5e",
                     amber: "#f59e0b",
