@@ -83,6 +83,7 @@ const CyberNode = ({ data }: any) => {
         const v = (data.results?.verdict || data.verdict || '').toLowerCase();
         if (v === 'malicious') return 'text-rose-500';
         if (v === 'suspicious' || v === 'error') return 'text-amber-400';
+        if (v === 'blocked') return 'text-sky-400';
         if (v === 'clean' || v === 'complete') return 'text-emerald-400';
         return 'text-cyan-400';
     })();
@@ -727,7 +728,7 @@ const CyberNode = ({ data }: any) => {
                                                     <div className="grid grid-cols-2 gap-3 border-b border-cyan-500/10 pb-2">
                                                         <div>
                                                             <div className="text-cyan-600/80 uppercase font-bold text-[9px] mb-0.5 tracking-wider">VERDICT</div>
-                                                            <div className={cn("text-xs font-bold font-mono tracking-tight", data.results.verdict === 'Malicious' ? "text-rose-500" : "text-emerald-500")}>{data.results.verdict || 'Evaluating...'}</div>
+                                                            <div className={cn("text-xs font-bold font-mono tracking-tight", data.results.verdict === 'Malicious' ? "text-rose-500" : data.results.verdict === 'Suspicious' ? "text-amber-400" : data.results.verdict === 'Blocked' ? "text-sky-400" : "text-emerald-500")}>{data.results.verdict || 'Evaluating...'}</div>
                                                         </div>
                                                         <div>
                                                             <div className="text-cyan-600/80 uppercase font-bold text-[9px] mb-0.5 tracking-wider">SEVERITY</div>

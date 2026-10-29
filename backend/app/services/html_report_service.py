@@ -47,6 +47,9 @@ class HTMLReportService:
         elif "SUSPICIOUS" in verdict:
             verdict_color = "#fbbf24"  # Amber
             bg_verdict = "rgba(251, 191, 36, 0.1)"
+        elif "BLOCKED" in verdict:
+            verdict_color = "#38bdf8"  # Sky: a real threat, already stopped
+            bg_verdict = "rgba(56, 189, 248, 0.1)"
         elif "SAFE" in verdict or "BENIGN" in verdict:
             verdict_color = "#10b981"  # Emerald
             bg_verdict = "rgba(16, 185, 129, 0.1)"
