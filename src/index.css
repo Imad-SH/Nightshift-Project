@@ -23,20 +23,19 @@
 
 @layer base {
     :root {
-        /* Interface accent: the BlueSec blue. 900 is the navy of the BlueSec logo (#1c3a90); the lighter
-           shades lean slightly toward the logo's azure so they read blue, never purple, and the text shades
-           (300-500) keep readable contrast on the dark background. Values are "R G B" for Tailwind's cyan-*. */
-        --accent-50: 240 246 254;   /* #f0f6fe */
-        --accent-100: 220 235 252;  /* #dcebfc */
-        --accent-200: 186 214 248;  /* #bad6f8 */
-        --accent-300: 143 186 241;  /* #8fbaf1 */
-        --accent-400: 101 158 232;  /* #659ee8 */
-        --accent-500: 74 134 220;   /* #4a86dc */
-        --accent-600: 66 119 210;   /* #4277d2 */
-        --accent-700: 44 93 186;    /* #2c5dba */
-        --accent-800: 36 73 163;    /* #2449a3 */
-        --accent-900: 28 58 144;    /* #1c3a90 */
-        --accent-950: 15 34 87;     /* #0f2257 */
+        /* Interface accent (Tailwind's cyan-*): the Nightshift cyan. Values are "R G B"; change them here
+           to retune the accent without restarting the dev server. */
+        --accent-50: 236 253 253;   /* #ecfdfd */
+        --accent-100: 207 250 254;  /* #cffafe */
+        --accent-200: 165 243 252;  /* #a5f3fc */
+        --accent-300: 100 248 244;  /* #64f8f4 */
+        --accent-400: 50 245 239;   /* #32f5ef */
+        --accent-500: 0 242 234;    /* #00f2ea, the sign-in colour */
+        --accent-600: 0 218 211;    /* #00dad3 */
+        --accent-700: 0 194 188;    /* #00c2bc */
+        --accent-800: 0 171 165;    /* #00aba5 */
+        --accent-900: 0 78 76;      /* #004e4c */
+        --accent-950: 0 50 48;      /* #003230 */
 
         --background: 222.2 84% 4.9%;
         --foreground: 210 40% 98%;
@@ -78,9 +77,9 @@
     body {
         @apply bg-slate-900 text-foreground antialiased font-sans;
         background-image:
-            radial-gradient(circle at 50% 40%, rgba(44, 93, 186, 0.14) 0%, transparent 65%),
-            linear-gradient(rgba(74, 134, 220, 0.05) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(74, 134, 220, 0.05) 1px, transparent 1px);
+            radial-gradient(circle at 50% 50%, rgba(0, 242, 234, 0.1) 0%, transparent 65%),
+            linear-gradient(rgba(0, 242, 234, 0.15) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(0, 242, 234, 0.15) 1px, transparent 1px);
         background-size: 100% 100%, 40px 40px, 40px 40px;
     }
 }
@@ -112,17 +111,17 @@
 }
 
 .cyber-scrollbar::-webkit-scrollbar-thumb {
-    background: rgba(74, 134, 220, 0.7); /* High visibility thumb */
+    background: rgba(0, 242, 234, 0.7); /* High visibility thumb */
     border-radius: 4px;
     border: 1px solid rgba(0, 0, 0, 0.2);
 }
 
 .cyber-scrollbar::-webkit-scrollbar-thumb:hover {
-    background: rgba(74, 134, 220, 0.9);
+    background: rgba(0, 242, 234, 0.9);
 }
 
 .cyber-scrollbar::-webkit-scrollbar-thumb:hover {
-    background: rgba(74, 134, 220, 0.8);
+    background: rgba(0, 242, 234, 0.8);
     /* Intensified cyan on hover */
 }
 
@@ -174,7 +173,7 @@
 /* Hover Effect */
 .soc-switch-container:hover .soc-slider {
     border-color: #334155;
-    box-shadow: 0 0 10px rgba(74, 134, 220, 0.1), inset 0 0 10px rgba(0, 0, 0, 0.8);
+    box-shadow: 0 0 10px rgba(0, 242, 234, 0.1), inset 0 0 10px rgba(0, 0, 0, 0.8);
 }
 
 /* THE MOVING INDICATOR (Cyber Block) */
@@ -185,8 +184,8 @@
     width: 90px;
     left: 4px;
     bottom: 3px;
-    background: linear-gradient(180deg, rgba(74, 134, 220, 0.1) 0%, rgba(74, 134, 220, 0.05) 100%);
-    border: 1px solid rgba(74, 134, 220, 0.5);
+    background: linear-gradient(180deg, rgba(0, 242, 234, 0.1) 0%, rgba(0, 242, 234, 0.05) 100%);
+    border: 1px solid rgba(0, 242, 234, 0.5);
     transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
     z-index: 1;
 
@@ -195,7 +194,7 @@
             100% calc(100% - 8px), calc(100% - 8px) 100%,
             0 100%, 0 8px);
 
-    box-shadow: 0 0 10px rgba(74, 134, 220, 0.2);
+    box-shadow: 0 0 10px rgba(0, 242, 234, 0.2);
 }
 
 /* Active State (Right Side) */
@@ -231,9 +230,9 @@
 
 /* UNCHECKED (FR Active) */
 .soc-input:not(:checked)~.soc-slider .group-fr .soc-text {
-    color: #4a86dc;
+    color: #00f2ea;
     /* Neon Cyan */
-    text-shadow: 0 0 8px rgba(74, 134, 220, 0.8);
+    text-shadow: 0 0 8px rgba(0, 242, 234, 0.8);
 }
 
 /* CHECKED (ENG Active) */
@@ -287,7 +286,7 @@
 .react-flow__controls-button:hover {
     background-color: #1e293b !important;
     /* slate-800 */
-    color: #4a86dc !important;
+    color: #00f2ea !important;
     /* neon-cyan */
 }
 
@@ -303,11 +302,11 @@
 
     0%,
     100% {
-        filter: brightness(5) contrast(1.25) drop-shadow(0 0 8px rgba(74, 134, 220, 0.6));
+        filter: brightness(5) contrast(1.25) drop-shadow(0 0 8px rgba(0, 242, 234, 0.6));
     }
 
     50% {
-        filter: brightness(2.5) contrast(1.1) drop-shadow(0 0 3px rgba(74, 134, 220, 0.2));
+        filter: brightness(2.5) contrast(1.1) drop-shadow(0 0 3px rgba(0, 242, 234, 0.2));
     }
 }
 
@@ -316,7 +315,7 @@
 }
 
 .cyber-lighting {
-    filter: brightness(4) contrast(1.2) drop-shadow(0 0 8px rgba(74, 134, 220, 0.5));
+    filter: brightness(4) contrast(1.2) drop-shadow(0 0 8px rgba(0, 242, 234, 0.5));
 }
 
 /* =========================================
@@ -327,13 +326,13 @@
     background: transparent;
     @apply backdrop-blur-2xl;
     @apply border-2 border-cyan-500/25;
-    box-shadow: 0 0 20px rgba(74, 134, 220, 0.08), inset 0 0 40px rgba(74, 134, 220, 0.03);
+    box-shadow: 0 0 20px rgba(6, 182, 212, 0.08), inset 0 0 40px rgba(6, 182, 212, 0.03);
 }
 
 .premium-glass {
     background: rgba(10, 25, 47, 0.6);
     backdrop-filter: blur(12px);
-    border: 1px solid rgba(74, 134, 220, 0.2);
+    border: 1px solid rgba(0, 242, 234, 0.2);
     box-shadow:
         inset 0 1px 1px rgba(255, 255, 255, 0.1),
         0 4px 6px -1px rgba(0, 0, 0, 0.1),
@@ -347,7 +346,7 @@
     inset: 0;
     border-radius: inherit;
     padding: 1px;
-    background: linear-gradient(to bottom right, rgba(74, 134, 220, 0.5), transparent);
+    background: linear-gradient(to bottom right, rgba(0, 242, 234, 0.5), transparent);
     -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
     mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
     -webkit-mask-composite: xor;
@@ -452,20 +451,20 @@
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
-    background: rgba(74, 134, 220, 0.4);
+    background: rgba(0, 242, 234, 0.4);
     border-radius: 10px;
-    border: 1px solid rgba(74, 134, 220, 0.1);
+    border: 1px solid rgba(0, 242, 234, 0.1);
     transition: all 0.3s;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-    background: rgba(74, 134, 220, 0.7);
-    box-shadow: 0 0 10px rgba(74, 134, 220, 0.3);
+    background: rgba(0, 242, 234, 0.7);
+    box-shadow: 0 0 10px rgba(0, 242, 234, 0.3);
 }
 
 custom-scrollbar::-webkit-scrollbar-thumb:hover {
-    background: rgba(74, 134, 220, 0.7);
-    box-shadow: 0 0 10px rgba(74, 134, 220, 0.3);
+    background: rgba(0, 242, 234, 0.7);
+    box-shadow: 0 0 10px rgba(0, 242, 234, 0.3);
 }
 
 /* =========================================
@@ -563,17 +562,17 @@ custom-scrollbar::-webkit-scrollbar-thumb:hover {
 
 .micro-grid-bg {
     background-image:
-        linear-gradient(rgba(101, 158, 232, 0.05) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(101, 158, 232, 0.05) 1px, transparent 1px);
+        linear-gradient(rgba(34, 211, 238, 0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(34, 211, 238, 0.05) 1px, transparent 1px);
     background-size: 20px 20px;
 }
 
 .tactical-glow-border {
     position: relative;
-    border: 1px solid rgba(101, 158, 232, 0.2);
+    border: 1px solid rgba(34, 211, 238, 0.2);
     box-shadow:
         0 0 10px rgba(0, 0, 0, 0.5),
-        inset 0 0 15px rgba(101, 158, 232, 0.05);
+        inset 0 0 15px rgba(34, 211, 238, 0.05);
 }
 
 .tactical-glow-border::after {
@@ -583,7 +582,7 @@ custom-scrollbar::-webkit-scrollbar-thumb:hover {
     left: -1px;
     right: -1px;
     bottom: -1px;
-    border: 1px solid rgba(101, 158, 232, 0.4);
+    border: 1px solid rgba(34, 211, 238, 0.4);
     pointer-events: none;
     border-radius: inherit;
     opacity: 0;
@@ -622,7 +621,7 @@ custom-scrollbar::-webkit-scrollbar-thumb:hover {
     left: 0;
     right: 0;
     height: 2px;
-    background: linear-gradient(90deg, transparent, rgba(101, 158, 232, 0.8), transparent);
+    background: linear-gradient(90deg, transparent, rgba(34, 211, 238, 0.8), transparent);
     z-index: 10;
     pointer-events: none;
     opacity: 0;
@@ -635,7 +634,7 @@ custom-scrollbar::-webkit-scrollbar-thumb:hover {
 }
 
 .premium-cyan-glow {
-    text-shadow: 0 0 10px rgba(101, 158, 232, 0.5), 0 0 20px rgba(101, 158, 232, 0.3);
+    text-shadow: 0 0 10px rgba(34, 211, 238, 0.5), 0 0 20px rgba(34, 211, 238, 0.3);
 }
 
 .stat-value-glitch {
@@ -651,7 +650,7 @@ custom-scrollbar::-webkit-scrollbar-thumb:hover {
     width: 100%;
     height: 100%;
     background: transparent;
-    color: rgba(101, 158, 232, 0.4);
+    color: rgba(34, 211, 238, 0.4);
     overflow: hidden;
     clip-path: inset(0 0 0 0);
     animation: glitch-anim 4s infinite linear alternate-reverse;
@@ -698,15 +697,15 @@ custom-scrollbar::-webkit-scrollbar-thumb:hover {
     backdrop-filter: blur(12px) !important;
     padding: 4px !important;
     border-radius: 8px !important;
-    border: 1px solid rgba(101, 158, 232, 0.2) !important;
+    border: 1px solid rgba(34, 211, 238, 0.2) !important;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4) !important;
 }
 
 .cyber-controls .react-flow__controls-button {
     background: rgba(30, 41, 59, 0.5) !important;
-    border: 1px solid rgba(101, 158, 232, 0.2) !important;
+    border: 1px solid rgba(34, 211, 238, 0.2) !important;
     border-radius: 4px !important;
-    color: #659ee8 !important;
+    color: #22d3ee !important;
     padding: 2px !important;
     width: 28px !important;
     height: 28px !important;
@@ -717,14 +716,14 @@ custom-scrollbar::-webkit-scrollbar-thumb:hover {
 }
 
 .cyber-controls .react-flow__controls-button:hover {
-    background: rgba(101, 158, 232, 0.15) !important;
-    border-color: rgba(101, 158, 232, 0.6) !important;
-    box-shadow: 0 0 10px rgba(101, 158, 232, 0.2) !important;
+    background: rgba(34, 211, 238, 0.15) !important;
+    border-color: rgba(34, 211, 238, 0.6) !important;
+    box-shadow: 0 0 10px rgba(34, 211, 238, 0.2) !important;
 }
 
 .cyber-controls .react-flow__controls-button svg {
     fill: currentColor !important;
-    filter: drop-shadow(0 0 2px rgba(101, 158, 232, 0.5));
+    filter: drop-shadow(0 0 2px rgba(34, 211, 238, 0.5));
 }
 
 .cyber-controls .react-flow__controls-button:active {
@@ -757,10 +756,10 @@ custom-scrollbar::-webkit-scrollbar-thumb:hover {
     background: rgba(2, 6, 23, 0.95);
     backdrop-filter: blur(24px);
     -webkit-backdrop-filter: blur(24px);
-    border: 1px solid rgba(101, 158, 232, 0.3);
-    border-top: 3px solid rgba(101, 158, 232, 0.6);
+    border: 1px solid rgba(34, 211, 238, 0.3);
+    border-top: 3px solid rgba(34, 211, 238, 0.6);
     border-radius: 12px;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8), 0 0 20px rgba(101, 158, 232, 0.15);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8), 0 0 20px rgba(34, 211, 238, 0.15);
     min-width: 280px;
     z-index: 99999;
 }
@@ -774,7 +773,7 @@ custom-scrollbar::-webkit-scrollbar-thumb:hover {
     transform: translateX(-50%);
     border-style: solid;
     border-width: 8px 8px 0;
-    border-color: rgba(101, 158, 232, 0.3) transparent transparent;
+    border-color: rgba(34, 211, 238, 0.3) transparent transparent;
 }
 
 /* Inner Triangle Arrow (Slate background) */
@@ -1120,14 +1119,14 @@ custom-scrollbar::-webkit-scrollbar-thumb:hover {
 }
 
 .tactical-tooltip-trigger:hover .tactical-tooltip-icon {
-    @apply border-cyan-500 shadow-[0_0_10px_rgba(74,134,220,0.3)];
+    @apply border-cyan-500 shadow-[0_0_10px_rgba(6,182,212,0.3)];
 }
 
 .tactical-tooltip-content {
     @apply absolute top-full left-1/2 -translate-x-1/2 mt-3 px-4 py-3 bg-slate-950/95 backdrop-blur-xl border border-cyan-500/50 rounded-xl 
            text-[10px] font-mono font-bold leading-relaxed text-cyan-100 uppercase tracking-widest whitespace-normal 
            w-[320px] opacity-0 pointer-events-none transition-all duration-500 transform -translate-y-2 translate-x-[-50%] text-center z-[10000];
-    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 0 15px rgba(74,134,220,0.1);
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 0 15px rgba(6,182,212,0.1);
 }
 
 .tactical-tooltip-trigger:hover .tactical-tooltip-content {
@@ -1179,8 +1178,8 @@ custom-scrollbar::-webkit-scrollbar-thumb:hover {
     padding: 24px;
     background: rgba(15, 23, 42, 0.4);
     border-radius: 50%;
-    border: 1px solid rgba(74, 134, 220, 0.2);
-    box-shadow: 0 0 50px rgba(0, 0, 0, 0.5), inset 0 0 30px rgba(101, 158, 232, 0.05);
+    border: 1px solid rgba(0, 242, 234, 0.2);
+    box-shadow: 0 0 50px rgba(0, 0, 0, 0.5), inset 0 0 30px rgba(34, 211, 238, 0.05);
     width: min-content;
     margin: 40px auto;
     backdrop-filter: blur(10px);
@@ -1198,7 +1197,7 @@ custom-scrollbar::-webkit-scrollbar-thumb:hover {
     width: 220px;
     height: 220px;
     outline: none;
-    border: 2px solid rgba(101, 158, 232, 0.25);
+    border: 2px solid rgba(34, 211, 238, 0.25);
     background: rgba(2, 6, 23, 0.85);
     backdrop-filter: blur(20px);
     transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
@@ -1225,7 +1224,7 @@ custom-scrollbar::-webkit-scrollbar-thumb:hover {
     scale: 1.08;
     background: rgba(15, 23, 42, 0.95);
     z-index: 50;
-    box-shadow: 0 0 40px rgba(101, 158, 232, 0.3), inset 0 0 20px rgba(101, 158, 232, 0.1);
+    box-shadow: 0 0 40px rgba(34, 211, 238, 0.3), inset 0 0 20px rgba(34, 211, 238, 0.1);
 }
 
 .cti-circle-card.malicious:hover {
@@ -1234,7 +1233,7 @@ custom-scrollbar::-webkit-scrollbar-thumb:hover {
 }
 
 .cti-circle-card.safe:hover {
-    border-color: rgba(101, 158, 232, 0.8);
+    border-color: rgba(34, 211, 238, 0.8);
 }
 
 /* =========================================
@@ -1246,16 +1245,16 @@ custom-scrollbar::-webkit-scrollbar-thumb:hover {
     width: 20px;
     height: 20px;
     border-radius: 50%;
-    background: #659ee8;
+    background: #22d3ee;
     border: 2px solid #0f172a;
     cursor: pointer;
-    box-shadow: 0 0 15px rgba(101, 158, 232, 0.8), inset 0 0 5px rgba(255, 255, 255, 0.5);
+    box-shadow: 0 0 15px rgba(34, 211, 238, 0.8), inset 0 0 5px rgba(255, 255, 255, 0.5);
     transition: transform 0.1s;
 }
 
 .cyber-range-slider::-webkit-slider-thumb:hover {
     transform: scale(1.2);
-    box-shadow: 0 0 20px rgba(101, 158, 232, 1), inset 0 0 5px rgba(255, 255, 255, 0.8);
+    box-shadow: 0 0 20px rgba(34, 211, 238, 1), inset 0 0 5px rgba(255, 255, 255, 0.8);
 }
 
 .custom-dual-range::-webkit-slider-thumb {
@@ -1264,10 +1263,10 @@ custom-scrollbar::-webkit-scrollbar-thumb:hover {
     width: 20px;
     height: 20px;
     border-radius: 50%;
-    background: #659ee8;
+    background: #22d3ee;
     border: 2px solid #0f172a;
     cursor: pointer;
-    box-shadow: 0 0 15px rgba(101, 158, 232, 0.8), inset 0 0 5px rgba(255, 255, 255, 0.5);
+    box-shadow: 0 0 15px rgba(34, 211, 238, 0.8), inset 0 0 5px rgba(255, 255, 255, 0.5);
     pointer-events: auto; /* Re-enable pointer events just for the thumb */
     position: relative;
     z-index: 20;
@@ -1276,6 +1275,6 @@ custom-scrollbar::-webkit-scrollbar-thumb:hover {
 
 .custom-dual-range::-webkit-slider-thumb:hover {
     transform: scale(1.2);
-    box-shadow: 0 0 20px rgba(101, 158, 232, 1), inset 0 0 5px rgba(255, 255, 255, 0.8);
+    box-shadow: 0 0 20px rgba(34, 211, 238, 1), inset 0 0 5px rgba(255, 255, 255, 0.8);
     z-index: 30; /* Bring hovered thumb to front */
 }

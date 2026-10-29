@@ -37,7 +37,7 @@ export const XRayInspector: React.FC<XRayInspectorProps> = ({ selectedAlertId })
                 {/* Dynamic Glowing Top Edge */}
                 <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-cyan-400/50 to-transparent"></div>
                 {/* Scanline Pattern */}
-                <div className="absolute inset-0 opacity-[0.03] bg-[linear-gradient(0deg,transparent_24%,#659ee8_25%,#659ee8_26%,transparent_27%,transparent_74%,#659ee8_75%,#659ee8_76%,transparent_77%,transparent)] bg-[length:4px_4px]"></div>
+                <div className="absolute inset-0 opacity-[0.03] bg-[linear-gradient(0deg,transparent_24%,#22d3ee_25%,#22d3ee_26%,transparent_27%,transparent_74%,#22d3ee_75%,#22d3ee_76%,transparent_77%,transparent)] bg-[length:4px_4px]"></div>
                 {/* Side Bracket / Light Bar */}
                 <div className="absolute top-0 left-0 w-[3px] h-full bg-cyan-500/70"></div>
 
