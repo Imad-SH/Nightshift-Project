@@ -40,13 +40,12 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, acti
                 {/* 1. The Radial Gradient (The "Spotlight") */}
                 <div className="absolute top-[-50%] left-[-50%] right-[-50%] bottom-[-50%] 
                                 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] 
-                                from-[#00f2ea]/15 via-slate-900/40 to-slate-900 
+                                from-[#475ea8]/20 via-slate-900/40 to-slate-900
                                 opacity-70"></div>
-                {/* 2. The Grid Pattern (With Fade Mask) */}
-                <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(0,242,234,0.2)_1px,transparent_1px),linear-gradient(to_bottom,rgba(0,242,234,0.2)_1px,transparent_1px)] 
-                                bg-[size:4rem_4rem] 
-                                [mask-image:radial-gradient(ellipse_80%_80%_at_50%_50%,#000_40%,transparent_100%)]
-                                filter drop-shadow-[0_0_2px_rgba(0,242,234,0.3)]">
+                {/* 2. The Grid Pattern (With Fade Mask), kept faint so the panels lead */}
+                <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(111,139,230,0.06)_1px,transparent_1px),linear-gradient(to_bottom,rgba(111,139,230,0.06)_1px,transparent_1px)]
+                                bg-[size:4rem_4rem]
+                                [mask-image:radial-gradient(ellipse_80%_80%_at_50%_50%,#000_40%,transparent_100%)]">
                 </div>
                 {/* 3. The "Stars" / Noise Texture */}
                 <div className="absolute inset-0 bg-[url('/assets/noise.svg')] opacity-20 brightness-100 contrast-150 mix-blend-overlay"></div>

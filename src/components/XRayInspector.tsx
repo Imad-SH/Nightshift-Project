@@ -37,9 +37,9 @@ export const XRayInspector: React.FC<XRayInspectorProps> = ({ selectedAlertId })
                 {/* Dynamic Glowing Top Edge */}
                 <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-cyan-400/50 to-transparent"></div>
                 {/* Scanline Pattern */}
-                <div className="absolute inset-0 opacity-[0.03] bg-[linear-gradient(0deg,transparent_24%,#22d3ee_25%,#22d3ee_26%,transparent_27%,transparent_74%,#22d3ee_75%,#22d3ee_76%,transparent_77%,transparent)] bg-[length:4px_4px]"></div>
+                <div className="absolute inset-0 opacity-[0.03] bg-[linear-gradient(0deg,transparent_24%,#8aa2ee_25%,#8aa2ee_26%,transparent_27%,transparent_74%,#8aa2ee_75%,#8aa2ee_76%,transparent_77%,transparent)] bg-[length:4px_4px]"></div>
                 {/* Side Bracket / Light Bar */}
-                <div className="absolute top-0 left-0 w-1 h-full bg-cyan-500 shadow-[0_0_12px_rgba(34,211,238,0.8)]"></div>
+                <div className="absolute top-0 left-0 w-1 h-full bg-cyan-500 shadow-[0_0_12px_rgba(138,162,238,0.8)]"></div>
 
                 {/* Decorative corner cutouts / UI noise */}
                 <div className="absolute right-0 top-0 w-16 h-full bg-gradient-to-l from-cyan-500/5 to-transparent pointer-events-none"></div>
@@ -48,12 +48,12 @@ export const XRayInspector: React.FC<XRayInspectorProps> = ({ selectedAlertId })
                 <div className="flex items-center gap-4 relative z-10">
                     {/* Cyber Core Indicator (Static) */}
                     <div className="relative flex h-3 w-3 items-center justify-center">
-                        <div className="relative inline-flex h-1.5 w-1.5 bg-cyan-300 transform rotate-45 shadow-[0_0_10px_rgba(34,211,238,1)]"></div>
+                        <div className="relative inline-flex h-1.5 w-1.5 bg-cyan-300 transform rotate-45 shadow-[0_0_10px_rgba(138,162,238,1)]"></div>
                     </div>
 
                     {/* Text */}
                     <div className="flex flex-col justify-center">
-                        <h2 className="text-[13px] font-black text-transparent bg-clip-text bg-gradient-to-r from-white via-cyan-100 to-cyan-300 uppercase tracking-[0.25em] font-mono filter drop-shadow-[0_0_8px_rgba(34,211,238,0.5)]">
+                        <h2 className="text-[13px] font-black text-transparent bg-clip-text bg-gradient-to-r from-white via-cyan-100 to-cyan-300 uppercase tracking-[0.25em] font-mono filter drop-shadow-[0_0_8px_rgba(138,162,238,0.5)]">
                             ACTIONS
                         </h2>
                     </div>

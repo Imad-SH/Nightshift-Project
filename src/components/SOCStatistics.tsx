@@ -108,12 +108,12 @@ const MITREBarChart = ({ timeframe, startDate, endDate, monthlyNavigator }: any)
                                 className={cn(
                                     "w-[90%] rounded-t-[4px] transition-all duration-300 group-hover:brightness-125 relative",
                                     item.count > 0 
-                                        ? "bg-gradient-to-t from-cyan-600/80 to-cyan-400 shadow-[0_0_10px_rgba(34,211,238,0.2)]" 
+                                        ? "bg-gradient-to-t from-cyan-600/80 to-cyan-400 shadow-[0_0_10px_rgba(138,162,238,0.2)]" 
                                         : "bg-transparent"
                                 )}
                             >
                                  {item.count > 0 && (
-                                    <div className="absolute -top-7 left-1/2 -translate-x-1/2 text-[8px] font-mono font-black text-cyan-400 whitespace-nowrap bg-slate-900/90 px-1.5 py-0.5 rounded-sm border border-cyan-500/30 z-10 shadow-[0_0_10px_rgba(34,211,238,0.15)] flex flex-col items-center justify-center">
+                                    <div className="absolute -top-7 left-1/2 -translate-x-1/2 text-[8px] font-mono font-black text-cyan-400 whitespace-nowrap bg-slate-900/90 px-1.5 py-0.5 rounded-sm border border-cyan-500/30 z-10 shadow-[0_0_10px_rgba(138,162,238,0.15)] flex flex-col items-center justify-center">
                                         <span>{item.count}</span>
                                         <div className="absolute -bottom-2.5 left-1/2 -translate-x-1/2 w-[1px] h-2.5 bg-cyan-500/40" />
                                     </div>
@@ -121,7 +121,7 @@ const MITREBarChart = ({ timeframe, startDate, endDate, monthlyNavigator }: any)
                             </motion.div>
                         </div>
                         <div className="w-full relative h-[100px] xl:h-[120px] mt-3 shrink-0">
-                            <div className="absolute top-0 right-1/2 -translate-x-1.5 text-[6.5px] xl:text-[7.5px] font-mono font-black text-cyan-400 drop-shadow-[0_0_8px_rgba(34,211,238,0.4)] uppercase tracking-[0.2em] pointer-events-none whitespace-nowrap origin-top-right -rotate-[60deg]">
+                            <div className="absolute top-0 right-1/2 -translate-x-1.5 text-[6.5px] xl:text-[7.5px] font-mono font-black text-cyan-400 drop-shadow-[0_0_8px_rgba(138,162,238,0.4)] uppercase tracking-[0.2em] pointer-events-none whitespace-nowrap origin-top-right -rotate-[60deg]">
                                 {item.tactic}
                             </div>
                         </div>
@@ -188,7 +188,7 @@ const SeverityDonutChart = ({ alerts, timeFilter, monthlyNavigator, startDate, e
                 { id: 'high', label: 'High (10-12)', count: serverStats.high, color: '#fb7185', fillClass: 'fill-rose-500', bgClass: 'bg-rose-500' },
                 { id: 'medium', label: 'Medium (7-9)', count: serverStats.medium, color: '#f97316', fillClass: 'fill-orange-500', bgClass: 'bg-orange-500' },
                 { id: 'low', label: 'Low (4-6)', count: serverStats.low, color: '#eab308', fillClass: 'fill-yellow-500', bgClass: 'bg-yellow-500' },
-                { id: 'info', label: 'Info (0-3)', count: serverStats.info, color: '#22d3ee', fillClass: 'fill-cyan-400', bgClass: 'bg-cyan-400' }
+                { id: 'info', label: 'Info (0-3)', count: serverStats.info, color: '#8aa2ee', fillClass: 'fill-cyan-400', bgClass: 'bg-cyan-400' }
             ]
         };
     }, [serverStats]);
@@ -370,10 +370,10 @@ const StatCard = ({ label, value, sub, color, tooltip, isLoading }: any) => (
             <div className="flex items-center justify-between mb-3">
                 <span className="text-[9px] font-mono font-black text-slate-300 uppercase tracking-[0.3em]">{label}</span>
                 <div className="relative group/tooltip flex items-center justify-center">
-                    <Info size={14} className="text-slate-500 cursor-help transition-all duration-300 group-hover/tooltip:text-cyan-400 group-hover/tooltip:drop-shadow-[0_0_10px_rgba(34,211,238,0.8)]" />
+                    <Info size={14} className="text-slate-500 cursor-help transition-all duration-300 group-hover/tooltip:text-cyan-400 group-hover/tooltip:drop-shadow-[0_0_10px_rgba(138,162,238,0.8)]" />
                     
                     <div className="absolute top-full right-[-4px] mt-3 w-56 opacity-0 group-hover/tooltip:opacity-100 -translate-y-2 group-hover/tooltip:translate-y-0 pointer-events-none transition-all duration-300 z-50">
-                        <div className="bg-slate-900 backdrop-blur-xl border border-cyan-500/50 rounded-xl shadow-[0_20px_40px_rgba(0,0,0,0.8),0_0_20px_rgba(34,211,238,0.2)] p-3.5 text-[9.5px] font-mono text-cyan-50 leading-relaxed text-left relative">
+                        <div className="bg-slate-900 backdrop-blur-xl border border-cyan-500/50 rounded-xl shadow-[0_20px_40px_rgba(0,0,0,0.8),0_0_20px_rgba(138,162,238,0.2)] p-3.5 text-[9.5px] font-mono text-cyan-50 leading-relaxed text-left relative">
                             <div className="absolute -top-1.5 right-[9px] w-3 h-3 bg-slate-900 border-t border-l border-cyan-500/50 rotate-45 rounded-[1px]" />
                             <div className="relative z-10">{tooltip}</div>
                         </div>
@@ -384,7 +384,7 @@ const StatCard = ({ label, value, sub, color, tooltip, isLoading }: any) => (
                 {isLoading ? (
                     <div className="h-6 w-24 bg-slate-700/50 rounded animate-pulse mt-1 mb-1" />
                 ) : (
-                    <h4 className={cn("text-xl 2xl:text-2xl font-mono font-black tracking-tighter drop-shadow-[0_0_12px_rgba(34,211,238,0.3)] leading-tight line-clamp-2", color === 'text-cyan-400' ? 'text-white' : color)}>{value}</h4>
+                    <h4 className={cn("text-xl 2xl:text-2xl font-mono font-black tracking-tighter drop-shadow-[0_0_12px_rgba(138,162,238,0.3)] leading-tight line-clamp-2", color === 'text-cyan-400' ? 'text-white' : color)}>{value}</h4>
                 )}
                 <div className="mt-1.5 flex items-center gap-2">
                     <div className="h-[1px] w-3 bg-cyan-500/30" />
@@ -527,7 +527,7 @@ export const SOCStatistics: React.FC = () => {
                                         </button>
                                         
                                         <div className="flex flex-col items-center min-w-[124px]">
-                                            <span className="text-[13px] font-mono font-black text-white uppercase tracking-[0.4em] drop-shadow-[0_0_10px_rgba(34,211,238,0.3)]">
+                                            <span className="text-[13px] font-mono font-black text-white uppercase tracking-[0.4em] drop-shadow-[0_0_10px_rgba(138,162,238,0.3)]">
                                                 {format(monthlyNavigator, 'MMMM')}
                                             </span>
                                             <span className="text-[8px] font-mono font-bold text-cyan-500/50 uppercase tracking-[0.2em] mt-0.5">
@@ -657,9 +657,9 @@ export const SOCStatistics: React.FC = () => {
                                         <div className="flex items-center gap-2">
                                             <img src="/assets/mitre_attack_logo.png" alt="MITRE ATT&CK" className="h-3.5 object-contain mt-1" />
                                             <div className="relative group/tooltip flex items-center justify-center">
-                                                <Info size={13} className="text-slate-500 cursor-help transition-all duration-300 group-hover/tooltip:text-cyan-400 group-hover/tooltip:drop-shadow-[0_0_10px_rgba(34,211,238,0.8)]" />
+                                                <Info size={13} className="text-slate-500 cursor-help transition-all duration-300 group-hover/tooltip:text-cyan-400 group-hover/tooltip:drop-shadow-[0_0_10px_rgba(138,162,238,0.8)]" />
                                                 <div className="absolute top-full left-0 mt-3 w-64 opacity-0 group-hover/tooltip:opacity-100 -translate-y-2 group-hover/tooltip:translate-y-0 pointer-events-none transition-all duration-300 z-50">
-                                                    <div className="bg-slate-900 backdrop-blur-xl border border-cyan-500/50 rounded-xl shadow-[0_20px_40px_rgba(0,0,0,0.8),0_0_20px_rgba(34,211,238,0.2)] p-3.5 text-[9.5px] font-mono text-cyan-50 leading-relaxed text-left relative">
+                                                    <div className="bg-slate-900 backdrop-blur-xl border border-cyan-500/50 rounded-xl shadow-[0_20px_40px_rgba(0,0,0,0.8),0_0_20px_rgba(138,162,238,0.2)] p-3.5 text-[9.5px] font-mono text-cyan-50 leading-relaxed text-left relative">
                                                         <div className="absolute -top-1.5 left-[9px] w-3 h-3 bg-slate-900 border-t border-l border-cyan-500/50 rotate-45 rounded-[1px]" />
                                                         <div className="relative z-10">Maps detected alerts to the MITRE ATT&CK® framework — a globally recognized knowledge base of adversary tactics and techniques. Each bar represents a tactical phase of the ATT&CK version in use (e.g. Initial Access, Credential Access) and shows how many alerts were classified under it over the selected period.</div>
                                                     </div>

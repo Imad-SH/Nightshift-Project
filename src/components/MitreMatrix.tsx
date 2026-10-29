@@ -212,7 +212,7 @@ export const MitreMatrix = ({
                 onMouseEnter={handleTooltipMouseEnter}
                 onMouseLeave={handleMouseLeave}
             >
-                <div className="bg-slate-900/98 backdrop-blur-xl border border-cyan-500/50 rounded-xl shadow-[0_20px_40px_rgba(0,0,0,0.8),0_0_20px_rgba(34,211,238,0.2)] p-4 relative max-h-[85vh] flex flex-col">
+                <div className="bg-slate-900/98 backdrop-blur-xl border border-cyan-500/50 rounded-xl shadow-[0_20px_40px_rgba(0,0,0,0.8),0_0_20px_rgba(138,162,238,0.2)] p-4 relative max-h-[85vh] flex flex-col">
                     <div 
                         className={cn(
                             "absolute w-3 h-3 bg-slate-800 rotate-45 rounded-[1px] transition-all duration-200 z-0",
@@ -290,13 +290,13 @@ export const MitreMatrix = ({
     };
 
     return (
-        <div className="h-full w-full flex flex-col p-6 bg-gradient-to-br from-slate-900/80 via-cyan-950/20 to-slate-900/80 backdrop-blur-2xl border-[2px] border-cyan-500/30 rounded-[40px] shadow-[0_20px_50px_rgba(0,0,0,0.5),inset_0_0_30px_rgba(34,211,238,0.05)] relative overflow-hidden">
+        <div className="h-full w-full flex flex-col p-6 bg-gradient-to-br from-slate-900/80 via-cyan-950/20 to-slate-900/80 backdrop-blur-2xl border-[2px] border-cyan-500/30 rounded-[40px] shadow-[0_20px_50px_rgba(0,0,0,0.5),inset_0_0_30px_rgba(138,162,238,0.05)] relative overflow-hidden">
             {/* Subtle Grid Overlay */}
-            <div className="absolute inset-0 bg-[linear-gradient(rgba(34,211,238,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(34,211,238,0.03)_1px,transparent_1px)] bg-[size:20px_20px] pointer-events-none" />
+            <div className="absolute inset-0 bg-[linear-gradient(rgba(138,162,238,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(138,162,238,0.03)_1px,transparent_1px)] bg-[size:20px_20px] pointer-events-none" />
             
             <div className="flex items-center justify-between mb-6 shrink-0 relative z-50">
                 <div>
-                    <h2 className="text-2xl font-mono font-black text-white uppercase tracking-[0.3em] flex items-center gap-3 drop-shadow-[0_0_15px_rgba(34,211,238,0.5)]">
+                    <h2 className="text-2xl font-mono font-black text-white uppercase tracking-[0.3em] flex items-center gap-3 drop-shadow-[0_0_15px_rgba(138,162,238,0.5)]">
                         MITRE ATT&CK® Matrix
                     </h2>
                     <div className="flex items-center gap-3 mt-2 flex-wrap">
@@ -387,7 +387,7 @@ export const MitreMatrix = ({
                                 </svg>
                             </button>
                         </div>
-                        <div className="min-w-[45px] text-[10px] font-mono font-black text-white text-center tabular-nums bg-cyan-500/10 px-2 py-1 rounded-md border border-cyan-500/20 shadow-[0_0_10px_rgba(34,211,238,0.1)]">
+                        <div className="min-w-[45px] text-[10px] font-mono font-black text-white text-center tabular-nums bg-cyan-500/10 px-2 py-1 rounded-md border border-cyan-500/20 shadow-[0_0_10px_rgba(138,162,238,0.1)]">
                             {Math.round(zoom * 100)}%
                         </div>
                     </div>
@@ -403,13 +403,13 @@ export const MitreMatrix = ({
                 </div>
             </div>
             
-            <div className="flex-1 overflow-x-auto overflow-y-auto cyber-scrollbar rounded-2xl bg-slate-900/50 backdrop-blur-xl border border-cyan-500/30 shadow-[inset_0_0_30px_rgba(34,211,238,0.05)] relative z-10">
+            <div className="flex-1 overflow-x-auto overflow-y-auto cyber-scrollbar rounded-2xl bg-slate-900/50 backdrop-blur-xl border border-cyan-500/30 shadow-[inset_0_0_30px_rgba(138,162,238,0.05)] relative z-10">
                 <div className="flex w-max min-w-full" style={{ zoom: zoom }}>
                     {matrix.map((tactic) => (
                         <div key={tactic.id} className="flex flex-col w-[230px] border-r border-cyan-500/20 last:border-r-0 bg-transparent">
                             {/* Tactic Header */}
                             <div className="bg-gradient-to-b from-slate-800/90 to-slate-900/90 p-4 border-b border-cyan-500/40 border-t-2 border-t-transparent hover:border-t-cyan-400 sticky top-0 z-20 shadow-[0_10px_20px_rgba(0,0,0,0.3)] backdrop-blur-md transition-all duration-300">
-                                <div className="text-[11px] font-mono font-black text-cyan-400 uppercase tracking-widest leading-tight drop-shadow-[0_0_8px_rgba(34,211,238,0.3)]">{tactic.name}</div>
+                                <div className="text-[11px] font-mono font-black text-cyan-400 uppercase tracking-widest leading-tight drop-shadow-[0_0_8px_rgba(138,162,238,0.3)]">{tactic.name}</div>
                                 <div className="text-[9px] font-mono font-bold text-slate-400 mt-1.5">{tactic.techniques.length} techniques</div>
                             </div>
                             
@@ -431,7 +431,7 @@ export const MitreMatrix = ({
                                                     "p-3 rounded-xl text-[10px] font-mono border transition-all duration-300 relative cursor-crosshair group/tech",
                                                     isActive 
                                                         ? "bg-gradient-to-br from-rose-500/20 to-rose-950/50 border-rose-500/60 text-white shadow-[0_0_20px_rgba(244,63,94,0.15)] hover:shadow-[0_0_25px_rgba(244,63,94,0.3)] hover:border-rose-400" 
-                                                        : "bg-slate-800/40 border-slate-600/40 text-slate-300 hover:border-cyan-400/50 hover:text-cyan-100 hover:bg-slate-800/70 hover:shadow-[0_0_15px_rgba(34,211,238,0.2)]"
+                                                        : "bg-slate-800/40 border-slate-600/40 text-slate-300 hover:border-cyan-400/50 hover:text-cyan-100 hover:bg-slate-800/70 hover:shadow-[0_0_15px_rgba(138,162,238,0.2)]"
                                                 )}
                                                 onMouseEnter={(e) => handleMouseEnter(tech, e, false)}
                                                 onMouseLeave={handleMouseLeave}
@@ -478,7 +478,7 @@ export const MitreMatrix = ({
                                                                     "p-2 rounded-lg text-[9px] font-mono border transition-all duration-300 relative cursor-crosshair group/sub",
                                                                     isSubActive 
                                                                         ? "bg-gradient-to-r from-rose-500/15 to-transparent border-rose-500/30 text-rose-100 hover:border-rose-400/50" 
-                                                                        : "bg-slate-800/30 border-slate-700/40 text-slate-400 hover:text-cyan-100 hover:bg-slate-800/60 hover:border-cyan-500/30 hover:shadow-[0_0_10px_rgba(34,211,238,0.1)]"
+                                                                        : "bg-slate-800/30 border-slate-700/40 text-slate-400 hover:text-cyan-100 hover:bg-slate-800/60 hover:border-cyan-500/30 hover:shadow-[0_0_10px_rgba(138,162,238,0.1)]"
                                                                 )}
                                                                 onMouseEnter={(e) => {
                                                                     e.stopPropagation();

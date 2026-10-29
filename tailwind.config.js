@@ -27,18 +27,21 @@ export default {
                 input: "hsl(var(--input))",
                 ring: "hsl(var(--ring))",
 
+                // The interface accent: the Nightshift / BlueSec blues (700 #475ea8, 900 #233987, 950 #111d54),
+                // with lighter tints that stay readable on the dark background. Kept under the name "cyan"
+                // so every existing cyan-* class takes the brand colour.
                 cyan: {
-                    50: "#ecfdfd",
-                    100: "#cffafe",
-                    200: "#a5f3fc",
-                    300: "#64f8f4",
-                    400: "#32f5ef",
-                    500: "#00f2ea", // The exact login color
-                    600: "#00dad3",
-                    700: "#00c2bc",
-                    800: "#00aba5",
-                    900: "#004e4c",
-                    950: "#003230",
+                    50: "#f1f4fd",
+                    100: "#e2e8fb",
+                    200: "#c9d4f7",
+                    300: "#a9bbf3",
+                    400: "#8aa2ee",
+                    500: "#6f8be6",
+                    600: "#617ddb",
+                    700: "#475ea8",
+                    800: "#36498f",
+                    900: "#233987",
+                    950: "#111d54",
                 },
                 // Cyber Themed Colors
                 cyber: {
@@ -47,7 +50,7 @@ export default {
                     dark: "#0F172A",
                 },
                 neon: {
-                    cyan: "#00f2ea",
+                    cyan: "#6f8be6",
                     green: "#22c55e",
                     red: "#f43f5e",
                     amber: "#f59e0b",
@@ -55,8 +58,9 @@ export default {
             },
             fontFamily: {
                 mono: ["JetBrains Mono", "Menlo", "Monaco", "Courier New", "monospace"],
-                sans: ["Outfit", "Inter", "system-ui", "sans-serif"],
-                outfit: ["Outfit", "sans-serif"],
+                sans: ["Geist", "Segoe UI", "system-ui", "sans-serif"],
+                // former display font: now the same typeface as the rest of the interface
+                outfit: ["Geist", "Segoe UI", "system-ui", "sans-serif"],
             },
             animation: {
                 "pulse-glow": "pulse-glow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite",

@@ -68,7 +68,7 @@ interface CyberCardProps {
 
 function CyberCard({ icon: Icon, title, subtitle, color, onClick, hasPlaceholder, imageSrc, centralIcon: CentralIcon, hideCornerIcon, isScanning, noAnimation }: CyberCardProps) {
     const colorMap: Record<CyberCardProps['color'], string> = {
-        cyan: 'border-cyan-500/50 text-cyan-400 hover:border-cyan-300 hover:text-cyan-200 hover:shadow-[0_0_20px_rgba(34,211,238,0.3)] bg-cyan-950/20',
+        cyan: 'border-cyan-500/50 text-cyan-400 hover:border-cyan-300 hover:text-cyan-200 hover:shadow-[0_0_20px_rgba(138,162,238,0.3)] bg-cyan-950/20',
         amber: 'border-amber-500/50 text-amber-400 hover:border-amber-300 hover:text-amber-200 hover:shadow-[0_0_20px_rgba(251,191,36,0.3)] bg-amber-950/20',
         red: 'border-rose-500/50 text-rose-400 hover:border-rose-300 hover:text-rose-200 hover:shadow-[0_0_25px_rgba(244,63,94,0.4)] bg-rose-950/20',
         slate: 'border-slate-500/50 text-slate-400 hover:border-slate-300 hover:text-white hover:shadow-[0_0_15px_rgba(148,163,184,0.1)] bg-slate-900/40',
@@ -113,7 +113,7 @@ function CyberCard({ icon: Icon, title, subtitle, color, onClick, hasPlaceholder
                                     maskPosition: 'center',
                                     filter: `drop-shadow(0 0 10px ${color === 'amber' ? 'rgba(251,191,36,0.8)' :
                                         color === 'red' ? 'rgba(244,63,94,0.8)' :
-                                            color === 'cyan' ? 'rgba(34,211,238,0.8)' :
+                                            color === 'cyan' ? 'rgba(138,162,238,0.8)' :
                                                 'rgba(148,163,184,0.4)'
                                         })`
                                 }}
@@ -730,7 +730,7 @@ export const ActionConsole: React.FC<ActionConsoleProps> = ({ alert, isScanning 
                                         {/* AI Analysis — always cyan */}
                                         <button
                                             onClick={() => { setShowPreEscalateModal(false); handleInitiateScan(); }}
-                                            className="relative p-4 rounded-xl border text-left transition-all duration-200 bg-cyan-500/5 border-cyan-500/25 hover:bg-cyan-500/15 hover:border-cyan-400/60 hover:shadow-[0_0_20px_rgba(34,211,238,0.15)] group"
+                                            className="relative p-4 rounded-xl border text-left transition-all duration-200 bg-cyan-500/5 border-cyan-500/25 hover:bg-cyan-500/15 hover:border-cyan-400/60 hover:shadow-[0_0_20px_rgba(138,162,238,0.15)] group"
                                         >
                                             <div className="w-9 h-9 rounded-lg flex items-center justify-center mb-3 bg-cyan-500/10 border border-cyan-500/30 group-hover:bg-cyan-500/20 transition-colors">
                                                 <Play size={16} className="text-cyan-400 fill-cyan-400" />
