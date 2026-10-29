@@ -23,6 +23,25 @@ def _unwrap(payload: Dict[str, Any]) -> Dict[str, Any]:
     return payload
 
 
+def is_wazuh_alert(payload: Any) -> bool:
+    """True when the JSON is a Wazuh alert, as Wazuh writes it (alerts.json) or exported from OpenSearch:
+    a rule with an id, a numeric level and a description. Manual imports use it to refuse other files;
+    the intake from the Wazuh manager stays lenient and recovers partial alerts."""
+    if not isinstance(payload, dict):
+        return False
+    rule = _unwrap(payload).get("rule")
+    if not isinstance(rule, dict):
+        return False
+    level = rule.get("level")
+    if isinstance(level, bool):
+        return False
+    try:
+        int(level)
+    except (TypeError, ValueError):
+        return False
+    return bool(str(rule.get("id") or "").strip()) and bool(str(rule.get("description") or "").strip())
+
+
 def _parse(alert: Dict[str, Any]) -> WazuhAlert:
     try:
         return WazuhAlert(**alert)

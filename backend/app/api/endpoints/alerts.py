@@ -135,13 +135,14 @@ async def get_dashboard_kpis(
 @router.post("/manual-upload")
 async def manual_alert_upload(request: Request, db: AsyncSession = Depends(get_db)):
     """
-    Manually inject a JSON alert into the live stream: same intake as SIEM alerts, without an AI scan.
-    Wazuh alerts (raw, or OpenSearch exports of them) are recognized; any other JSON goes through
-    the generic webhook mapping.
+    Manually inject a Wazuh alert into the live stream: same intake as SIEM alerts, without an AI scan.
+    Accepts a Wazuh alert as Wazuh writes it (alerts.json) or an OpenSearch export of one; any other
+    JSON is refused, so a random file never shows up as an alert.
     """
     import uuid
     from datetime import datetime, timezone
     from app.connectors import registry
+    from app.connectors.siem.wazuh import is_wazuh_alert
     from app.services import ingest
 
     try:
@@ -166,6 +167,13 @@ async def manual_alert_upload(request: Request, db: AsyncSession = Depends(get_d
     else:
         alert_data = raw_json
 
+    if not is_wazuh_alert(alert_data):
+        raise HTTPException(
+            status_code=400,
+            detail="This file is not a Wazuh alert. Import an alert as Wazuh writes it (alerts.json), "
+                   "with a rule that has an id, a level and a description.",
+        )
+
     # Assign a unique ID only if the JSON has none
     if not alert_data.get('id'):
         alert_data['id'] = f"manual-{uuid.uuid4().hex[:12]}"
@@ -174,8 +182,7 @@ async def manual_alert_upload(request: Request, db: AsyncSession = Depends(get_d
     if not alert_data.get('timestamp') and not alert_data.get('@timestamp'):
         alert_data['timestamp'] = datetime.now(timezone.utc).isoformat().replace('+00:00', 'Z')
 
-    is_wazuh = any(k in alert_data for k in ('rule', 'agent', 'decoder'))
-    connector = registry.SIEM['wazuh' if is_wazuh else 'webhook']
+    connector = registry.SIEM['wazuh']
     try:
         result = await ingest.ingest(db, connector, alert_data, trigger_scan=False, origin="manual")
     except ValueError as e:

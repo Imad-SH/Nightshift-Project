@@ -3,6 +3,7 @@ from datetime import timezone
 import pytest
 
 from app.connectors import registry
+from app.connectors.siem.wazuh import is_wazuh_alert
 from app.core import credentials
 
 wazuh = registry.SIEM["wazuh"]
@@ -33,6 +34,21 @@ def test_wazuh_unwraps_envelopes(envelope):
 
 def test_wazuh_ids_stay_unprefixed_for_existing_alerts():
     assert wazuh.alert_id("123.456") == "123.456"
+
+
+@pytest.mark.parametrize("payload, expected", [
+    (WAZUH_ALERT, True),
+    ({"_source": WAZUH_ALERT}, True),  # OpenSearch export
+    ({"rule": {"id": "91556", "level": "12", "description": "Office 365: Phishing"}}, True),
+    ({"app": "LZT Keyword Scanner", "format": 1, "source": {"url": "https://example.com"}}, False),
+    ({"agent": {"name": "web-01"}}, False),
+    ({"rule": {"level": 3}}, False),
+    ({"rule": {"id": "1", "level": "high", "description": "x"}}, False),
+    ({"rule": {"id": "1", "level": True, "description": "x"}}, False),
+    (["not", "an", "object"], False),
+])
+def test_manual_import_accepts_only_wazuh_alerts(payload, expected):
+    assert is_wazuh_alert(payload) is expected
 
 
 def test_wazuh_partial_alert_is_recovered():

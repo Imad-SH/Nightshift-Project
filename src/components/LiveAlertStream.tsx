@@ -2,7 +2,7 @@ import React from 'react';
 import { useSocket } from '../hooks/useSocket';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from './DashboardLayout';
-import { Loader2, Filter, X, Plus, Upload, FileJson } from 'lucide-react';
+import { Loader2, Filter, X, Plus, Upload, FileJson, User as UserIcon } from 'lucide-react';
 import { useSocAuth } from '../contexts/AuthContext';
 import type { Alert, SocketEvent } from '../types';
 import { apiBase } from '../config';
@@ -71,8 +71,12 @@ const AlertItem = React.memo(({
         setIsCopied(true);
         setTimeout(() => setIsCopied(false), 2000);
     };
-    
+
+    // Alerts imported by hand name the user in a tab under the card
+    const injectedBy: string | undefined = (alert as any).rawData?._injected_by;
+
     return (
+        <div className="h-full flex flex-col">
         <motion.div
             initial={{ x: -10, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
@@ -82,7 +86,7 @@ const AlertItem = React.memo(({
             onClick={() => onSelect(alert.id)}
             data-alert-id={alert.id}
             className={cn(
-                "group relative h-full pt-2 pb-3 px-4 rounded-xl cursor-pointer transition-all duration-300 ease-out",
+                "group relative flex-1 min-h-0 pt-2 pb-3 px-4 rounded-xl cursor-pointer transition-all duration-300 ease-out",
                 "backdrop-blur-2xl border flex flex-col shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_8px_20px_-12px_rgba(0,0,0,0.6)] hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.07),0_14px_30px_-14px_rgba(0,0,0,0.75)]",
                 sev.bg,
                 sev.border,
@@ -117,7 +121,6 @@ const AlertItem = React.memo(({
                 <div className="flex items-center gap-2">
                     <div className="relative group/time">
                         {(() => {
-                            const injectedBy = (alert as any).rawData?._injected_by;
                             const injectedAt = (alert as any).rawData?._injected_at;
                             const baseDate = injectedAt ? new Date(injectedAt) : new Date(alert.timestamp);
                             const now = new Date();
@@ -134,9 +137,10 @@ const AlertItem = React.memo(({
                                 : `${diffDays} days ago`;
 
                             if (injectedBy) {
+                                // Time since it was added; the tab under the card names the user
                                 return (
-                                    <span className="font-mono text-[10.5px] tracking-wide whitespace-nowrap text-cyan-300 cursor-help">
-                                        Added by <span className="font-bold">{injectedBy}</span> · {relative}
+                                    <span className={cn("font-mono text-[10.5px] tracking-wide opacity-90 transition-colors whitespace-nowrap cursor-help", sev.time)}>
+                                        {relative}
                                     </span>
                                 );
                             }
@@ -263,6 +267,23 @@ const AlertItem = React.memo(({
                 </div>
             </div>
         </motion.div>
+        {/* Who imported the alert: a tab attached under the card, on the right */}
+        {injectedBy && (
+            <div
+                onClick={() => onSelect(alert.id)}
+                title={`Imported by ${injectedBy}`}
+                className={cn(
+                    "self-end mr-6 -mt-px flex items-center gap-1.5 h-[22px] px-3 rounded-b-lg border border-t-0 cursor-pointer",
+                    "bg-slate-900/85 backdrop-blur-2xl text-[10.5px] shadow-[0_8px_16px_-10px_rgba(0,0,0,0.7)] transition-colors",
+                    isSelected ? sev.hover.replace('hover:', '') : sev.border
+                )}
+            >
+                <UserIcon size={11} strokeWidth={2.2} className={sev.time} />
+                <span className="text-slate-400">Added by</span>
+                <span className="font-semibold text-slate-100">{injectedBy}</span>
+            </div>
+        )}
+        </div>
     );
 });
 
@@ -381,7 +402,7 @@ export const LiveAlertStream: React.FC<LiveAlertStreamProps> = ({ onSelectAlert,
             // Heuristic height calculation: Adjusted for p-3.5 and tighter spacing
             const charsPerLine = 38; 
             const titleLines = Math.ceil((alert.title?.length || 10) / charsPerLine);
-            const height = 96 + (Math.max(1, titleLines) * 21); 
+            const height = 96 + (Math.max(1, titleLines) * 21) + ((alert as any).rawData?._injected_by ? 21 : 0); // + the "Added by" tab
             heights.push(height);
             currentOffset += height + MARGIN;
         });
