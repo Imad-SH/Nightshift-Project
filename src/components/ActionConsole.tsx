@@ -64,11 +64,9 @@ interface CyberCardProps {
     hideCornerIcon?: boolean;
     isScanning?: boolean;
     noAnimation?: boolean;
-    /** Icon tile colour when the icon has a colour of its own (the red PDF icon), instead of the card's accent */
-    iconTile?: string;
 }
 
-function CyberCard({ icon: Icon, title, subtitle, color, onClick, hasPlaceholder, imageSrc, centralIcon: CentralIcon, hideCornerIcon, isScanning, noAnimation, iconTile }: CyberCardProps) {
+function CyberCard({ icon: Icon, title, subtitle, color, onClick, hasPlaceholder, imageSrc, centralIcon: CentralIcon, hideCornerIcon, isScanning, noAnimation }: CyberCardProps) {
     // One accent per action: a tinted gradient surface, a gradient icon tile, and a glow on hover
     const colorMap: Record<CyberCardProps['color'], { card: string; tile: string; glow: string; chip: string }> = {
         cyan: {
@@ -83,7 +81,7 @@ function CyberCard({ icon: Icon, title, subtitle, color, onClick, hasPlaceholder
         },
         red: {
             card: 'border-rose-500/30 from-rose-500/[0.14] via-slate-900/50 to-slate-900/70 hover:border-rose-400/70 hover:shadow-[0_14px_34px_-14px_rgba(244,63,94,0.55)]',
-            tile: 'text-rose-100 from-rose-400/35 to-rose-700/20 border-rose-400/40 shadow-[0_6px_16px_-6px_rgba(244,63,94,0.55)]',
+            tile: 'text-red-400 from-rose-400/30 to-rose-700/15 border-rose-400/40 shadow-[0_6px_16px_-6px_rgba(244,63,94,0.55)]',
             glow: 'bg-rose-400/20', chip: 'group-hover:text-rose-200 group-hover:border-rose-400/50',
         },
         slate: {
@@ -122,7 +120,7 @@ function CyberCard({ icon: Icon, title, subtitle, color, onClick, hasPlaceholder
             {/* Fine highlight along the top edge */}
             <div className="pointer-events-none absolute inset-x-4 top-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
 
-            <div className={cn("relative shrink-0 w-11 h-11 rounded-xl border bg-gradient-to-br flex items-center justify-center transition-transform duration-300 group-hover:scale-105", iconTile || tone.tile)}>
+            <div className={cn("relative shrink-0 w-11 h-11 rounded-xl border bg-gradient-to-br flex items-center justify-center transition-transform duration-300 group-hover:scale-105", tone.tile)}>
                 {hasPlaceholder && imageSrc ? (
                     isScanning ? (
                         <Loader2 size={18} className="animate-spin" />
@@ -885,8 +883,7 @@ export const ActionConsole: React.FC<ActionConsoleProps> = ({ alert, isScanning 
                         icon={Download}
                         title="Export PDF report"
                         subtitle="Download the investigation"
-                        color="teal"
-                        iconTile="text-[#f0443a] from-white/[0.10] to-white/[0.03] border-rose-400/35 shadow-[0_6px_16px_-6px_rgba(240,68,58,0.45)]"
+                        color="red"
                         hasPlaceholder
                         imageSrc="/assets/PDF Icon.png"
                         onClick={handleExportReport}
