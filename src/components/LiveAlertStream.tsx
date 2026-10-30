@@ -2,7 +2,7 @@ import React from 'react';
 import { useSocket } from '../hooks/useSocket';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from './DashboardLayout';
-import { Loader2, Filter, X, Plus, Upload, FileJson, User as UserIcon, TriangleAlert, CircleCheck } from 'lucide-react';
+import { Loader2, Filter, X, Plus, Upload, FileJson, User as UserIcon, TriangleAlert, CircleCheck, Webhook } from 'lucide-react';
 import { useSocAuth } from '../contexts/AuthContext';
 import type { Alert, SocketEvent } from '../types';
 import { apiBase } from '../config';
@@ -246,27 +246,42 @@ const AlertItem = React.memo(({
             </div>
 
             {/* FOOTER DATA */}
-            <div className="flex items-center justify-between mt-2 pt-2 border-t border-white/[0.07] transition-colors flex-none">
-                <div className={cn("flex items-center gap-2 text-[10px] transition-colors", sev.time)}>
-                    <span className={cn("w-1.5 h-1.5 rounded-full transition-colors shrink-0", sev.dot)}></span>
-                    <div className="relative group/agent">
-                        <span className="font-mono truncate max-w-[120px] block group-hover/agent:hidden">
-                            {alert.agent || 'Win-Agent-01'}
-                        </span>
-                        <span className="font-mono hidden group-hover/agent:block whitespace-nowrap">
-                            {alert.agent || 'Win-Agent-01'}
-                        </span>
-                    </div>
-                </div>
+            <div className="flex items-center justify-between gap-2 mt-2 pt-2 border-t border-white/[0.07] transition-colors flex-none">
+                {/* Where the alert came from: who imported it, or the system that detected it (the agent is in the tooltip and Alert Details) */}
+                {(() => {
+                    const system = String((alert as any).source_system || 'wazuh').toLowerCase();
+                    const origin = injectedBy ? { verb: 'Added by', who: injectedBy, hint: `Imported by ${injectedBy}` }
+                        : system === 'wazuh' ? { verb: 'Detected by', who: 'Wazuh', hint: `Detected by Wazuh on ${alert.agent || 'an unknown agent'}` }
+                        : system === 'webhook' ? { verb: 'Received via', who: 'Webhook', hint: `Received via webhook from ${alert.agent || 'an unknown source'}` }
+                        : system === 'manual' ? { verb: 'Added', who: 'manually', hint: 'Imported by hand' }
+                        : { verb: 'Detected by', who: system.charAt(0).toUpperCase() + system.slice(1), hint: `Detected by ${system} on ${alert.agent || 'an unknown agent'}` };
+                    return (
+                        <div title={origin.hint} className={cn("inline-flex items-stretch min-w-0 h-[22px] rounded-md border overflow-hidden shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]", sev.border)}>
+                            <span className={cn("flex items-center justify-center px-1.5 border-r shrink-0", sev.badge)}>
+                                {injectedBy || system === 'manual' ? (
+                                    <UserIcon size={11} strokeWidth={2.4} />
+                                ) : system === 'wazuh' ? (
+                                    <span className="w-3 h-3 bg-current" style={{ WebkitMaskImage: 'url("/assets/Wazuh Logo.png")', maskImage: 'url("/assets/Wazuh Logo.png")', WebkitMaskSize: 'contain', maskSize: 'contain', WebkitMaskRepeat: 'no-repeat', maskRepeat: 'no-repeat', WebkitMaskPosition: 'center', maskPosition: 'center' }} />
+                                ) : (
+                                    <Webhook size={11} strokeWidth={2.4} />
+                                )}
+                            </span>
+                            <span className="flex items-center gap-1 min-w-0 px-2 bg-slate-950/50 text-[10.5px]">
+                                <span className="text-slate-400 shrink-0">{origin.verb}</span>
+                                <span className="font-semibold text-slate-100 truncate">{origin.who}</span>
+                            </span>
+                        </div>
+                    );
+                })()}
 
-                <div className="relative group/id">
+                <div className="relative group/id shrink-0">
                     <motion.div
                         layout
                         onClick={handleCopy}
                         whileHover={{ scale: 1.05 }}
                         className={cn(
                             "font-mono font-medium text-[10px] tracking-tight transition-all duration-300",
-                            "cursor-pointer bg-white/[0.03] hover:bg-cyan-500/15 px-2 py-0.5 rounded-md border border-white/10 hover:border-cyan-400/40",
+                            "cursor-pointer bg-white/[0.03] hover:bg-cyan-500/15 px-2 h-[22px] flex items-center rounded-md border border-white/10 hover:border-cyan-400/40",
                             "group-hover/id:shadow-[0_0_15px_rgba(6,182,212,0.3)]",
                             isCopied ? "bg-emerald-500/20 text-emerald-400 border-emerald-500/40" : sev.time
                         )}
@@ -285,22 +300,6 @@ const AlertItem = React.memo(({
                 </div>
             </div>
         </motion.div>
-        {/* Who imported the alert: a tab attached under the card, on the right */}
-        {injectedBy && (
-            <div
-                onClick={() => onSelect(alert.id)}
-                title={`Imported by ${injectedBy}`}
-                className={cn(
-                    "self-end mr-6 -mt-px flex items-center gap-1.5 h-[22px] px-3 rounded-b-lg border border-t-0 cursor-pointer",
-                    "bg-slate-900/85 backdrop-blur-2xl text-[10.5px] shadow-[0_8px_16px_-10px_rgba(0,0,0,0.7)] transition-colors",
-                    isSelected ? sev.hover.replace('hover:', '') : sev.border
-                )}
-            >
-                <UserIcon size={11} strokeWidth={2.2} className={sev.time} />
-                <span className="text-slate-400">Added by</span>
-                <span className="font-semibold text-slate-100">{injectedBy}</span>
-            </div>
-        )}
         </div>
     );
 });
@@ -461,7 +460,7 @@ export const LiveAlertStream: React.FC<LiveAlertStreamProps> = ({ onSelectAlert,
             // Heuristic height calculation: Adjusted for p-3.5 and tighter spacing
             const charsPerLine = 38; 
             const titleLines = Math.ceil((alert.title?.length || 10) / charsPerLine);
-            const estimate = 96 + (Math.max(1, titleLines) * 21) + ((alert as any).rawData?._injected_by ? 21 : 0); // + the "Added by" tab
+            const estimate = 96 + (Math.max(1, titleLines) * 21);
             // Grow, never shrink, to what the rendered card measured
             const height = Math.max(estimate, Math.ceil(neededHeights[alert.id] ?? 0));
             heights.push(height);
