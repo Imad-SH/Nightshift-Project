@@ -1,6 +1,9 @@
 <div align="center">
 
-# Nightshift
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset=".github/assets/nightshift-logo-white.png">
+  <img src=".github/assets/nightshift-logo-navy.png" alt="Nightshift" width="380">
+</picture>
 
 ### The AI analyst that never clocks out.
 
@@ -10,7 +13,7 @@ escalates the real threats to your team.
 
 ![Version](https://img.shields.io/badge/version-1.0.0-0ea5e9)
 ![Deployment](https://img.shields.io/badge/deployment-on--premises-14b8a6)
-![SIEM](https://img.shields.io/badge/SIEM-Wazuh%20%7C%20any%20via%20webhook-22d3ee)
+![SIEM](https://img.shields.io/badge/SIEM-Wazuh-22d3ee)
 ![License](https://img.shields.io/badge/license-proprietary-64748b)
 
 <img src=".github/assets/dashboard.png" alt="Nightshift live alert dashboard with an alert investigation open" width="900">
