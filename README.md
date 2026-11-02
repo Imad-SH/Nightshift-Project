@@ -27,13 +27,28 @@ Security teams drown in alerts. Most are noise, and the few that matter wait in 
 queue behind them. Nightshift does the first pass of every investigation for you,
 around the clock, so analysts spend their time on real incidents.
 
-| | |
-|---|---|
-| **⚡ Instant triage** | Every alert is analyzed within seconds of arriving, nights and weekends included. |
-| **🔍 Real investigations** | Indicators are extracted, checked against threat intelligence and compared with your own environment's history before any conclusion is drawn. |
-| **⚖️ Clear verdicts** | *Malicious*, *Suspicious* or *False Positive*, with a confidence score, the key evidence, MITRE ATT&CK mapping and recommended mitigation steps. |
-| **🚨 Automatic escalation** | Confirmed threats become cases in your case-management system, with the full analysis attached. |
-| **🔒 Your data stays yours** | Runs on your own server. Use a local AI model and nothing leaves your network. No telemetry. |
+<table>
+<tr>
+<td width="64" align="center"><picture><source media="(prefers-color-scheme: dark)" srcset=".github/assets/icons/triage-dark.svg"><img src=".github/assets/icons/triage-light.svg" width="40" height="40" alt=""></picture></td>
+<td><b>Instant triage</b><br/>Every alert is analyzed within seconds of arriving, nights and weekends included.</td>
+</tr>
+<tr>
+<td width="64" align="center"><picture><source media="(prefers-color-scheme: dark)" srcset=".github/assets/icons/investigate-dark.svg"><img src=".github/assets/icons/investigate-light.svg" width="40" height="40" alt=""></picture></td>
+<td><b>Real investigations</b><br/>Indicators are extracted, checked against threat intelligence and compared with your own environment's history before any conclusion is drawn.</td>
+</tr>
+<tr>
+<td width="64" align="center"><picture><source media="(prefers-color-scheme: dark)" srcset=".github/assets/icons/verdict-dark.svg"><img src=".github/assets/icons/verdict-light.svg" width="40" height="40" alt=""></picture></td>
+<td><b>Clear verdicts</b><br/><i>Malicious</i>, <i>Suspicious</i> or <i>False Positive</i>, with a confidence score, the key evidence, MITRE ATT&amp;CK mapping and recommended mitigation steps.</td>
+</tr>
+<tr>
+<td width="64" align="center"><picture><source media="(prefers-color-scheme: dark)" srcset=".github/assets/icons/escalate-dark.svg"><img src=".github/assets/icons/escalate-light.svg" width="40" height="40" alt=""></picture></td>
+<td><b>Automatic escalation</b><br/>Confirmed threats become cases in your case-management system, with the full analysis attached.</td>
+</tr>
+<tr>
+<td width="64" align="center"><picture><source media="(prefers-color-scheme: dark)" srcset=".github/assets/icons/privacy-dark.svg"><img src=".github/assets/icons/privacy-light.svg" width="40" height="40" alt=""></picture></td>
+<td><b>Your data stays yours</b><br/>Runs on your own server. Use a local AI model and nothing leaves your network. No telemetry.</td>
+</tr>
+</table>
 
 ## How it works
 
